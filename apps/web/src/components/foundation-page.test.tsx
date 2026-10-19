@@ -1,16 +1,13 @@
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
-import { PRODUCT_NAME } from "@lyrx/shared"
+import { MissingBackendNotice } from "./foundation-page"
 
-import { FoundationPage } from "./foundation-page"
+describe("account foundation page", () => {
+  it("renders the backend configuration limitation without faking integrations", () => {
+    const html = renderToStaticMarkup(<MissingBackendNotice />)
 
-describe("foundation page", () => {
-  it("renders the French foundation status without claiming a product feature", () => {
-    const html = renderToStaticMarkup(<FoundationPage />)
-
-    expect(html).toContain(PRODUCT_NAME.replace("'", "&#x27;"))
-    expect(html).toContain("La fondation web est prête")
-    expect(html).toContain("leurs lots dédiés")
+    expect(html).toContain("Aucune intégration simulée")
+    expect(html).toContain("Aucun déploiement")
   })
 })

@@ -6,7 +6,9 @@
 - pnpm 11 through Corepack or a compatible global installation
 - Git
 
-No hosted account is required for the foundation lot.
+A hosted account is not required for the automated checks. Trying live account
+flows requires a Convex development deployment and provider configuration as
+described in [authentication.md](authentication.md).
 
 ## Install and run
 
@@ -15,8 +17,15 @@ pnpm install
 pnpm dev
 ```
 
-The root development command starts the web workspace. Backend and mobile
-commands will be added only when their respective lots create executable apps.
+The root development command starts the web workspace. In a second terminal,
+start Convex after selecting a development deployment:
+
+```bash
+pnpm --filter @lyrx/backend dev
+```
+
+Without the three public `VITE_` values, the web app deliberately renders a
+configuration notice and does not simulate an auth backend.
 
 ## Verification
 
@@ -32,6 +41,17 @@ pnpm check
 `pnpm check` is the handoff gate and runs the non-destructive automated checks.
 For interface lots, supplement it with browser checks at desktop and mobile
 widths. Backend and mobile lots add deployment- or device-specific evidence.
+
+Backend-specific commands:
+
+```bash
+pnpm --filter @lyrx/backend auth:schema
+pnpm --filter @lyrx/backend convex:codegen
+```
+
+The first command regenerates the repository-owned Better Auth schema. The
+second requires a configured Convex deployment and replaces the documented
+bootstrap generated types.
 
 ## Environment policy
 

@@ -38,6 +38,32 @@ not duplicated as trust decisions in clients.
 5. Store implementation research under `docs/research/`; decisions in this file
    remain the concise source of truth.
 
+## Account and profile decisions
+
+1. Pin `@convex-dev/better-auth@0.12.5` with `better-auth@1.6.33`; keep the
+   Better Auth component and generated schema local to the repository while the
+   published adapter remains the integration boundary.
+2. Proxy Better Auth through the TanStack Start catch-all route and isolate all
+   server helpers from client modules. Google and transactional email are
+   capability-gated from typed Convex environment values.
+3. Store authentication users in the Better Auth component and product
+   authorization in application tables: `members`, `profiles`, and
+   `artistProfiles`. Fan/Artist, administrator, credited identity, and future
+   verification badges remain separate concepts.
+4. Require a verified email before onboarding and active-member authorization
+   before profile writes. Suspended profiles disappear from public queries and
+   every protected mutation rejects them server-side.
+5. Keep first-admin assignment internal and single-use. No client-facing path
+   can promote an account.
+6. Store only Convex storage identifiers for avatar and banner images. Validate
+   MIME type and size before attaching them, delete rejected/replaced files, and
+   resolve URLs only for public reads.
+7. Use HTTPS allowlists for named social providers and HTTPS-only custom links.
+   Public profile queries project only fields intended for anonymous readers.
+
+Operational setup and the evidence boundary are documented in
+[authentication.md](authentication.md).
+
 ## External prerequisites not yet available
 
 - Convex deployment configuration.

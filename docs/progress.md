@@ -2,7 +2,8 @@
 
 ## Active lot
 
-**None. Lot 1 is delivered locally and awaiting user direction.**
+**None. Lot 2 is delivered locally and awaiting external configuration or user
+approval for lot 3.**
 
 ## Evidence checklist
 
@@ -16,6 +17,17 @@
 - [x] Two fresh reviewers completed independent product/UX and engineering
       reviews. Their two P2 findings were corrected and reverified.
 - [x] The branch and commit state are recorded at handoff.
+- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 13 tests, and all
+      production builds.
+- [x] Convex-specific review found no unauthenticated public write, unindexed
+      application query, missing function validator, or client-controlled admin
+      promotion path.
+- [x] The no-backend state was inspected in Chrome desktop and a narrow in-app
+      viewport; navigation is responsive, the limitation is explicit, and the
+      browser console has no warning or error.
+- [x] The auth proxy returns a structured HTTP 503 when deployment configuration
+      is absent, and the production client bundle contains no explicit Node or
+      TanStack server-module import.
 
 ## Completed lots
 
@@ -35,15 +47,48 @@ Delivered on 2026-10-19 on `chore/foundation-monorepo`.
   `docs/specification.md`; made ESLint/TypeScript root configs invalidate Turbo
   cache; moved the page component out of the route to restore code splitting.
 
+### Lot 2 — Backend, auth, roles, and profiles
+
+Implemented locally on 2026-10-19 on `feat/backend-auth-profiles`.
+
+- Repository-owned Better Auth component with generated schema, Convex HTTP
+  routes, TanStack Start proxy/provider wiring, and exact compatible dependency
+  pins (`@convex-dev/better-auth@0.12.5`, `better-auth@1.6.33`).
+- Email/password registration, verification and reset callbacks, conditional
+  Google sign-in, secure explicit Google linking, sign-out, and truthful
+  capability states when external providers are absent.
+- Verified-email onboarding into immutable Fan or Artist roles; separate
+  administrator flag with single-use internal bootstrap; active/suspended
+  server authorization.
+- Unique public handles, editable fan/artist profiles, allowlisted social and
+  custom links, public projections, avatar/banner Convex storage with type/size
+  validation and replacement cleanup.
+- shadcn-based account, onboarding, profile, loading, empty, error, unavailable,
+  and suspension states. The Corail visual system remains reserved for lot 3.
+- Automated Convex authorization/profile tests and local schema generation pass.
+  Production web bundling passes without the reported TanStack server-module
+  leakage.
+
+External verification remains pending: no Convex deployment was created or
+pushed, and no real Resend or Google credentials were available. Consequently
+delivered email, reset/verification links, Google consent return, deployed
+session cookies, and live storage uploads are not claimed as verified. See
+[authentication.md](authentication.md).
+
+`pnpm peers check` also reports Better Auth's optional Vitest peer range ending
+at Vitest 4 while this workspace uses Vitest 5. The application and Better Auth
+runtime do not consume that optional testing peer; the warning is kept visible
+rather than suppressed, and all repository tests pass.
+
 ## Known external prerequisites
 
-Convex, Google OAuth, transactional email, hosting/domain, EAS, and Android
-signing configuration have not been supplied. They do not block lot 1.
+Convex deployment, Google OAuth, transactional email, hosting/domain, EAS, and
+Android signing configuration have not been supplied. The first three limit
+live verification of lot 2 but do not invalidate its local test/build evidence.
 
 ## Next mission
 
-Do not begin without user approval. Lot 2 will revalidate the published
-`@convex-dev/better-auth` compatibility first, then introduce a real Convex
-deployment path, Better Auth, roles, onboarding, profiles, server-only admin
-bootstrap, and the corresponding authorization/session tests. Missing OAuth and
-email credentials must remain explicit, unverified limitations.
+Do not begin without user approval. Lot 3 introduces the Corail shell, complete
+semantic design tokens, responsive navigation, French/English switching, and
+light/dark/system preferences. It must build on the account states delivered by
+lot 2 without weakening server authorization.

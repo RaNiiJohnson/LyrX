@@ -1,0 +1,210 @@
+/// <reference types="vite/client" />
+
+import { convexTest } from "convex-test"
+import { describe, expect, it } from "vitest"
+
+import { api, internal } from "./_generated/api"
+import schema from "./schema"
+
+const modules = import.meta.glob("./**/*.ts")
+
+const verifiedFan = {
+  tokenIdentifier: "https://issuer.example|fan-1",
+  subject: "fan-1",
+  issuer: "https://issuer.example",
+  email: "Fan@Example.com",
+  emailVerified: true,
+  name: "Fan Test",
+}
+
+describe("member onboarding and authorization", () => {
+  it("reports anonymous and unverified session states", async () => {
+    const t = convexTest(schema, modules)
+
+    await expect(t.query(api.members.current, {})).resolves.toEqual({
+      state: "anonymous",
+    })
+
+    const unverified = t.withIdentity({
+      ...verifiedFan,
+      emailVerified: false,
+    })
+    await expect(unverified.query(api.members.current, {})).resolves.toEqual({
+      state: "email-unverified",
+      email: "Fan@Example.com",
+    })
+    await expect(
+      unverified.mutation(api.members.completeOnboarding, {
+        role: "fan",
+        handle: "fan.test",
+        displayName: "Fan Test",
+      })
+    ).rejects.toThrow("L’adresse email doit être vérifiée")
+  })
+
+  it("creates an artist identity atomically and exposes only its public profile", async () => {
+    const t = convexTest(schema, modules)
+    const artist = t.withIdentity({
+      ...verifiedFan,
+      tokenIdentifier: "https://issuer.example|artist-1",
+      subject: "artist-1",
+      email: "artist@example.com",
+    })
+
+    await artist.mutation(api.members.completeOnboarding, {
+      role: "artist",
+      handle: "Rija.Music",
+      displayName: "Rija Music",
+      bio: "Artiste malgache",
+      artist: {
+        presentation: "Des chansons qui racontent Madagascar.",
+        instagramUrl: "https://instagram.com/rijamusic",
+        customLinks: [{ label: "Site", url: "https://rija.example" }],
+      },
+    })
+
+    const current = await artist.query(api.members.current, {})
+    expect(current.state).toBe("ready")
+    if (current.state !== "ready") throw new Error("Expected ready member")
+    expect(current.member.role).toBe("artist")
+    expect(current.member.isAdmin).toBe(false)
+    expect(current.profile.handle).toBe("rija.music")
+    expect(current.artistProfile?.presentation).toContain("Madagascar")
+
+    await expect(
+      t.query(api.members.publicByHandle, { handle: "RIJA.MUSIC" })
+    ).resolves.toMatchObject({
+      handle: "rija.music",
+      role: "artist",
+      artist: {
+        customLinks: [{ label: "Site", url: "https://rija.example/" }],
+      },
+    })
+  })
+
+  it("keeps handles unique and onboarding single-use", async () => {
+    const t = convexTest(schema, modules)
+    const first = t.withIdentity(verifiedFan)
+    await first.mutation(api.members.completeOnboarding, {
+      role: "fan",
+      handle: "unique-fan",
+      displayName: "Premier Fan",
+    })
+
+    await expect(
+      first.mutation(api.members.completeOnboarding, {
+        role: "artist",
+        handle: "another-handle",
+        displayName: "Premier Fan",
+      })
+    ).rejects.toThrow("déjà terminé")
+
+    const second = t.withIdentity({
+      ...verifiedFan,
+      tokenIdentifier: "https://issuer.example|fan-2",
+      subject: "fan-2",
+      email: "fan2@example.com",
+    })
+    await expect(
+      second.mutation(api.members.completeOnboarding, {
+        role: "fan",
+        handle: "UNIQUE-FAN",
+        displayName: "Deuxième Fan",
+      })
+    ).rejects.toThrow("déjà utilisé")
+  })
+
+  it("blocks suspended accounts at the function layer and hides their profile", async () => {
+    const t = convexTest(schema, modules)
+    const fan = t.withIdentity(verifiedFan)
+    const created = await fan.mutation(api.members.completeOnboarding, {
+      role: "fan",
+      handle: "suspended-fan",
+      displayName: "Fan Suspendu",
+    })
+
+    await t.mutation(internal.admin.setAccountSuspension, {
+      memberId: created.memberId,
+      suspended: true,
+    })
+
+    await expect(
+      fan.mutation(api.members.updateMyProfile, {
+        handle: "suspended-fan",
+        displayName: "Nouveau nom",
+      })
+    ).rejects.toThrow("suspendu")
+    await expect(
+      t.query(api.members.publicByHandle, { handle: "suspended-fan" })
+    ).resolves.toBeNull()
+    await expect(fan.query(api.members.current, {})).resolves.toEqual({
+      state: "suspended",
+    })
+  })
+
+  it("cleans invalid uploads and limits banners to artists", async () => {
+    const t = convexTest(schema, modules)
+    const fan = t.withIdentity(verifiedFan)
+    await fan.mutation(api.members.completeOnboarding, {
+      role: "fan",
+      handle: "image-fan",
+      displayName: "Image Fan",
+    })
+
+    const avatarStorageId = await t.run(async (ctx) =>
+      ctx.storage.store(new Blob(["avatar"], { type: "image/png" }))
+    )
+    await expect(
+      fan.mutation(api.members.saveProfileImage, {
+        kind: "avatar",
+        storageId: avatarStorageId,
+      })
+    ).resolves.toMatchObject({ ok: false })
+    await expect(
+      t.run((ctx) => ctx.db.system.get("_storage", avatarStorageId))
+    ).resolves.toBeNull()
+
+    const bannerStorageId = await t.run(async (ctx) =>
+      ctx.storage.store(new Blob(["banner"], { type: "image/webp" }))
+    )
+    await expect(
+      fan.mutation(api.members.saveProfileImage, {
+        kind: "banner",
+        storageId: bannerStorageId,
+      })
+    ).resolves.toEqual({
+      ok: false,
+      message: "Seul un compte artiste peut ajouter une bannière.",
+    })
+    await expect(
+      t.run((ctx) => ctx.db.system.get("_storage", bannerStorageId))
+    ).resolves.toBeNull()
+  })
+
+  it("bootstraps exactly one verified admin through an internal function", async () => {
+    const t = convexTest(schema, modules)
+    const fan = t.withIdentity(verifiedFan)
+    const created = await fan.mutation(api.members.completeOnboarding, {
+      role: "fan",
+      handle: "future-admin",
+      displayName: "Future Admin",
+    })
+
+    await expect(
+      t.mutation(internal.admin.bootstrapFirstAdmin, {
+        email: "fan@example.com",
+      })
+    ).resolves.toBe(created.memberId)
+
+    await expect(
+      t.mutation(internal.admin.bootstrapFirstAdmin, {
+        email: "fan@example.com",
+      })
+    ).rejects.toThrow("existe déjà")
+
+    const current = await fan.query(api.members.current, {})
+    expect(current.state).toBe("ready")
+    if (current.state !== "ready") throw new Error("Expected ready member")
+    expect(current.member.isAdmin).toBe(true)
+  })
+})

@@ -3,18 +3,32 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./convex/_generated/api": "./convex/_generated/api.ts",
+    "./convex/_generated/dataModel": "./convex/_generated/dataModel.ts"
+  },
   "scripts": {
+    "auth:schema": "pnpm dlx @better-auth/cli@1.4.21 generate --cwd . --config convex/betterAuth/auth.ts --output convex/betterAuth/generatedSchema.ts --yes && prettier --write convex/betterAuth/generatedSchema.ts",
     "build": "tsc --project tsconfig.build.json",
-    "lint": "eslint src",
-    "test": "vitest run --passWithNoTests",
+    "convex:codegen": "convex codegen",
+    "dev": "convex dev",
+    "lint": "eslint src convex vitest.config.ts",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "convex": "1.47.0"
+    "@convex-dev/better-auth": "0.12.5",
+    "better-auth": "1.6.33",
+    "convex": "1.47.0",
+    "convex-helpers": "0.1.128"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "5.0.0",
     "@types/node": "22.20.5",
+    "convex-test": "0.0.62",
     "typescript": "6.0.3",
+    "vite": "8.3.4",
     "vitest": "5.0.5"
   }
 }

@@ -1,10 +1,27 @@
-import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router"
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from "@tanstack/react-router"
+import { createServerFn } from "@tanstack/react-start"
 import type { ReactNode } from "react"
 
 import { PRODUCT_NAME } from "@lyrx/shared"
 import appCss from "@lyrx/ui/globals.css?url"
 
+import { BackendProvider } from "@/components/backend-provider"
+
+const getInitialAuthToken = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const { getAuthToken } = await import("@/lib/auth-server")
+    return await getAuthToken()
+  }
+)
+
 export const Route = createRootRoute({
+  beforeLoad: async () => ({ token: await getInitialAuthToken() }),
+  component: RootApplication,
   head: () => ({
     links: [
       {
@@ -27,9 +44,9 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
         name: "viewport",
       },
-      { title: `${PRODUCT_NAME} — Fondation web` },
+      { title: `${PRODUCT_NAME} — Comptes et profils` },
       {
-        content: "Fondation technique de la plateforme musicale Lyr'X.",
+        content: "Comptes et profils de la plateforme musicale Lyr'X.",
         name: "description",
       },
     ],
@@ -46,6 +63,15 @@ export const Route = createRootRoute({
   ),
   shellComponent: RootDocument,
 })
+
+function RootApplication() {
+  const { token } = Route.useRouteContext()
+  return (
+    <BackendProvider initialToken={token}>
+      <Outlet />
+    </BackendProvider>
+  )
+}
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (

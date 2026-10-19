@@ -5,5 +5,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "convex/**/*.ts"]
+  "include": ["src/**/*.ts", "convex/**/*.ts", "vitest.config.ts"]
 }
