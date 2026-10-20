@@ -2,10 +2,10 @@
 
 ## Active lot
 
-**Lot 2 remains active for a corrective account-UX pass. The agent owns
-proportional verification of the changed journeys; unavailable external evidence
-is recorded honestly but does not become an invented product requirement. Do
-not begin lot 3.**
+**Lot 2 is complete as of 2026-10-20 after its corrective account-UX pass and
+mandatory dual-review gate. Unavailable external evidence remains recorded
+honestly without becoming an invented product requirement. Do not begin lot 3
+without user approval.**
 
 ## Evidence checklist
 
@@ -35,8 +35,8 @@ not begin lot 3.**
       form and also had no horizontal overflow at 390×844. Sonner success/error
       calls are wired to asynchronous actions and passed typecheck/build; no
       profile or auth mutation was performed merely to manufacture a toast.
-- [x] Run `pnpm check` for the corrective diff. The mandatory completion review
-      is running against the resulting fixed point.
+- [x] Run `pnpm check` for the corrective diff and repeat the mandatory
+      completion review against `097e3ff...HEAD`.
 - [x] Record the live authenticated session evidence available in Chrome. Google
       consent return, delivered email, reset/verification links, and live uploads
       were not repeated in this pass; that remaining external evidence stays
@@ -66,7 +66,7 @@ Delivered on 2026-10-19 on `chore/foundation-monorepo`.
   `docs/specification.md`; made ESLint/TypeScript root configs invalidate Turbo
   cache; moved the page component out of the route to restore code splitting.
 
-### Lot 2 — Backend, auth, roles, and profiles (completion gate open)
+### Lot 2 — Backend, auth, roles, and profiles (complete)
 
 Implemented locally on 2026-10-19 on `feat/backend-auth-profiles`.
 
@@ -130,10 +130,34 @@ The `code-review` Standards and Spec axes and `convex:convex-reviewer` ran on
   visual work would create a temporary interface that lot 3 is expected to
   reshape; reassess it while composing the lot 3 forms.
 
+### Lot 2 corrective final review — 2026-10-20
+
+- The Standards and Spec axes re-ran on `097e3ff...HEAD`. Their initial findings
+  identified an overclaimed toast verification and hard-coded post-auth routing
+  to onboarding. The evidence wording now distinguishes observed browser states
+  from typecheck/build evidence, and `/account` routes each live member state to
+  verification, onboarding, profile, suspension, or sign-in as appropriate.
+- The final Standards re-review reports no hard violation. The final Spec
+  re-review reports no remaining or new finding.
+- The final Convex review remains at 0 Critical and 0 Important. The corrective
+  commits do not touch `packages/backend/convex/`. Its unused
+  `profileImages.by_member_id_and_kind` index suggestion is accepted as
+  non-blocking pending the next image-management operation.
+- Two non-blocking code-structure judgement calls remain: the email action forms
+  duplicate a small layout/state pattern, and `profile-editor.tsx` still combines
+  profile fields with image-upload concerns. Reassess these seams during the
+  deeper account UI composition instead of introducing temporary interfaces at
+  this gate.
+- `pnpm check` passes formatting, lint, TypeScript, 21 tests, and production
+  client/SSR builds. Authenticated and anonymous browser checks cover the account
+  resolver, auth-route guards, header state, targeted skeleton transition,
+  keyboard focus, console state, and 390×844 overflow.
+
 ## Known external prerequisites
 
 Hosting/domain, EAS, and Android signing configuration have not been supplied.
-Google and email still need their final live account/delivery checks for lot 2.
+Google consent return and real email delivery/reset/verification remain recorded
+as unverified live integrations; they did not produce a code-review blocker.
 
 ## Deferred configuration checklist
 
