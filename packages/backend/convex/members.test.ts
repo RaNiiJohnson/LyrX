@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import { convexTest } from "convex-test"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import rateLimiterTest from "@convex-dev/rate-limiter/test"
 
 import { api, internal } from "./_generated/api"
@@ -177,6 +177,24 @@ describe("member onboarding and authorization", () => {
       t.run((ctx) => ctx.db.system.get("_storage", avatarStorageId))
     ).resolves.not.toBeNull()
 
+    const preexistingStorageId = await t.run(async (ctx) =>
+      ctx.storage.store(new Blob(["preexisting image"]))
+    )
+    const laterUpload = await fan.mutation(
+      api.members.generateProfileImageUploadUrl,
+      { kind: "avatar" }
+    )
+    await expect(
+      fan.mutation(api.members.saveProfileImage, {
+        kind: "avatar",
+        storageId: preexistingStorageId,
+        uploadIntentId: laterUpload.uploadIntentId,
+      })
+    ).rejects.toThrow("ne correspond pas")
+    await expect(
+      t.run((ctx) => ctx.db.system.get("_storage", preexistingStorageId))
+    ).resolves.not.toBeNull()
+
     await expect(
       fan.mutation(api.members.generateProfileImageUploadUrl, {
         kind: "banner",
@@ -319,6 +337,40 @@ describe("member onboarding and authorization", () => {
         kind: "avatar",
       })
     ).rejects.toThrow()
+  })
+
+  it("deletes an expired upload intent through its scheduled internal mutation", async () => {
+    vi.useFakeTimers()
+    try {
+      const t = createTestBackend()
+      const fan = t.withIdentity(verifiedFan)
+      await fan.mutation(api.members.completeOnboarding, {
+        role: "fan",
+        handle: "expiring-image-fan",
+        displayName: "Expiring Image Fan",
+      })
+      const upload = await fan.mutation(
+        api.members.generateProfileImageUploadUrl,
+        { kind: "avatar" }
+      )
+
+      await expect(
+        t.run((ctx) =>
+          ctx.db.get("profileImageUploadIntents", upload.uploadIntentId)
+        )
+      ).resolves.not.toBeNull()
+
+      vi.advanceTimersByTime(10 * 60 * 1000 + 1)
+      await t.finishAllScheduledFunctions(() => vi.runAllTimers())
+
+      await expect(
+        t.run((ctx) =>
+          ctx.db.get("profileImageUploadIntents", upload.uploadIntentId)
+        )
+      ).resolves.toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it("bootstraps exactly one verified admin through an internal function", async () => {

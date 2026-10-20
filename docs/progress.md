@@ -19,7 +19,7 @@ begin lot 3.**
 - [x] Two fresh reviewers completed independent product/UX and engineering
       reviews. Their two P2 findings were corrected and reverified.
 - [x] The branch and commit state are recorded at handoff.
-- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 15 tests, and all
+- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 16 tests, and all
       production builds.
 - [x] The mandatory Convex review found one cross-account profile-image
       ownership vulnerability. Upload intents, persisted image ownership,
