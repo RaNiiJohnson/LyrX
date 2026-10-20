@@ -25,7 +25,7 @@ export function VerifyEmailForm() {
       try {
         const result = await authClient.sendVerificationEmail({
           email: value.email,
-          callbackURL: "/onboarding",
+          callbackURL: "/account",
         })
         if (result.error) throw result.error
         setNotice(

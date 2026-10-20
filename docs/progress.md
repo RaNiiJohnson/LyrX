@@ -27,10 +27,14 @@ not begin lot 3.**
       member from attaching or deleting another member's image. The real Convex
       schema push succeeds.
 - [x] Verify the corrected authenticated header and sign-in/sign-up redirects,
-      targeted dynamic skeletons, action toasts, and affected desktop/mobile
-      layouts. Chrome with the existing authenticated account redirected both
-      public auth routes to `/profile`, showed only profile/sign-out actions,
-      had no console error, and had no horizontal overflow at 390×844.
+      the account-loading skeleton, and affected desktop/mobile layouts. Chrome
+      with the existing authenticated account redirected both public auth routes
+      to `/profile`, showed only profile/sign-out actions, had no console error,
+      and had no horizontal overflow at 390×844. A separate anonymous session
+      visibly transitioned from the targeted account skeleton to the sign-in
+      form and also had no horizontal overflow at 390×844. Sonner success/error
+      calls are wired to asynchronous actions and passed typecheck/build; no
+      profile or auth mutation was performed merely to manufacture a toast.
 - [x] Run `pnpm check` for the corrective diff. The mandatory completion review
       is running against the resulting fixed point.
 - [x] Record the live authenticated session evidence available in Chrome. Google

@@ -36,7 +36,7 @@ export function SignUpForm() {
           name: value.name,
           email: value.email,
           password: value.password,
-          callbackURL: "/onboarding",
+          callbackURL: "/account",
         })
         if (result.error) throw result.error
         setNotice(
@@ -60,7 +60,7 @@ export function SignUpForm() {
     try {
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/onboarding",
+        callbackURL: "/account",
       })
       if (result.error) throw result.error
     } catch (caught) {

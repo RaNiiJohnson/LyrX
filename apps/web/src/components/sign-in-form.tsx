@@ -35,10 +35,10 @@ export function SignInForm() {
         const result = await authClient.signIn.email({
           email: value.email,
           password: value.password,
-          callbackURL: "/onboarding",
+          callbackURL: "/account",
         })
         if (result.error) throw result.error
-        window.location.assign("/onboarding")
+        window.location.assign("/account")
       } catch (caught) {
         const message = getErrorMessage(caught)
         setError(message)
@@ -54,7 +54,7 @@ export function SignInForm() {
     try {
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/onboarding",
+        callbackURL: "/account",
       })
       if (result.error) throw result.error
     } catch (caught) {
