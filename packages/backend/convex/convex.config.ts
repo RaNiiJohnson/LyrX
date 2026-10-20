@@ -11,6 +11,7 @@ const app = defineApp({
     GOOGLE_CLIENT_ID: v.optional(v.string()),
     GOOGLE_CLIENT_SECRET: v.optional(v.string()),
     RESEND_API_KEY: v.optional(v.string()),
+    RESEND_WEBHOOK_SECRET: v.string(),
     SITE_URL: v.string(),
   },
 })

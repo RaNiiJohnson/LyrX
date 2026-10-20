@@ -2,8 +2,10 @@
 
 ## Active lot
 
-**None. Lot 2 is delivered locally and awaiting external configuration or user
-approval for lot 3.**
+**Lot 2 remains active at its mandatory completion-review gate. Its
+implementation is delivered locally, but the lot is not complete until the
+remaining authentication and UI acceptance evidence below is verified. Do not
+begin lot 3.**
 
 ## Evidence checklist
 
@@ -17,11 +19,18 @@ approval for lot 3.**
 - [x] Two fresh reviewers completed independent product/UX and engineering
       reviews. Their two P2 findings were corrected and reverified.
 - [x] The branch and commit state are recorded at handoff.
-- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 13 tests, and all
+- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 14 tests, and all
       production builds.
-- [x] Convex-specific review found no unauthenticated public write, unindexed
-      application query, missing function validator, or client-controlled admin
-      promotion path.
+- [x] The mandatory Convex review found one cross-account profile-image
+      ownership vulnerability. Upload intents, persisted image ownership,
+      attachment indexes, and a cross-account regression test now prevent a
+      member from attaching or deleting another member's image. The real Convex
+      schema push succeeds.
+- [ ] Complete the real-path Google return, email delivery,
+      verification/reset, authenticated-session, and account-linking matrix.
+- [ ] Exercise authenticated onboarding/profile journeys at desktop and mobile
+      widths, including keyboard use, long text, loading, empty, error, and
+      forbidden states.
 - [x] The no-backend state was inspected in Chrome desktop and a narrow in-app
       viewport; navigation is responsive, the limitation is explicit, and the
       browser console has no warning or error.
@@ -29,7 +38,7 @@ approval for lot 3.**
       is absent, and the production client bundle contains no explicit Node or
       TanStack server-module import.
 
-## Completed lots
+## Lot history
 
 ### Lot 1 — Monorepo foundation and working documentation
 
@@ -47,7 +56,7 @@ Delivered on 2026-10-19 on `chore/foundation-monorepo`.
   `docs/specification.md`; made ESLint/TypeScript root configs invalidate Turbo
   cache; moved the page component out of the route to restore code splitting.
 
-### Lot 2 — Backend, auth, roles, and profiles
+### Lot 2 — Backend, auth, roles, and profiles (completion gate open)
 
 Implemented locally on 2026-10-19 on `feat/backend-auth-profiles`.
 
@@ -82,6 +91,23 @@ webhook events, and live storage uploads are not yet claimed as verified. See
 at Vitest 4 while this workspace uses Vitest 5. The application and Better Auth
 runtime do not consume that optional testing peer; the warning is kept visible
 rather than suppressed, and all repository tests pass.
+
+### Lot 2 mandatory review — 2026-10-20
+
+The `code-review` Standards and Spec axes and `convex:convex-reviewer` ran on
+`097e3ff...HEAD`, the complete diff since the final lot 1 commit.
+
+- The blocking storage finding was corrected by binding each upload intent and
+  stored profile image to its authenticated member. The Resend webhook secret is
+  now also part of the typed Convex deployment contract.
+- The remaining blocking findings concern missing real-path authentication and
+  authenticated UI acceptance evidence, not a claimed implementation result.
+  Lot 2 therefore remains active until those checks are performed.
+- Two non-blocking structure suggestions remain accepted for now: the two
+  profile forms repeat small field validators, and `profile-editor.tsx` keeps
+  upload, social-link, and account-linking concerns together. Splitting them
+  before the Corail UI work would create temporary component interfaces that lot
+  3 is expected to reshape; reassess both while composing the lot 3 forms.
 
 ## Known external prerequisites
 

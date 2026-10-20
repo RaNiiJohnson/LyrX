@@ -1,7 +1,11 @@
 import { ConvexError, v } from "convex/values"
 
 import schema from "./schema"
-import { accountRoleValidator, customLinkValidator } from "./model"
+import {
+  accountRoleValidator,
+  customLinkValidator,
+  profileImageKindValidator,
+} from "./model"
 import { query } from "./_generated/server"
 import { memberMutation, verifiedMutation } from "./lib/functions"
 import { findMemberByIdentity } from "./lib/authz"
@@ -46,11 +50,6 @@ const publicProfileValidator = v.object({
     v.null()
   ),
 })
-
-const profileImageKindValidator = v.union(
-  v.literal("avatar"),
-  v.literal("banner")
-)
 
 export const current = query({
   args: {},
@@ -273,7 +272,10 @@ export const updateMyProfile = memberMutation({
 
 export const generateProfileImageUploadUrl = memberMutation({
   args: { kind: profileImageKindValidator },
-  returns: v.string(),
+  returns: v.object({
+    uploadUrl: v.string(),
+    uploadIntentId: v.id("profileImageUploadIntents"),
+  }),
   handler: async (ctx, args) => {
     if (args.kind === "banner" && ctx.member.role !== "artist") {
       throw new ConvexError({
@@ -281,7 +283,15 @@ export const generateProfileImageUploadUrl = memberMutation({
         message: "Seul un compte artiste peut ajouter une bannière.",
       })
     }
-    return await ctx.storage.generateUploadUrl()
+    const uploadIntentId = await ctx.db.insert("profileImageUploadIntents", {
+      memberId: ctx.member._id,
+      kind: args.kind,
+      createdAt: Date.now(),
+    })
+    return {
+      uploadUrl: await ctx.storage.generateUploadUrl(),
+      uploadIntentId,
+    }
   },
 })
 
@@ -289,12 +299,28 @@ export const saveProfileImage = memberMutation({
   args: {
     kind: profileImageKindValidator,
     storageId: v.id("_storage"),
+    uploadIntentId: v.id("profileImageUploadIntents"),
   },
   returns: v.union(
     v.object({ ok: v.literal(true) }),
     v.object({ ok: v.literal(false), message: v.string() })
   ),
   handler: async (ctx, args) => {
+    const uploadIntent = await ctx.db.get(
+      "profileImageUploadIntents",
+      args.uploadIntentId
+    )
+    if (
+      !uploadIntent ||
+      uploadIntent.memberId !== ctx.member._id ||
+      uploadIntent.kind !== args.kind
+    ) {
+      throw new ConvexError({
+        code: "INVALID_UPLOAD_INTENT",
+        message: "Cette autorisation de transfert n’est pas valide.",
+      })
+    }
+
     const metadata = await ctx.db.system.get("_storage", args.storageId)
     if (!metadata) {
       throw new ConvexError({
@@ -302,8 +328,41 @@ export const saveProfileImage = memberMutation({
         message: "Le fichier envoyé est introuvable.",
       })
     }
+
+    const ownership = await ctx.db
+      .query("profileImages")
+      .withIndex("by_storage_id", (q) => q.eq("storageId", args.storageId))
+      .unique()
+    const attachedProfile = await ctx.db
+      .query("profiles")
+      .withIndex("by_avatar_storage_id", (q) =>
+        q.eq("avatarStorageId", args.storageId)
+      )
+      .unique()
+    const attachedArtistProfile = await ctx.db
+      .query("artistProfiles")
+      .withIndex("by_banner_storage_id", (q) =>
+        q.eq("bannerStorageId", args.storageId)
+      )
+      .unique()
+    const attachedToAnotherMember =
+      (attachedProfile && attachedProfile.memberId !== ctx.member._id) ||
+      (attachedArtistProfile &&
+        attachedArtistProfile.memberId !== ctx.member._id)
+    if (
+      (ownership &&
+        (ownership.memberId !== ctx.member._id ||
+          ownership.kind !== args.kind)) ||
+      attachedToAnotherMember
+    ) {
+      throw new ConvexError({
+        code: "PROFILE_IMAGE_FORBIDDEN",
+        message: "Cette image appartient à un autre compte.",
+      })
+    }
+
     if (args.kind === "banner" && ctx.member.role !== "artist") {
-      await ctx.storage.delete(args.storageId)
+      await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
       return {
         ok: false as const,
         message: "Seul un compte artiste peut ajouter une bannière.",
@@ -311,7 +370,10 @@ export const saveProfileImage = memberMutation({
     }
     const validationError = validateProfileImageMetadata(args.kind, metadata)
     if (validationError) {
-      await ctx.storage.delete(args.storageId)
+      if (!ownership && !attachedProfile && !attachedArtistProfile) {
+        await ctx.storage.delete(args.storageId)
+      }
+      await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
       return {
         ok: false as const,
         message: validationError,
@@ -324,20 +386,38 @@ export const saveProfileImage = memberMutation({
         .withIndex("by_member_id", (q) => q.eq("memberId", ctx.member._id))
         .unique()
       if (!profile) {
-        await ctx.storage.delete(args.storageId)
+        await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
         return {
           ok: false as const,
           message: "Le profil associé au compte est introuvable.",
         }
       }
       const previousStorageId = profile.avatarStorageId
+      if (!ownership) {
+        await ctx.db.insert("profileImages", {
+          memberId: ctx.member._id,
+          storageId: args.storageId,
+          kind: args.kind,
+          createdAt: Date.now(),
+        })
+      }
       await ctx.db.patch("profiles", profile._id, {
         avatarStorageId: args.storageId,
         updatedAt: Date.now(),
       })
       if (previousStorageId && previousStorageId !== args.storageId) {
+        const previousOwnership = await ctx.db
+          .query("profileImages")
+          .withIndex("by_storage_id", (q) =>
+            q.eq("storageId", previousStorageId)
+          )
+          .unique()
+        if (previousOwnership?.memberId === ctx.member._id) {
+          await ctx.db.delete("profileImages", previousOwnership._id)
+        }
         await ctx.storage.delete(previousStorageId)
       }
+      await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
       return { ok: true as const }
     }
 
@@ -346,20 +426,36 @@ export const saveProfileImage = memberMutation({
       .withIndex("by_member_id", (q) => q.eq("memberId", ctx.member._id))
       .unique()
     if (!artistProfile) {
-      await ctx.storage.delete(args.storageId)
+      await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
       return {
         ok: false as const,
         message: "Le profil artiste associé au compte est introuvable.",
       }
     }
     const previousStorageId = artistProfile.bannerStorageId
+    if (!ownership) {
+      await ctx.db.insert("profileImages", {
+        memberId: ctx.member._id,
+        storageId: args.storageId,
+        kind: args.kind,
+        createdAt: Date.now(),
+      })
+    }
     await ctx.db.patch("artistProfiles", artistProfile._id, {
       bannerStorageId: args.storageId,
       updatedAt: Date.now(),
     })
     if (previousStorageId && previousStorageId !== args.storageId) {
+      const previousOwnership = await ctx.db
+        .query("profileImages")
+        .withIndex("by_storage_id", (q) => q.eq("storageId", previousStorageId))
+        .unique()
+      if (previousOwnership?.memberId === ctx.member._id) {
+        await ctx.db.delete("profileImages", previousOwnership._id)
+      }
       await ctx.storage.delete(previousStorageId)
     }
+    await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
     return { ok: true as const }
   },
 })

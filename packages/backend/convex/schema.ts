@@ -5,6 +5,7 @@ import {
   accountRoleValidator,
   accountStatusValidator,
   customLinkValidator,
+  profileImageKindValidator,
 } from "./model"
 
 export default defineSchema({
@@ -33,7 +34,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_member_id", ["memberId"])
-    .index("by_handle_normalized", ["handleNormalized"]),
+    .index("by_handle_normalized", ["handleNormalized"])
+    .index("by_avatar_storage_id", ["avatarStorageId"]),
 
   artistProfiles: defineTable({
     memberId: v.id("members"),
@@ -47,5 +49,22 @@ export default defineSchema({
     customLinks: v.array(customLinkValidator),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_member_id", ["memberId"]),
+  })
+    .index("by_member_id", ["memberId"])
+    .index("by_banner_storage_id", ["bannerStorageId"]),
+
+  profileImageUploadIntents: defineTable({
+    memberId: v.id("members"),
+    kind: profileImageKindValidator,
+    createdAt: v.number(),
+  }),
+
+  profileImages: defineTable({
+    memberId: v.id("members"),
+    storageId: v.id("_storage"),
+    kind: profileImageKindValidator,
+    createdAt: v.number(),
+  })
+    .index("by_storage_id", ["storageId"])
+    .index("by_member_id_and_kind", ["memberId", "kind"]),
 })

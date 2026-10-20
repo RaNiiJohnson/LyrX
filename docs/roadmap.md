@@ -2,7 +2,9 @@
 
 Each lot is a coherent future PR. A lot is complete only after implementation,
 relevant automated and manual checks, independent review, documentation, and a
-cleanly identifiable Git state. No later lot starts without user approval.
+cleanly identifiable Git state. The mandatory independent-review procedure is
+defined in [the lot completion review gate](../.agents/rules/lot-completion.md).
+No later lot starts without user approval.
 The cross-lot product rules in [specification.md](specification.md) remain
 authoritative throughout delivery.
 

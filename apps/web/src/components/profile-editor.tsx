@@ -128,7 +128,7 @@ function ReadyProfileEditor({
     setError(null)
     setSaved(false)
     try {
-      const uploadUrl = await generateUploadUrl({ kind })
+      const { uploadIntentId, uploadUrl } = await generateUploadUrl({ kind })
       const response = await fetch(uploadUrl, {
         method: "POST",
         headers: { "Content-Type": file.type },
@@ -147,6 +147,7 @@ function ReadyProfileEditor({
       const result = await saveProfileImage({
         kind,
         storageId: payload.storageId as Id<"_storage">,
+        uploadIntentId,
       })
       if (!result.ok) throw new Error(result.message)
       setSaved(true)

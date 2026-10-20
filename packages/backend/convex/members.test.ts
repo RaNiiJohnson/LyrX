@@ -142,7 +142,7 @@ describe("member onboarding and authorization", () => {
     })
   })
 
-  it("cleans invalid uploads and limits banners to artists", async () => {
+  it("cleans invalid uploads and limits banner intents to artists", async () => {
     const t = convexTest(schema, modules)
     const fan = t.withIdentity(verifiedFan)
     await fan.mutation(api.members.completeOnboarding, {
@@ -154,31 +154,103 @@ describe("member onboarding and authorization", () => {
     const avatarStorageId = await t.run(async (ctx) =>
       ctx.storage.store(new Blob(["avatar"], { type: "image/png" }))
     )
+    const avatarUpload = await fan.mutation(
+      api.members.generateProfileImageUploadUrl,
+      { kind: "avatar" }
+    )
     await expect(
       fan.mutation(api.members.saveProfileImage, {
         kind: "avatar",
         storageId: avatarStorageId,
+        uploadIntentId: avatarUpload.uploadIntentId,
       })
     ).resolves.toMatchObject({ ok: false })
     await expect(
       t.run((ctx) => ctx.db.system.get("_storage", avatarStorageId))
     ).resolves.toBeNull()
 
-    const bannerStorageId = await t.run(async (ctx) =>
-      ctx.storage.store(new Blob(["banner"], { type: "image/webp" }))
+    await expect(
+      fan.mutation(api.members.generateProfileImageUploadUrl, {
+        kind: "banner",
+      })
+    ).rejects.toThrow("Seul un compte artiste")
+  })
+
+  it("never attaches or deletes another member's public profile image", async () => {
+    const t = convexTest(schema, modules)
+    const owner = t.withIdentity({
+      ...verifiedFan,
+      tokenIdentifier: "https://issuer.example|image-owner",
+      subject: "image-owner",
+      email: "owner@example.com",
+    })
+    const attacker = t.withIdentity({
+      ...verifiedFan,
+      tokenIdentifier: "https://issuer.example|image-attacker",
+      subject: "image-attacker",
+      email: "attacker@example.com",
+    })
+
+    await owner.mutation(api.members.completeOnboarding, {
+      role: "fan",
+      handle: "image-owner",
+      displayName: "Image Owner",
+    })
+    await attacker.mutation(api.members.completeOnboarding, {
+      role: "fan",
+      handle: "image-attacker",
+      displayName: "Image Attacker",
+    })
+
+    const victimStorageId = await t.run(async (ctx) =>
+      ctx.storage.store(new Blob(["valid avatar"], { type: "image/png" }))
+    )
+    await t.run(async (ctx) => {
+      const ownerMember = await ctx.db
+        .query("members")
+        .withIndex("by_auth_user_id", (q) =>
+          q.eq("authUserId", "https://issuer.example|image-owner")
+        )
+        .unique()
+      if (!ownerMember) throw new Error("Expected image owner")
+      const ownerProfile = await ctx.db
+        .query("profiles")
+        .withIndex("by_member_id", (q) => q.eq("memberId", ownerMember._id))
+        .unique()
+      if (!ownerProfile) throw new Error("Expected owner profile")
+      await ctx.db.patch("profiles", ownerProfile._id, {
+        avatarStorageId: victimStorageId,
+      })
+      await ctx.db.insert("profileImages", {
+        memberId: ownerMember._id,
+        storageId: victimStorageId,
+        kind: "avatar",
+        createdAt: Date.now(),
+      })
+    })
+
+    const publicProfile = await t.query(api.members.publicByHandle, {
+      handle: "image-owner",
+    })
+    expect(publicProfile?.avatarUrl).toMatch(/^https:\/\//)
+
+    const attackerUpload = await attacker.mutation(
+      api.members.generateProfileImageUploadUrl,
+      { kind: "avatar" }
     )
     await expect(
-      fan.mutation(api.members.saveProfileImage, {
-        kind: "banner",
-        storageId: bannerStorageId,
+      attacker.mutation(api.members.saveProfileImage, {
+        kind: "avatar",
+        storageId: victimStorageId,
+        uploadIntentId: attackerUpload.uploadIntentId,
       })
-    ).resolves.toEqual({
-      ok: false,
-      message: "Seul un compte artiste peut ajouter une bannière.",
-    })
+    ).rejects.toThrow("appartient à un autre compte")
     await expect(
-      t.run((ctx) => ctx.db.system.get("_storage", bannerStorageId))
-    ).resolves.toBeNull()
+      t.run((ctx) => ctx.db.system.get("_storage", victimStorageId))
+    ).resolves.not.toBeNull()
+    await expect(
+      t.query(api.members.publicByHandle, { handle: "image-owner" })
+    ).resolves.toMatchObject({ avatarUrl: publicProfile?.avatarUrl })
   })
 
   it("bootstraps exactly one verified admin through an internal function", async () => {

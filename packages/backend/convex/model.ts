@@ -15,5 +15,11 @@ export const customLinkValidator = v.object({
   url: v.string(),
 })
 
+export const profileImageKindValidator = v.union(
+  v.literal("avatar"),
+  v.literal("banner")
+)
+
 export type AccountRole = "fan" | "artist"
 export type AccountStatus = "active" | "suspended"
+export type ProfileImageKind = "avatar" | "banner"
