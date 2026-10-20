@@ -5,13 +5,17 @@ import {
   Scripts,
 } from "@tanstack/react-router"
 import { createServerFn } from "@tanstack/react-start"
+import { useEffect } from "react"
 import type { ReactNode } from "react"
 
 import { PRODUCT_NAME } from "@lyrx/shared"
 import { Toaster } from "@lyrx/ui/components/sonner"
+import { ThemeProvider } from "@lyrx/ui/components/theme-provider"
 import appCss from "@lyrx/ui/globals.css?url"
 
 import { BackendProvider } from "@/components/backend-provider"
+import { LocaleProvider, useLocale } from "@/components/locale-provider"
+import { PageShell } from "@/components/page-shell"
 
 const getInitialAuthToken = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -45,44 +49,75 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
         name: "viewport",
       },
-      { title: `${PRODUCT_NAME} — Comptes et profils` },
+      { title: `${PRODUCT_NAME} — Le studio des paroles` },
       {
-        content: "Comptes et profils de la plateforme musicale Lyr'X.",
+        content:
+          "Le studio musical Lyr’X pour lire, comprendre et partager les paroles.",
         name: "description",
       },
     ],
   }),
-  notFoundComponent: () => (
-    <main className="mx-auto flex min-h-svh max-w-3xl flex-col justify-center gap-3 px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Page introuvable
-      </h1>
-      <p className="text-muted-foreground">
-        Cette adresse ne correspond à aucune page de {PRODUCT_NAME}.
-      </p>
-    </main>
-  ),
+  notFoundComponent: NotFoundPage,
   shellComponent: RootDocument,
 })
 
 function RootApplication() {
   const { token } = Route.useRouteContext()
   return (
-    <BackendProvider initialToken={token}>
-      <Outlet />
-    </BackendProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      storageKey="lyrx-theme"
+    >
+      <LocaleProvider>
+        <LocalizedDocumentMetadata />
+        <BackendProvider initialToken={token}>
+          <Outlet />
+        </BackendProvider>
+        <Toaster position="top-center" richColors />
+      </LocaleProvider>
+    </ThemeProvider>
+  )
+}
+
+function LocalizedDocumentMetadata() {
+  const { t } = useLocale()
+
+  useEffect(() => {
+    document.title = t("meta.title")
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", t("meta.description"))
+  }, [t])
+
+  return null
+}
+
+function NotFoundPage() {
+  const { t } = useLocale()
+  return (
+    <PageShell>
+      <section className="flex min-h-[50svh] flex-col justify-center gap-3">
+        <p className="font-mono text-sm text-primary">404</p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {t("notFound.title")}
+        </h1>
+        <p className="text-muted-foreground">{t("notFound.description")}</p>
+      </section>
+    </PageShell>
   )
 }
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
         {children}
-        <Toaster position="top-center" theme="system" richColors />
         <Scripts />
       </body>
     </html>

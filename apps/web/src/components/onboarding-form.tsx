@@ -24,10 +24,12 @@ import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage } from "@/lib/errors"
+import { useLocale } from "./locale-provider"
 
 type AccountRole = "artist" | "fan"
 
 export function OnboardingForm() {
+  const { t } = useLocale()
   const current = useQuery(api.members.current, {})
   const completeOnboarding = useMutation(api.members.completeOnboarding)
   const navigate = useNavigate()
@@ -59,12 +61,12 @@ export function OnboardingForm() {
                 }
               : undefined,
         })
-        toast.success("Profil créé")
+        toast.success(t("onboarding.profileCreated"))
         await navigate({ to: "/profile" })
       } catch (caught) {
         const message = getErrorMessage(caught)
         setError(message)
-        toast.error("Profil non créé", { description: message })
+        toast.error(t("onboarding.profileError"), { description: message })
       }
     },
   })
@@ -73,10 +75,9 @@ export function OnboardingForm() {
   if (current.state === "anonymous") {
     return (
       <Alert>
-        <AlertTitle>Connexion nécessaire</AlertTitle>
+        <AlertTitle>{t("onboarding.signInTitle")}</AlertTitle>
         <AlertDescription>
-          <Link to="/auth/sign-in">Connectez-vous</Link> avant de choisir votre
-          rôle.
+          <Link to="/auth/sign-in">{t("onboarding.signInDescription")}</Link>
         </AlertDescription>
       </Alert>
     )
@@ -84,11 +85,11 @@ export function OnboardingForm() {
   if (current.state === "email-unverified") {
     return (
       <Alert>
-        <AlertTitle>Email non vérifié</AlertTitle>
+        <AlertTitle>{t("onboarding.emailUnverifiedTitle")}</AlertTitle>
         <AlertDescription>
-          Vérifiez {current.email ?? "votre adresse"}, puis rechargez cette
-          page. Vous pouvez aussi demander un nouvel email depuis la page de
-          vérification.
+          {t("onboarding.emailUnverifiedDescription", {
+            email: current.email ?? t("auth.email").toLowerCase(),
+          })}
         </AlertDescription>
       </Alert>
     )
@@ -96,10 +97,15 @@ export function OnboardingForm() {
   if (current.state === "ready") {
     return (
       <Alert>
-        <AlertTitle>Profil déjà créé</AlertTitle>
+        <AlertTitle>{t("onboarding.alreadyTitle")}</AlertTitle>
         <AlertDescription>
-          Votre rôle est {current.member.role === "artist" ? "Artiste" : "Fan"}.{" "}
-          <Link to="/profile">Modifier mon profil</Link>
+          {t("onboarding.alreadyDescription", {
+            role:
+              current.member.role === "artist"
+                ? t("common.artist")
+                : t("common.fan"),
+          })}{" "}
+          <Link to="/profile">{t("onboarding.alreadyEdit")}</Link>
         </AlertDescription>
       </Alert>
     )
@@ -107,9 +113,9 @@ export function OnboardingForm() {
   if (current.state === "suspended") {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Compte suspendu</AlertTitle>
+        <AlertTitle>{t("home.suspendedTitle")}</AlertTitle>
         <AlertDescription>
-          Ce compte ne peut pas créer ou modifier de profil.
+          {t("onboarding.suspendedDescription")}
         </AlertDescription>
       </Alert>
     )
@@ -118,11 +124,8 @@ export function OnboardingForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Choisissez votre rôle</CardTitle>
-        <CardDescription>
-          Le rôle organise votre expérience. Il ne donne ni badge vérifié ni
-          propriété sur une page artiste existante.
-        </CardDescription>
+        <CardTitle>{t("home.onboardingTitle")}</CardTitle>
+        <CardDescription>{t("onboarding.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -135,13 +138,13 @@ export function OnboardingForm() {
         >
           {error ? (
             <Alert variant="destructive">
-              <AlertTitle>Profil non créé</AlertTitle>
+              <AlertTitle>{t("onboarding.profileError")}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
           <FieldGroup>
             <FieldSet>
-              <FieldLegend>Rôle du compte</FieldLegend>
+              <FieldLegend>{t("onboarding.role")}</FieldLegend>
               <form.Field name="role">
                 {(field) => (
                   <ToggleGroup
@@ -154,16 +157,19 @@ export function OnboardingForm() {
                       }
                     }}
                     onBlur={field.handleBlur}
-                    aria-label="Rôle du compte"
+                    aria-label={t("onboarding.role")}
                   >
-                    <ToggleGroupItem value="fan">Fan</ToggleGroupItem>
-                    <ToggleGroupItem value="artist">Artiste</ToggleGroupItem>
+                    <ToggleGroupItem value="fan">
+                      {t("common.fan")}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="artist">
+                      {t("common.artist")}
+                    </ToggleGroupItem>
                   </ToggleGroup>
                 )}
               </form.Field>
               <FieldDescription>
-                Un artiste peut publier son propre contenu dès les lots
-                catalogue. Un fan peut proposer du contenu à la modération.
+                {t("onboarding.roleDescription")}
               </FieldDescription>
             </FieldSet>
             <form.AppField
@@ -172,14 +178,14 @@ export function OnboardingForm() {
                 onBlur: ({ value }) =>
                   /^[a-z0-9._-]{3,30}$/.test(value)
                     ? undefined
-                    : "Utilisez 3 à 30 lettres minuscules, chiffres, points, tirets ou underscores.",
+                    : t("onboarding.handleInvalid"),
               }}
             >
               {(field) => (
                 <field.TextField
                   id="handle"
-                  label="Pseudo public"
-                  description="Lettres minuscules, chiffres, point, tiret ou underscore."
+                  label={t("onboarding.handle")}
+                  description={t("onboarding.handleDescription")}
                   required
                   minLength={3}
                   maxLength={30}
@@ -193,13 +199,13 @@ export function OnboardingForm() {
                 onBlur: ({ value }) =>
                   value.trim().length >= 2
                     ? undefined
-                    : "Le nom doit contenir au moins 2 caractères.",
+                    : t("signUp.nameTooShort"),
               }}
             >
               {(field) => (
                 <field.TextField
                   id="displayName"
-                  label="Nom affiché"
+                  label={t("signUp.displayName")}
                   required
                   minLength={2}
                   maxLength={80}
@@ -208,19 +214,23 @@ export function OnboardingForm() {
             </form.AppField>
             <form.AppField name="bio">
               {(field) => (
-                <field.TextareaField id="bio" label="Bio" maxLength={500} />
+                <field.TextareaField
+                  id="bio"
+                  label={t("onboarding.bio")}
+                  maxLength={500}
+                />
               )}
             </form.AppField>
             <form.Subscribe selector={(state) => state.values.role}>
               {(role) =>
                 role === "artist" ? (
                   <FieldSet>
-                    <FieldLegend>Profil artiste</FieldLegend>
+                    <FieldLegend>{t("onboarding.artistProfile")}</FieldLegend>
                     <form.AppField name="presentation">
                       {(field) => (
                         <field.TextareaField
                           id="presentation"
-                          label="Présentation"
+                          label={t("onboarding.presentation")}
                           maxLength={2000}
                         />
                       )}
@@ -241,14 +251,15 @@ export function OnboardingForm() {
             </form.Subscribe>
           </FieldGroup>
           <form.AppForm>
-            <form.SubmitButton size="lg">Créer mon profil</form.SubmitButton>
+            <form.SubmitButton size="lg">
+              {t("onboarding.create")}
+            </form.SubmitButton>
           </form.AppForm>
         </form>
       </CardContent>
       <CardFooter>
         <p className="text-sm text-muted-foreground">
-          L’administration reste un droit distinct attribué uniquement côté
-          serveur.
+          {t("onboarding.adminNotice")}
         </p>
       </CardFooter>
     </Card>
@@ -256,8 +267,9 @@ export function OnboardingForm() {
 }
 
 function OnboardingSkeleton() {
+  const { t } = useLocale()
   return (
-    <Card aria-label="Chargement de l’onboarding">
+    <Card aria-label={t("common.loadingOnboarding")}>
       <CardHeader className="gap-2">
         <Skeleton className="h-7 w-48" />
         <Skeleton className="h-4 w-4/5" />

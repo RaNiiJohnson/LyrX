@@ -18,8 +18,10 @@ import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { AuthCard } from "./auth-card"
+import { useLocale } from "./locale-provider"
 
 export function SignInForm() {
+  const { t } = useLocale()
   const capabilities = useQuery(api.configuration.authCapabilities, {})
   const [error, setError] = useState<string | null>(null)
   const [googlePending, setGooglePending] = useState(false)
@@ -42,7 +44,7 @@ export function SignInForm() {
       } catch (caught) {
         const message = getErrorMessage(caught)
         setError(message)
-        toast.error("Connexion impossible", { description: message })
+        toast.error(t("signIn.error"), { description: message })
       }
     },
   })
@@ -60,15 +62,15 @@ export function SignInForm() {
     } catch (caught) {
       const message = getErrorMessage(caught)
       setError(message)
-      toast.error("Connexion avec Google impossible", { description: message })
+      toast.error(t("toast.googleError"), { description: message })
       setGooglePending(false)
     }
   }
 
   return (
     <AuthCard
-      title="Connexion"
-      description="Retrouvez votre profil Lyr’X et vos outils de contribution."
+      title={t("signIn.title")}
+      description={t("signIn.description")}
       error={error}
       onSubmit={(event) => {
         event.preventDefault()
@@ -77,20 +79,18 @@ export function SignInForm() {
       }}
       footer={
         <p className="text-sm text-muted-foreground">
-          Pas encore de compte ?{" "}
+          {t("signIn.footerLead")}{" "}
           <Link to="/auth/sign-up" className="text-foreground underline">
-            Créer un compte
+            {t("navigation.createAccount")}
           </Link>
         </p>
       }
     >
       {capabilities !== undefined && !capabilities.emailDelivery ? (
         <Alert>
-          <AlertTitle>Envoi d’emails non configuré</AlertTitle>
+          <AlertTitle>{t("auth.emailUnavailableTitle")}</AlertTitle>
           <AlertDescription>
-            La connexion reste disponible pour un compte déjà vérifié. Les
-            nouveaux emails de vérification et de réinitialisation nécessitent
-            encore le fournisseur transactionnel.
+            {t("auth.emailUnavailableDescription")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -99,13 +99,13 @@ export function SignInForm() {
           name="email"
           validators={{
             onBlur: ({ value }) =>
-              value.includes("@") ? undefined : "Adresse email invalide.",
+              value.includes("@") ? undefined : t("auth.emailInvalid"),
           }}
         >
           {(field) => (
             <field.TextField
               id="email"
-              label="Adresse email"
+              label={t("auth.email")}
               type="email"
               autoComplete="email"
               required
@@ -116,19 +116,19 @@ export function SignInForm() {
           name="password"
           validators={{
             onBlur: ({ value }) =>
-              value.length > 0 ? undefined : "Le mot de passe est requis.",
+              value.length > 0 ? undefined : t("auth.passwordRequired"),
           }}
         >
           {(field) => (
             <field.TextField
               id="password"
-              label="Mot de passe"
+              label={t("auth.password")}
               labelExtra={
                 <Link
                   to="/auth/forgot-password"
                   className="text-sm text-muted-foreground underline"
                 >
-                  Mot de passe oublié ?
+                  {t("signIn.forgotPassword")}
                 </Link>
               }
               type="password"
@@ -139,11 +139,14 @@ export function SignInForm() {
         </form.AppField>
       </FieldGroup>
       <form.AppForm>
-        <form.SubmitButton size="lg">Se connecter</form.SubmitButton>
+        <form.SubmitButton size="lg">{t("signIn.submit")}</form.SubmitButton>
       </form.AppForm>
-      <FieldSeparator>ou</FieldSeparator>
+      <FieldSeparator>{t("auth.or")}</FieldSeparator>
       {capabilities === undefined ? (
-        <div className="flex flex-col gap-2" aria-label="Chargement de Google">
+        <div
+          className="flex flex-col gap-2"
+          aria-label={t("auth.googleLoading")}
+        >
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-4 w-3/4" />
         </div>
@@ -159,14 +162,14 @@ export function SignInForm() {
                 onClick={signInWithGoogle}
               >
                 {googlePending ? <Spinner data-icon="inline-start" /> : null}
-                Continuer avec Google
+                {t("auth.googleContinue")}
               </Button>
             )}
           </form.Subscribe>
           <FieldDescription>
             {capabilities.google
-              ? "Google est configuré pour ce déploiement."
-              : "Google sera activé lorsque les identifiants OAuth seront configurés."}
+              ? t("auth.googleConfigured")
+              : t("auth.googlePendingConfiguration")}
           </FieldDescription>
         </>
       )}

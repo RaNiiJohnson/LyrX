@@ -14,8 +14,10 @@ import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { AuthCard } from "./auth-card"
+import { useLocale } from "./locale-provider"
 
 export function SignUpForm() {
+  const { t } = useLocale()
   const capabilities = useQuery(api.configuration.authCapabilities, {})
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -39,16 +41,14 @@ export function SignUpForm() {
           callbackURL: "/account",
         })
         if (result.error) throw result.error
-        setNotice(
-          "Consultez votre boîte email et ouvrez le lien de vérification avant de choisir votre rôle."
-        )
-        toast.success("Compte créé", {
-          description: "Consultez votre boîte email pour le vérifier.",
+        setNotice(t("signUp.notice"))
+        toast.success(t("signUp.successTitle"), {
+          description: t("signUp.successDescription"),
         })
       } catch (caught) {
         const message = getErrorMessage(caught)
         setError(message)
-        toast.error("Création du compte impossible", { description: message })
+        toast.error(t("signUp.error"), { description: message })
       }
     },
   })
@@ -66,15 +66,15 @@ export function SignUpForm() {
     } catch (caught) {
       const message = getErrorMessage(caught)
       setError(message)
-      toast.error("Connexion avec Google impossible", { description: message })
+      toast.error(t("toast.googleError"), { description: message })
       setGooglePending(false)
     }
   }
 
   return (
     <AuthCard
-      title="Créer un compte"
-      description="L’inscription est suivie d’une vérification email puis du choix Fan ou Artiste."
+      title={t("signUp.title")}
+      description={t("signUp.description")}
       error={error}
       notice={notice}
       onSubmit={(event) => {
@@ -84,19 +84,18 @@ export function SignUpForm() {
       }}
       footer={
         <p className="text-sm text-muted-foreground">
-          Déjà membre ?{" "}
+          {t("signUp.footerLead")}{" "}
           <Link to="/auth/sign-in" className="text-foreground underline">
-            Se connecter
+            {t("signIn.submit")}
           </Link>
         </p>
       }
     >
       {capabilities !== undefined && !capabilities.emailDelivery ? (
         <Alert>
-          <AlertTitle>Inscription temporairement indisponible</AlertTitle>
+          <AlertTitle>{t("signUp.emailDeliveryTitle")}</AlertTitle>
           <AlertDescription>
-            Le fournisseur d’email transactionnel n’est pas encore configuré.
-            Lyr’X ne crée pas de compte impossible à vérifier.
+            {t("signUp.emailDeliveryDescription")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -105,15 +104,13 @@ export function SignUpForm() {
           name="name"
           validators={{
             onBlur: ({ value }) =>
-              value.trim().length >= 2
-                ? undefined
-                : "Le nom doit contenir au moins 2 caractères.",
+              value.trim().length >= 2 ? undefined : t("signUp.nameTooShort"),
           }}
         >
           {(field) => (
             <field.TextField
               id="name"
-              label="Nom affiché"
+              label={t("signUp.displayName")}
               autoComplete="name"
               required
               minLength={2}
@@ -125,13 +122,13 @@ export function SignUpForm() {
           name="email"
           validators={{
             onBlur: ({ value }) =>
-              value.includes("@") ? undefined : "Adresse email invalide.",
+              value.includes("@") ? undefined : t("auth.emailInvalid"),
           }}
         >
           {(field) => (
             <field.TextField
               id="email"
-              label="Adresse email"
+              label={t("auth.email")}
               type="email"
               autoComplete="email"
               required
@@ -142,16 +139,14 @@ export function SignUpForm() {
           name="password"
           validators={{
             onBlur: ({ value }) =>
-              value.length >= 10
-                ? undefined
-                : "Le mot de passe doit contenir au moins 10 caractères.",
+              value.length >= 10 ? undefined : t("auth.passwordTooShort"),
           }}
         >
           {(field) => (
             <field.TextField
               id="password"
-              label="Mot de passe"
-              description="10 caractères minimum."
+              label={t("auth.password")}
+              description={t("auth.passwordMinimum")}
               type="password"
               autoComplete="new-password"
               required
@@ -166,12 +161,15 @@ export function SignUpForm() {
           size="lg"
           disabled={capabilities?.emailDelivery !== true}
         >
-          Créer mon compte
+          {t("signUp.submit")}
         </form.SubmitButton>
       </form.AppForm>
-      <FieldSeparator>ou</FieldSeparator>
+      <FieldSeparator>{t("auth.or")}</FieldSeparator>
       {capabilities === undefined ? (
-        <Skeleton className="h-10 w-full" aria-label="Chargement de Google" />
+        <Skeleton
+          className="h-10 w-full"
+          aria-label={t("auth.googleLoading")}
+        />
       ) : (
         <form.Subscribe selector={(state) => state.isSubmitting}>
           {(isSubmitting) => (
@@ -183,7 +181,7 @@ export function SignUpForm() {
               onClick={signUpWithGoogle}
             >
               {googlePending ? <Spinner data-icon="inline-start" /> : null}
-              Continuer avec Google
+              {t("auth.googleContinue")}
             </Button>
           )}
         </form.Subscribe>

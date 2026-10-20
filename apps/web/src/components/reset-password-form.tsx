@@ -9,8 +9,10 @@ import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { AuthCard } from "./auth-card"
+import { useLocale } from "./locale-provider"
 
 export function ResetPasswordForm({ token }: { token?: string }) {
+  const { t } = useLocale()
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -22,9 +24,9 @@ export function ResetPasswordForm({ token }: { token?: string }) {
     onSubmit: async ({ value }) => {
       if (!token) return
       if (value.password !== value.confirmation) {
-        const message = "Les deux mots de passe ne correspondent pas."
+        const message = t("reset.mismatch")
         setError(message)
-        toast.error("Mot de passe non modifié", { description: message })
+        toast.error(t("reset.updateError"), { description: message })
         return
       }
       setError(null)
@@ -34,20 +36,20 @@ export function ResetPasswordForm({ token }: { token?: string }) {
           token,
         })
         if (result.error) throw result.error
-        setNotice("Le mot de passe a été modifié. Vous pouvez vous connecter.")
-        toast.success("Mot de passe modifié")
+        setNotice(t("reset.notice"))
+        toast.success(t("reset.success"))
       } catch (caught) {
         const message = getErrorMessage(caught)
         setError(message)
-        toast.error("Mot de passe non modifié", { description: message })
+        toast.error(t("reset.updateError"), { description: message })
       }
     },
   })
 
   return (
     <AuthCard
-      title="Nouveau mot de passe"
-      description="Le changement révoque les autres sessions du compte."
+      title={t("reset.title")}
+      description={t("reset.description")}
       error={error}
       notice={notice}
       onSubmit={(event) => {
@@ -57,15 +59,15 @@ export function ResetPasswordForm({ token }: { token?: string }) {
       }}
       footer={
         <Link to="/auth/sign-in" className="text-sm underline">
-          Aller à la connexion
+          {t("reset.footer")}
         </Link>
       }
     >
       {!token ? (
         <Alert variant="destructive">
-          <AlertTitle>Lien incomplet</AlertTitle>
+          <AlertTitle>{t("reset.incompleteTitle")}</AlertTitle>
           <AlertDescription>
-            Le jeton de réinitialisation est absent. Demandez un nouveau lien.
+            {t("reset.incompleteDescription")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -74,16 +76,14 @@ export function ResetPasswordForm({ token }: { token?: string }) {
           name="password"
           validators={{
             onBlur: ({ value }) =>
-              value.length >= 10
-                ? undefined
-                : "Le mot de passe doit contenir au moins 10 caractères.",
+              value.length >= 10 ? undefined : t("auth.passwordTooShort"),
           }}
         >
           {(field) => (
             <field.TextField
               id="password"
-              label="Nouveau mot de passe"
-              description="10 caractères minimum."
+              label={t("reset.newPassword")}
+              description={t("auth.passwordMinimum")}
               type="password"
               autoComplete="new-password"
               required
@@ -96,7 +96,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
           {(field) => (
             <field.TextField
               id="confirmation"
-              label="Confirmer"
+              label={t("reset.confirm")}
               type="password"
               autoComplete="new-password"
               required
@@ -106,7 +106,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
       </FieldGroup>
       <form.AppForm>
         <form.SubmitButton size="lg" disabled={!token}>
-          Enregistrer le mot de passe
+          {t("reset.submit")}
         </form.SubmitButton>
       </form.AppForm>
     </AuthCard>

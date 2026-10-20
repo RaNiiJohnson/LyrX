@@ -14,15 +14,18 @@ import {
 import { Separator } from "@lyrx/ui/components/separator"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 
+import { useLocale } from "./locale-provider"
+
 export function PublicProfile({ handle }: { handle: string }) {
+  const { t } = useLocale()
   const profile = useQuery(api.members.publicByHandle, { handle })
   if (profile === undefined) return <PublicProfileSkeleton />
   if (!profile) {
     return (
       <Alert>
-        <AlertTitle>Profil introuvable</AlertTitle>
+        <AlertTitle>{t("profile.publicNotFoundTitle")}</AlertTitle>
         <AlertDescription>
-          Ce profil n’existe pas ou n’est pas visible publiquement.
+          {t("profile.publicNotFoundDescription")}
         </AlertDescription>
       </Alert>
     )
@@ -57,7 +60,7 @@ export function PublicProfile({ handle }: { handle: string }) {
             <CardDescription>@{profile.handle}</CardDescription>
           </div>
           <Badge variant="secondary">
-            {profile.role === "artist" ? "Artiste" : "Fan"}
+            {profile.role === "artist" ? t("common.artist") : t("common.fan")}
           </Badge>
         </div>
       </CardHeader>
@@ -67,7 +70,7 @@ export function PublicProfile({ handle }: { handle: string }) {
           <>
             <Separator />
             <section className="flex flex-col gap-3">
-              <h2 className="font-medium">À propos de l’artiste</h2>
+              <h2 className="font-medium">{t("profile.aboutArtist")}</h2>
               {profile.artist.presentation ? (
                 <p className="leading-7 text-muted-foreground">
                   {profile.artist.presentation}
@@ -143,8 +146,9 @@ export function PublicProfile({ handle }: { handle: string }) {
 }
 
 function PublicProfileSkeleton() {
+  const { t } = useLocale()
   return (
-    <Card aria-label="Chargement du profil public">
+    <Card aria-label={t("common.loadingPublicProfile")}>
       <Skeleton className="aspect-[3/1] w-full rounded-b-none" />
       <CardHeader>
         <div className="flex items-center gap-4">

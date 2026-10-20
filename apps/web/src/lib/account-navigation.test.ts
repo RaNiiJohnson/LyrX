@@ -14,17 +14,17 @@ describe("account navigation policy", () => {
   })
 
   it.each([
-    ["email-unverified", "/auth/verify-email", "Vérifier mon email"],
-    ["onboarding-required", "/onboarding", "Continuer"],
-    ["ready", "/profile", "Mon profil"],
-    ["suspended", "/profile", "Mon compte"],
+    ["email-unverified", "/auth/verify-email", "home.emailUnverifiedTitle"],
+    ["onboarding-required", "/onboarding", "navigation.continue"],
+    ["ready", "/profile", "navigation.myProfile"],
+    ["suspended", "/profile", "navigation.account"],
   ] as const)(
     "replaces public auth actions for the %s state",
-    (state, href, label) => {
+    (state, href, labelKey) => {
       expect(getAccountNavigation(state)).toEqual({
         kind: "authenticated",
         href,
-        label,
+        labelKey,
       })
       expect(getSignedInDestination(state)).toBe(href)
     }

@@ -11,8 +11,10 @@ import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { AuthCard } from "./auth-card"
+import { useLocale } from "./locale-provider"
 
 export function ForgotPasswordForm() {
+  const { t } = useLocale()
   const capabilities = useQuery(api.configuration.authCapabilities, {})
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -28,24 +30,22 @@ export function ForgotPasswordForm() {
           redirectTo: "/auth/reset-password",
         })
         if (result.error) throw result.error
-        setNotice(
-          "Si un compte correspond à cette adresse, un lien de réinitialisation a été envoyé."
-        )
-        toast.success("Demande envoyée", {
-          description: "Consultez votre boîte email.",
+        setNotice(t("forgot.notice"))
+        toast.success(t("forgot.successTitle"), {
+          description: t("forgot.successDescription"),
         })
       } catch (caught) {
         const message = getErrorMessage(caught)
         setError(message)
-        toast.error("Envoi impossible", { description: message })
+        toast.error(t("toast.sendError"), { description: message })
       }
     },
   })
 
   return (
     <AuthCard
-      title="Mot de passe oublié"
-      description="Recevez un lien à usage limité pour choisir un nouveau mot de passe."
+      title={t("forgot.title")}
+      description={t("forgot.description")}
       error={error}
       notice={notice}
       onSubmit={(event) => {
@@ -55,16 +55,15 @@ export function ForgotPasswordForm() {
       }}
       footer={
         <Link to="/auth/sign-in" className="text-sm underline">
-          Revenir à la connexion
+          {t("forgot.footer")}
         </Link>
       }
     >
       {capabilities !== undefined && !capabilities.emailDelivery ? (
         <Alert>
-          <AlertTitle>Envoi indisponible</AlertTitle>
+          <AlertTitle>{t("forgot.deliveryUnavailableTitle")}</AlertTitle>
           <AlertDescription>
-            Le fournisseur d’email doit être configuré avant d’utiliser ce
-            parcours.
+            {t("forgot.deliveryUnavailableDescription")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -73,13 +72,13 @@ export function ForgotPasswordForm() {
           name="email"
           validators={{
             onBlur: ({ value }) =>
-              value.includes("@") ? undefined : "Adresse email invalide.",
+              value.includes("@") ? undefined : t("auth.emailInvalid"),
           }}
         >
           {(field) => (
             <field.TextField
               id="email"
-              label="Adresse email"
+              label={t("auth.email")}
               type="email"
               autoComplete="email"
               required
@@ -92,7 +91,7 @@ export function ForgotPasswordForm() {
           size="lg"
           disabled={capabilities?.emailDelivery !== true}
         >
-          Envoyer le lien
+          {t("forgot.submit")}
         </form.SubmitButton>
       </form.AppForm>
     </AuthCard>

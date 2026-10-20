@@ -3,6 +3,6 @@
   "short_name": "Lyr'X",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fafafa",
-  "theme_color": "#18181b"
+  "background_color": "#FFF8F5",
+  "theme_color": "#DF4F55"
 }

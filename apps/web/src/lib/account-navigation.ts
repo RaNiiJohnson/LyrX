@@ -1,3 +1,5 @@
+import type { MessageKey } from "@lyrx/shared"
+
 export type AccountState =
   | "anonymous"
   | "email-unverified"
@@ -10,7 +12,7 @@ type AccountNavigation =
   | {
       kind: "authenticated"
       href: "/auth/verify-email" | "/onboarding" | "/profile"
-      label: string
+      labelKey: MessageKey
     }
 
 export function getAccountNavigation(state: AccountState): AccountNavigation {
@@ -21,25 +23,25 @@ export function getAccountNavigation(state: AccountState): AccountNavigation {
       return {
         kind: "authenticated",
         href: "/auth/verify-email",
-        label: "Vérifier mon email",
+        labelKey: "home.emailUnverifiedTitle",
       }
     case "onboarding-required":
       return {
         kind: "authenticated",
         href: "/onboarding",
-        label: "Continuer",
+        labelKey: "navigation.continue",
       }
     case "ready":
       return {
         kind: "authenticated",
         href: "/profile",
-        label: "Mon profil",
+        labelKey: "navigation.myProfile",
       }
     case "suspended":
       return {
         kind: "authenticated",
         href: "/profile",
-        label: "Mon compte",
+        labelKey: "navigation.account",
       }
   }
 }

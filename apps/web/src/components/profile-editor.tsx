@@ -30,27 +30,26 @@ import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage } from "@/lib/errors"
+import { useLocale } from "./locale-provider"
 
 export function ProfileEditor() {
+  const { t } = useLocale()
   const current = useQuery(api.members.current, {})
   if (current === undefined) return <ProfileEditorSkeleton />
   if (current.state === "suspended") {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Compte suspendu</AlertTitle>
-        <AlertDescription>
-          Ce compte ne peut plus modifier ni publier son profil.
-        </AlertDescription>
+        <AlertTitle>{t("home.suspendedTitle")}</AlertTitle>
+        <AlertDescription>{t("profile.suspendedDescription")}</AlertDescription>
       </Alert>
     )
   }
   if (current.state !== "ready") {
     return (
       <Alert>
-        <AlertTitle>Profil indisponible</AlertTitle>
+        <AlertTitle>{t("profile.unavailableTitle")}</AlertTitle>
         <AlertDescription>
-          <Link to="/onboarding">Terminez l’onboarding</Link> après connexion et
-          vérification de votre email.
+          <Link to="/onboarding">{t("profile.unavailableDescription")}</Link>
         </AlertDescription>
       </Alert>
     )
@@ -66,6 +65,7 @@ function ReadyProfileEditor({
     { state: "ready" }
   >
 }) {
+  const { t } = useLocale()
   const updateProfile = useMutation(api.members.updateMyProfile)
   const generateUploadUrl = useMutation(
     api.members.generateProfileImageUploadUrl
@@ -109,11 +109,11 @@ function ReadyProfileEditor({
                 }
               : undefined,
         })
-        toast.success("Profil enregistré")
+        toast.success(t("profile.saved"))
       } catch (caught) {
         const message = getErrorMessage(caught)
         setError(message)
-        toast.error("Modification impossible", { description: message })
+        toast.error(t("profile.saveError"), { description: message })
       }
     },
   })
@@ -132,7 +132,7 @@ function ReadyProfileEditor({
         headers: { "Content-Type": file.type },
         body: file,
       })
-      if (!response.ok) throw new Error("Le transfert de l’image a échoué.")
+      if (!response.ok) throw new Error(t("profile.imageUploadFailed"))
       const payload: unknown = await response.json()
       if (
         !payload ||
@@ -140,7 +140,7 @@ function ReadyProfileEditor({
         !("storageId" in payload) ||
         typeof payload.storageId !== "string"
       ) {
-        throw new Error("La réponse du stockage est invalide.")
+        throw new Error(t("profile.imageInvalidResponse"))
       }
       const result = await saveProfileImage({
         kind,
@@ -149,12 +149,14 @@ function ReadyProfileEditor({
       })
       if (!result.ok) throw new Error(result.message)
       toast.success(
-        kind === "avatar" ? "Avatar mis à jour" : "Bannière mise à jour"
+        kind === "avatar"
+          ? t("profile.avatarUpdated")
+          : t("profile.bannerUpdated")
       )
     } catch (caught) {
       const message = getErrorMessage(caught)
       setError(message)
-      toast.error("Envoi de l’image impossible", { description: message })
+      toast.error(t("profile.imageError"), { description: message })
     } finally {
       setImagePending(null)
     }
@@ -163,13 +165,15 @@ function ReadyProfileEditor({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mon profil</CardTitle>
+        <CardTitle>{t("navigation.myProfile")}</CardTitle>
         <CardDescription>
           <span className="flex flex-wrap gap-2">
             <Badge variant="secondary">
-              {current.member.role === "artist" ? "Artiste" : "Fan"}
+              {current.member.role === "artist"
+                ? t("common.artist")
+                : t("common.fan")}
             </Badge>
-            {current.member.isAdmin ? <Badge>Administrateur</Badge> : null}
+            {current.member.isAdmin ? <Badge>{t("common.admin")}</Badge> : null}
           </span>
         </CardDescription>
       </CardHeader>
@@ -184,15 +188,15 @@ function ReadyProfileEditor({
         >
           {error ? (
             <Alert variant="destructive">
-              <AlertTitle>Modification impossible</AlertTitle>
+              <AlertTitle>{t("profile.saveError")}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
           <FieldGroup>
             <FieldSet>
-              <FieldLegend>Images du profil</FieldLegend>
+              <FieldLegend>{t("profile.images")}</FieldLegend>
               <Field>
-                <FieldLabel htmlFor="avatar">Avatar</FieldLabel>
+                <FieldLabel htmlFor="avatar">{t("profile.avatar")}</FieldLabel>
                 <Input
                   id="avatar"
                   type="file"
@@ -203,12 +207,14 @@ function ReadyProfileEditor({
                   }
                 />
                 <FieldDescription>
-                  JPEG, PNG ou WebP, 5 Mo maximum.
+                  {t("profile.avatarDescription")}
                 </FieldDescription>
               </Field>
               {current.member.role === "artist" ? (
                 <Field>
-                  <FieldLabel htmlFor="banner">Bannière</FieldLabel>
+                  <FieldLabel htmlFor="banner">
+                    {t("profile.banner")}
+                  </FieldLabel>
                   <Input
                     id="banner"
                     type="file"
@@ -219,13 +225,13 @@ function ReadyProfileEditor({
                     }
                   />
                   <FieldDescription>
-                    JPEG, PNG ou WebP, 10 Mo maximum.
+                    {t("profile.bannerDescription")}
                   </FieldDescription>
                 </Field>
               ) : null}
               {imagePending ? (
                 <p className="flex items-center gap-2 text-sm" role="status">
-                  <Spinner /> Envoi de l’image…
+                  <Spinner /> {t("profile.imageUploading")}
                 </p>
               ) : null}
             </FieldSet>
@@ -235,13 +241,13 @@ function ReadyProfileEditor({
                 onBlur: ({ value }) =>
                   /^[a-z0-9._-]{3,30}$/.test(value)
                     ? undefined
-                    : "Utilisez 3 à 30 lettres minuscules, chiffres, points, tirets ou underscores.",
+                    : t("onboarding.handleInvalid"),
               }}
             >
               {(field) => (
                 <field.TextField
                   id="handle"
-                  label="Pseudo"
+                  label={t("profile.handle")}
                   required
                   minLength={3}
                   maxLength={30}
@@ -254,13 +260,13 @@ function ReadyProfileEditor({
                 onBlur: ({ value }) =>
                   value.trim().length >= 2
                     ? undefined
-                    : "Le nom doit contenir au moins 2 caractères.",
+                    : t("signUp.nameTooShort"),
               }}
             >
               {(field) => (
                 <field.TextField
                   id="displayName"
-                  label="Nom affiché"
+                  label={t("signUp.displayName")}
                   required
                   minLength={2}
                   maxLength={80}
@@ -269,17 +275,21 @@ function ReadyProfileEditor({
             </form.AppField>
             <form.AppField name="bio">
               {(field) => (
-                <field.TextareaField id="bio" label="Bio" maxLength={500} />
+                <field.TextareaField
+                  id="bio"
+                  label={t("profile.bio")}
+                  maxLength={500}
+                />
               )}
             </form.AppField>
             {current.member.role === "artist" ? (
               <FieldSet>
-                <FieldLegend>Identité artiste</FieldLegend>
+                <FieldLegend>{t("profile.artistIdentity")}</FieldLegend>
                 <form.AppField name="presentation">
                   {(field) => (
                     <field.TextareaField
                       id="presentation"
-                      label="Présentation"
+                      label={t("profile.presentation")}
                       maxLength={2000}
                     />
                   )}
@@ -311,7 +321,7 @@ function ReadyProfileEditor({
                   {(linksField) => (
                     <Field>
                       <div className="flex items-center justify-between gap-3">
-                        <FieldLabel>Liens personnalisés</FieldLabel>
+                        <FieldLabel>{t("profile.customLinks")}</FieldLabel>
                         <Button
                           type="button"
                           size="sm"
@@ -321,12 +331,12 @@ function ReadyProfileEditor({
                             linksField.pushValue({ label: "", url: "" })
                           }
                         >
-                          Ajouter un lien
+                          {t("profile.addLink")}
                         </Button>
                       </div>
                       {linksField.state.value.length === 0 ? (
                         <FieldDescription>
-                          Aucun lien personnalisé.
+                          {t("profile.noCustomLinks")}
                         </FieldDescription>
                       ) : (
                         <div className="flex flex-col gap-3">
@@ -340,17 +350,23 @@ function ReadyProfileEditor({
                               >
                                 {(field) => (
                                   <field.TextField
-                                    label={`Libellé du lien ${index + 1}`}
+                                    label={t("profile.customLinkLabel", {
+                                      number: index + 1,
+                                    })}
                                     labelExtra={null}
                                     maxLength={40}
-                                    placeholder="Site officiel"
+                                    placeholder={t(
+                                      "profile.customLinkPlaceholder"
+                                    )}
                                   />
                                 )}
                               </form.AppField>
                               <form.AppField name={`customLinks[${index}].url`}>
                                 {(field) => (
                                   <field.TextField
-                                    label={`URL du lien ${index + 1}`}
+                                    label={t("profile.customLinkUrl", {
+                                      number: index + 1,
+                                    })}
                                     type="url"
                                     placeholder="https://…"
                                   />
@@ -360,10 +376,14 @@ function ReadyProfileEditor({
                                 type="button"
                                 size="sm"
                                 variant="ghost"
-                                aria-label={`Supprimer le lien ${index + 1}`}
+                                aria-label={t("profile.removeLink", {
+                                  number: index + 1,
+                                })}
                                 onClick={() => linksField.removeValue(index)}
                               >
-                                Supprimer
+                                {t("profile.removeLink", {
+                                  number: index + 1,
+                                })}
                               </Button>
                             </div>
                           ))}
@@ -376,7 +396,7 @@ function ReadyProfileEditor({
             ) : null}
           </FieldGroup>
           <form.AppForm>
-            <form.SubmitButton size="lg">Enregistrer</form.SubmitButton>
+            <form.SubmitButton size="lg">{t("profile.save")}</form.SubmitButton>
           </form.AppForm>
         </form>
       </CardContent>
@@ -386,7 +406,7 @@ function ReadyProfileEditor({
             to="/profiles/$handle"
             params={{ handle: current.profile.handle }}
           >
-            Voir le profil public
+            {t("profile.viewPublic")}
           </Link>
         </Button>
       </CardFooter>
@@ -395,8 +415,9 @@ function ReadyProfileEditor({
 }
 
 function ProfileEditorSkeleton() {
+  const { t } = useLocale()
   return (
-    <Card aria-label="Chargement du profil">
+    <Card aria-label={t("common.loadingProfile")}>
       <CardHeader className="gap-2">
         <Skeleton className="h-7 w-36" />
         <Skeleton className="h-5 w-20" />

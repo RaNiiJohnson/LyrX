@@ -10,6 +10,8 @@ import {
   CardTitle,
 } from "@lyrx/ui/components/card"
 
+import { useLocale } from "./locale-provider"
+
 export function AuthCard({
   title,
   description,
@@ -27,6 +29,7 @@ export function AuthCard({
   notice?: string | null
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
 }) {
+  const { t } = useLocale()
   return (
     <Card>
       <CardHeader>
@@ -37,13 +40,13 @@ export function AuthCard({
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
           {error ? (
             <Alert variant="destructive">
-              <AlertTitle>Action impossible</AlertTitle>
+              <AlertTitle>{t("auth.actionError")}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
           {notice ? (
             <Alert>
-              <AlertTitle>Demande enregistrée</AlertTitle>
+              <AlertTitle>{t("auth.requestRecorded")}</AlertTitle>
               <AlertDescription>{notice}</AlertDescription>
             </Alert>
           ) : null}

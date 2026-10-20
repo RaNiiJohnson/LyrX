@@ -12,6 +12,7 @@ import {
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 
 import { getSignedInDestination } from "@/lib/account-navigation"
+import { useLocale } from "./locale-provider"
 
 export function SignedOutOnly({ children }: { children: ReactNode }) {
   const current = useQuery(api.members.current, {})
@@ -23,8 +24,9 @@ export function SignedOutOnly({ children }: { children: ReactNode }) {
 }
 
 function SignedOutOnlySkeleton() {
+  const { t } = useLocale()
   return (
-    <Card aria-label="Chargement du compte">
+    <Card aria-label={t("common.loadingAccount")}>
       <CardHeader className="gap-2">
         <Skeleton className="h-7 w-40" />
         <Skeleton className="h-4 w-4/5" />

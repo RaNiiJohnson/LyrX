@@ -11,8 +11,10 @@ import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { AuthCard } from "./auth-card"
+import { useLocale } from "./locale-provider"
 
 export function VerifyEmailForm() {
+  const { t } = useLocale()
   const capabilities = useQuery(api.configuration.authCapabilities, {})
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -28,24 +30,22 @@ export function VerifyEmailForm() {
           callbackURL: "/account",
         })
         if (result.error) throw result.error
-        setNotice(
-          "Si cette adresse correspond à un compte, un nouveau lien a été envoyé."
-        )
-        toast.success("Nouvel email demandé", {
-          description: "Consultez votre boîte email.",
+        setNotice(t("verify.notice"))
+        toast.success(t("verify.successTitle"), {
+          description: t("forgot.successDescription"),
         })
       } catch (caught) {
         const message = getErrorMessage(caught)
         setError(message)
-        toast.error("Envoi impossible", { description: message })
+        toast.error(t("toast.sendError"), { description: message })
       }
     },
   })
 
   return (
     <AuthCard
-      title="Vérifier votre email"
-      description="Ouvrez le lien reçu pour activer les fonctions réservées aux membres."
+      title={t("verify.title")}
+      description={t("verify.description")}
       error={error}
       notice={notice}
       onSubmit={(event) => {
@@ -55,16 +55,15 @@ export function VerifyEmailForm() {
       }}
       footer={
         <Link to="/auth/sign-in" className="text-sm underline">
-          Revenir à la connexion
+          {t("forgot.footer")}
         </Link>
       }
     >
       {capabilities !== undefined && !capabilities.emailDelivery ? (
         <Alert>
-          <AlertTitle>Nouvel envoi indisponible</AlertTitle>
+          <AlertTitle>{t("verify.deliveryUnavailableTitle")}</AlertTitle>
           <AlertDescription>
-            Le fournisseur transactionnel n’est pas configuré pour ce
-            déploiement.
+            {t("verify.deliveryUnavailableDescription")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -73,13 +72,13 @@ export function VerifyEmailForm() {
           name="email"
           validators={{
             onBlur: ({ value }) =>
-              value.includes("@") ? undefined : "Adresse email invalide.",
+              value.includes("@") ? undefined : t("auth.emailInvalid"),
           }}
         >
           {(field) => (
             <field.TextField
               id="email"
-              label="Adresse email"
+              label={t("auth.email")}
               type="email"
               autoComplete="email"
               required
@@ -92,7 +91,7 @@ export function VerifyEmailForm() {
           size="lg"
           disabled={capabilities?.emailDelivery !== true}
         >
-          Renvoyer l’email
+          {t("verify.submit")}
         </form.SubmitButton>
       </form.AppForm>
     </AuthCard>
