@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router"
 
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { FieldGroup } from "@lyrx/ui/components/field"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
@@ -21,7 +22,9 @@ export function ResetPasswordForm({ token }: { token?: string }) {
     onSubmit: async ({ value }) => {
       if (!token) return
       if (value.password !== value.confirmation) {
-        setError("Les deux mots de passe ne correspondent pas.")
+        const message = "Les deux mots de passe ne correspondent pas."
+        setError(message)
+        toast.error("Mot de passe non modifié", { description: message })
         return
       }
       setError(null)
@@ -32,8 +35,11 @@ export function ResetPasswordForm({ token }: { token?: string }) {
         })
         if (result.error) throw result.error
         setNotice("Le mot de passe a été modifié. Vous pouvez vous connecter.")
+        toast.success("Mot de passe modifié")
       } catch (caught) {
-        setError(getErrorMessage(caught))
+        const message = getErrorMessage(caught)
+        setError(message)
+        toast.error("Mot de passe non modifié", { description: message })
       }
     },
   })

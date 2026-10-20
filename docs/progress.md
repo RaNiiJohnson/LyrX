@@ -2,10 +2,10 @@
 
 ## Active lot
 
-**Lot 2 remains active at its mandatory completion-review gate. Its
-implementation is delivered locally, but the lot is not complete until the
-remaining authentication and UI acceptance evidence below is verified. Do not
-begin lot 3.**
+**Lot 2 remains active for a corrective account-UX pass. The agent owns
+proportional verification of the changed journeys; unavailable external evidence
+is recorded honestly but does not become an invented product requirement. Do
+not begin lot 3.**
 
 ## Evidence checklist
 
@@ -19,18 +19,24 @@ begin lot 3.**
 - [x] Two fresh reviewers completed independent product/UX and engineering
       reviews. Their two P2 findings were corrected and reverified.
 - [x] The branch and commit state are recorded at handoff.
-- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 16 tests, and all
+- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 21 tests, and all
       production builds.
 - [x] The mandatory Convex review found one cross-account profile-image
       ownership vulnerability. Upload intents, persisted image ownership,
       attachment indexes, and a cross-account regression test now prevent a
       member from attaching or deleting another member's image. The real Convex
       schema push succeeds.
-- [ ] Complete the real-path Google return, email delivery,
-      verification/reset, authenticated-session, and account-linking matrix.
-- [ ] Exercise authenticated onboarding/profile journeys at desktop and mobile
-      widths, including keyboard use, long text, loading, empty, error, and
-      forbidden states.
+- [x] Verify the corrected authenticated header and sign-in/sign-up redirects,
+      targeted dynamic skeletons, action toasts, and affected desktop/mobile
+      layouts. Chrome with the existing authenticated account redirected both
+      public auth routes to `/profile`, showed only profile/sign-out actions,
+      had no console error, and had no horizontal overflow at 390×844.
+- [x] Run `pnpm check` for the corrective diff. The mandatory completion review
+      is running against the resulting fixed point.
+- [x] Record the live authenticated session evidence available in Chrome. Google
+      consent return, delivered email, reset/verification links, and live uploads
+      were not repeated in this pass; that remaining external evidence stays
+      explicit instead of becoming a manual account-linking UI requirement.
 - [x] The no-backend state was inspected in Chrome desktop and a narrow in-app
       viewport; navigation is responsive, the limitation is explicit, and the
       browser console has no warning or error.
@@ -64,8 +70,8 @@ Implemented locally on 2026-10-19 on `feat/backend-auth-profiles`.
   routes, TanStack Start proxy/provider wiring, and exact compatible dependency
   pins (`@convex-dev/better-auth@0.12.5`, `better-auth@1.6.33`).
 - Email/password registration, verification and reset callbacks, conditional
-  Google sign-in, secure explicit Google linking, sign-out, and truthful
-  capability states when external providers are absent.
+  Google sign-in, Better Auth automatic trusted-provider linking, sign-out, and
+  truthful capability states when external providers are absent.
 - Verified-email onboarding into immutable Fan or Artist roles; separate
   administrator flag with single-use internal bootstrap; active/suspended
   server authorization.
@@ -73,7 +79,8 @@ Implemented locally on 2026-10-19 on `feat/backend-auth-profiles`.
   custom links, public projections, avatar/banner Convex storage with type/size
   validation and replacement cleanup.
 - shadcn-based account, onboarding, profile, loading, empty, error, unavailable,
-  and suspension states. The Corail visual system remains reserved for lot 3.
+  and suspension states. The TweakCN Caffeine tokens are the installed baseline;
+  the deeper Lyr’X visual pass remains reserved for lot 3.
 - Automated Convex authorization/profile tests and local schema generation pass.
   Production web bundling passes without the reported TanStack server-module
   leakage.
@@ -110,14 +117,14 @@ The `code-review` Standards and Spec axes and `convex:convex-reviewer` ran on
   final Convex re-review reports 0 Critical and 0 Important findings; its
   lifecycle-test suggestion was then closed with explicit pre-intent rejection
   and scheduled-expiry tests.
-- The remaining blocking findings concern missing real-path authentication and
-  authenticated UI acceptance evidence, not a claimed implementation result.
-  Lot 2 therefore remains active until those checks are performed.
-- Two non-blocking structure suggestions remain accepted for now: the two
-  profile forms repeat small field validators, and `profile-editor.tsx` keeps
-  upload, social-link, and account-linking concerns together. Splitting them
-  before the Corail UI work would create temporary component interfaces that lot
-  3 is expected to reshape; reassess both while composing the lot 3 forms.
+- That review recorded missing real-path authentication evidence separately from
+  implementation findings. The later account-UX corrective pass must now repeat
+  the final code review; external checks that cannot be performed stay disclosed
+  rather than becoming artificial blocking requirements.
+- One non-blocking structure suggestion remains accepted for now: the two
+  profile forms repeat small field validators. Extracting them before the deeper
+  visual work would create a temporary interface that lot 3 is expected to
+  reshape; reassess it while composing the lot 3 forms.
 
 ## Known external prerequisites
 

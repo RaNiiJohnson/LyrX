@@ -68,6 +68,18 @@ not duplicated as trust decisions in clients.
 8. Prefer an official Convex component whenever one covers the capability. The
    Resend component owns queued, durable, idempotent email delivery, and the
    Rate Limiter component protects upload-intent creation.
+9. Let Better Auth implicitly link a trusted Google identity when its verified
+   email matches. Do not duplicate that default flow with a profile-page linking
+   button.
+10. Account navigation and signed-out-only routes derive from the current Convex
+    member state. Authenticated members are sent to verification, onboarding, or
+    their account instead of seeing sign-in/sign-up actions again.
+11. Use shadcn Skeleton only for data-dependent regions and Sonner to acknowledge
+    asynchronous action success or failure. Keep durable, actionable errors in
+    the page as well as in transient feedback.
+12. The TweakCN Caffeine theme is the installed token baseline. Deeper product
+    styling remains a separate design pass; it must reconcile the baseline with
+    Lyr’X brand colors instead of scattering one-off colors through components.
 
 Operational setup and the evidence boundary are documented in
 [authentication.md](authentication.md).

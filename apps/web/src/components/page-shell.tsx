@@ -1,9 +1,18 @@
 import { Link } from "@tanstack/react-router"
+import { useQuery } from "convex/react"
 import type { ReactNode } from "react"
 
+import { api } from "@lyrx/backend/convex/_generated/api"
 import { PRODUCT_NAME } from "@lyrx/shared"
 import { Button } from "@lyrx/ui/components/button"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { toast } from "@lyrx/ui/lib/toast"
 import { cn } from "@lyrx/ui/lib/utils"
+
+import { getAccountNavigation } from "@/lib/account-navigation"
+import { authClient } from "@/lib/auth-client"
+import { getErrorMessage } from "@/lib/errors"
+import { getPublicRuntimeConfig } from "@/lib/runtime-config"
 
 export function PageShell({
   children,
@@ -19,14 +28,11 @@ export function PageShell({
           <Link to="/" className="text-lg font-semibold tracking-tight">
             {PRODUCT_NAME}
           </Link>
-          <nav aria-label="Compte" className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/auth/sign-in">Connexion</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/auth/sign-up">Créer un compte</Link>
-            </Button>
-          </nav>
+          {getPublicRuntimeConfig() ? (
+            <ConfiguredAccountNavigation />
+          ) : (
+            <AnonymousAccountNavigation />
+          )}
         </div>
       </header>
       <div
@@ -38,5 +44,60 @@ export function PageShell({
         {children}
       </div>
     </main>
+  )
+}
+
+function ConfiguredAccountNavigation() {
+  const current = useQuery(api.members.current, {})
+
+  if (current === undefined) {
+    return (
+      <nav
+        aria-label="Chargement du compte"
+        className="flex items-center gap-2"
+      >
+        <Skeleton className="h-8 w-20" />
+        <Skeleton className="h-8 w-28" />
+      </nav>
+    )
+  }
+
+  const navigation = getAccountNavigation(current.state)
+  if (navigation.kind === "anonymous") return <AnonymousAccountNavigation />
+
+  async function signOut() {
+    try {
+      const result = await authClient.signOut()
+      if (result.error) throw result.error
+      window.location.assign("/")
+    } catch (caught) {
+      toast.error("Déconnexion impossible", {
+        description: getErrorMessage(caught),
+      })
+    }
+  }
+
+  return (
+    <nav aria-label="Compte" className="flex items-center gap-2">
+      <Button asChild size="sm">
+        <Link to={navigation.href}>{navigation.label}</Link>
+      </Button>
+      <Button type="button" variant="ghost" size="sm" onClick={signOut}>
+        Se déconnecter
+      </Button>
+    </nav>
+  )
+}
+
+function AnonymousAccountNavigation() {
+  return (
+    <nav aria-label="Compte" className="flex items-center gap-2">
+      <Button asChild variant="ghost" size="sm">
+        <Link to="/auth/sign-in">Connexion</Link>
+      </Button>
+      <Button asChild size="sm">
+        <Link to="/auth/sign-up">Créer un compte</Link>
+      </Button>
+    </nav>
   )
 }

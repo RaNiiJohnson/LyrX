@@ -14,7 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@lyrx/ui/components/card"
-import { Spinner } from "@lyrx/ui/components/spinner"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { authClient } from "@/lib/auth-client"
 import { getPublicRuntimeConfig } from "@/lib/runtime-config"
@@ -80,7 +81,7 @@ export function MissingBackendNotice() {
 
 function ConfiguredAccountCard() {
   const current = useQuery(api.members.current, {})
-  if (current === undefined) return <Spinner />
+  if (current === undefined) return <ConfiguredAccountCardSkeleton />
 
   if (current.state === "anonymous") {
     return (
@@ -147,8 +148,13 @@ function ConfiguredAccountCard() {
   }
 
   async function signOut() {
-    await authClient.signOut()
-    window.location.assign("/")
+    try {
+      const result = await authClient.signOut()
+      if (result.error) throw result.error
+      window.location.assign("/")
+    } catch {
+      toast.error("Déconnexion impossible")
+    }
   }
 
   return (
@@ -167,6 +173,21 @@ function ConfiguredAccountCard() {
         <Button type="button" variant="outline" onClick={signOut}>
           Se déconnecter
         </Button>
+      </CardFooter>
+    </Card>
+  )
+}
+
+function ConfiguredAccountCardSkeleton() {
+  return (
+    <Card aria-label="Chargement du compte">
+      <CardHeader className="gap-2">
+        <Skeleton className="h-7 w-36" />
+        <Skeleton className="h-4 w-4/5" />
+      </CardHeader>
+      <CardFooter className="gap-2">
+        <Skeleton className="h-9 w-28" />
+        <Skeleton className="h-9 w-32" />
       </CardFooter>
     </Card>
   )

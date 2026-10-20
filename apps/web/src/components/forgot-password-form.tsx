@@ -5,6 +5,7 @@ import { Link } from "@tanstack/react-router"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { FieldGroup } from "@lyrx/ui/components/field"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
@@ -30,8 +31,13 @@ export function ForgotPasswordForm() {
         setNotice(
           "Si un compte correspond à cette adresse, un lien de réinitialisation a été envoyé."
         )
+        toast.success("Demande envoyée", {
+          description: "Consultez votre boîte email.",
+        })
       } catch (caught) {
-        setError(getErrorMessage(caught))
+        const message = getErrorMessage(caught)
+        setError(message)
+        toast.error("Envoi impossible", { description: message })
       }
     },
   })
@@ -53,7 +59,7 @@ export function ForgotPasswordForm() {
         </Link>
       }
     >
-      {!capabilities?.emailDelivery ? (
+      {capabilities !== undefined && !capabilities.emailDelivery ? (
         <Alert>
           <AlertTitle>Envoi indisponible</AlertTitle>
           <AlertDescription>
@@ -82,7 +88,10 @@ export function ForgotPasswordForm() {
         </form.AppField>
       </FieldGroup>
       <form.AppForm>
-        <form.SubmitButton size="lg" disabled={!capabilities?.emailDelivery}>
+        <form.SubmitButton
+          size="lg"
+          disabled={capabilities?.emailDelivery !== true}
+        >
           Envoyer le lien
         </form.SubmitButton>
       </form.AppForm>

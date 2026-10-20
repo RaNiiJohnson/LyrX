@@ -12,11 +12,11 @@ import {
   CardTitle,
 } from "@lyrx/ui/components/card"
 import { Separator } from "@lyrx/ui/components/separator"
-import { Spinner } from "@lyrx/ui/components/spinner"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
 
 export function PublicProfile({ handle }: { handle: string }) {
   const profile = useQuery(api.members.publicByHandle, { handle })
-  if (profile === undefined) return <Spinner />
+  if (profile === undefined) return <PublicProfileSkeleton />
   if (!profile) {
     return (
       <Alert>
@@ -137,6 +137,28 @@ export function PublicProfile({ handle }: { handle: string }) {
             </section>
           </>
         ) : null}
+      </CardContent>
+    </Card>
+  )
+}
+
+function PublicProfileSkeleton() {
+  return (
+    <Card aria-label="Chargement du profil public">
+      <Skeleton className="aspect-[3/1] w-full rounded-b-none" />
+      <CardHeader>
+        <div className="flex items-center gap-4">
+          <Skeleton className="size-12 rounded-full" />
+          <div className="flex flex-1 flex-col gap-2">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-28" />
+          </div>
+          <Skeleton className="h-5 w-16" />
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
       </CardContent>
     </Card>
   )

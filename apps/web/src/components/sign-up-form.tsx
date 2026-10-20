@@ -7,6 +7,8 @@ import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Button } from "@lyrx/ui/components/button"
 import { FieldGroup, FieldSeparator } from "@lyrx/ui/components/field"
 import { Spinner } from "@lyrx/ui/components/spinner"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
@@ -40,8 +42,13 @@ export function SignUpForm() {
         setNotice(
           "Consultez votre boîte email et ouvrez le lien de vérification avant de choisir votre rôle."
         )
+        toast.success("Compte créé", {
+          description: "Consultez votre boîte email pour le vérifier.",
+        })
       } catch (caught) {
-        setError(getErrorMessage(caught))
+        const message = getErrorMessage(caught)
+        setError(message)
+        toast.error("Création du compte impossible", { description: message })
       }
     },
   })
@@ -57,7 +64,9 @@ export function SignUpForm() {
       })
       if (result.error) throw result.error
     } catch (caught) {
-      setError(getErrorMessage(caught))
+      const message = getErrorMessage(caught)
+      setError(message)
+      toast.error("Connexion avec Google impossible", { description: message })
       setGooglePending(false)
     }
   }
@@ -82,7 +91,7 @@ export function SignUpForm() {
         </p>
       }
     >
-      {!capabilities?.emailDelivery ? (
+      {capabilities !== undefined && !capabilities.emailDelivery ? (
         <Alert>
           <AlertTitle>Inscription temporairement indisponible</AlertTitle>
           <AlertDescription>
@@ -153,25 +162,32 @@ export function SignUpForm() {
         </form.AppField>
       </FieldGroup>
       <form.AppForm>
-        <form.SubmitButton size="lg" disabled={!capabilities?.emailDelivery}>
+        <form.SubmitButton
+          size="lg"
+          disabled={capabilities?.emailDelivery !== true}
+        >
           Créer mon compte
         </form.SubmitButton>
       </form.AppForm>
       <FieldSeparator>ou</FieldSeparator>
-      <form.Subscribe selector={(state) => state.isSubmitting}>
-        {(isSubmitting) => (
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            disabled={isSubmitting || googlePending || !capabilities?.google}
-            onClick={signUpWithGoogle}
-          >
-            {googlePending ? <Spinner data-icon="inline-start" /> : null}
-            Continuer avec Google
-          </Button>
-        )}
-      </form.Subscribe>
+      {capabilities === undefined ? (
+        <Skeleton className="h-10 w-full" aria-label="Chargement de Google" />
+      ) : (
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              disabled={isSubmitting || googlePending || !capabilities.google}
+              onClick={signUpWithGoogle}
+            >
+              {googlePending ? <Spinner data-icon="inline-start" /> : null}
+              Continuer avec Google
+            </Button>
+          )}
+        </form.Subscribe>
+      )}
     </AuthCard>
   )
 }

@@ -77,8 +77,7 @@ Once Lyr’X has its own verified email domain, move the sender to an
 addresses without a code deployment. This migration is tracked in
 [progress.md](progress.md).
 
-Google sign-in and explicit account linking are enabled only when both values
-exist:
+Google sign-in is enabled only when both values exist:
 
 ```bash
 pnpm --filter @lyrx/backend exec convex env set GOOGLE_CLIENT_ID '<client-id>'
@@ -88,12 +87,13 @@ pnpm --filter @lyrx/backend exec convex env set GOOGLE_CLIENT_SECRET '<secret>'
 The local Google flow currently requests this callback URL:
 `http://localhost:3000/api/auth/callback/google`. The live browser test reaches
 Google's account picker and consent screen. Completing consent and proving the
-return session remains a separate test because it creates or links a real Lyr’X
-account.
+return session remains a separate live check because it creates or automatically
+links a real Lyr’X account.
 The interface reads a server capability query and otherwise disables Google; it
-does not simulate availability. Account linking requires a verified local email,
-trusts Google as the provider, rejects different emails, and cannot unlink the
-last account.
+does not simulate availability. Better Auth automatically links a matching
+verified local email through trusted Google; Lyr’X does not expose a redundant
+manual linking button. Different emails remain rejected and the last account
+cannot be unlinked.
 
 ## Generate the local Better Auth schema
 

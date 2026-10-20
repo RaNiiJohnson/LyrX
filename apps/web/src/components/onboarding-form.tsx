@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "convex/react"
 import { useState } from "react"
-import { Link } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
@@ -18,8 +18,9 @@ import {
   FieldLegend,
   FieldSet,
 } from "@lyrx/ui/components/field"
-import { Spinner } from "@lyrx/ui/components/spinner"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { ToggleGroup, ToggleGroupItem } from "@lyrx/ui/components/toggle-group"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage } from "@/lib/errors"
@@ -29,6 +30,7 @@ type AccountRole = "artist" | "fan"
 export function OnboardingForm() {
   const current = useQuery(api.members.current, {})
   const completeOnboarding = useMutation(api.members.completeOnboarding)
+  const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
 
   const form = useAppForm({
@@ -57,14 +59,17 @@ export function OnboardingForm() {
                 }
               : undefined,
         })
-        window.location.assign("/profile")
+        toast.success("Profil créé")
+        await navigate({ to: "/profile" })
       } catch (caught) {
-        setError(getErrorMessage(caught))
+        const message = getErrorMessage(caught)
+        setError(message)
+        toast.error("Profil non créé", { description: message })
       }
     },
   })
 
-  if (current === undefined) return <Spinner />
+  if (current === undefined) return <OnboardingSkeleton />
   if (current.state === "anonymous") {
     return (
       <Alert>
@@ -245,6 +250,26 @@ export function OnboardingForm() {
           L’administration reste un droit distinct attribué uniquement côté
           serveur.
         </p>
+      </CardFooter>
+    </Card>
+  )
+}
+
+function OnboardingSkeleton() {
+  return (
+    <Card aria-label="Chargement de l’onboarding">
+      <CardHeader className="gap-2">
+        <Skeleton className="h-7 w-48" />
+        <Skeleton className="h-4 w-4/5" />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        <Skeleton className="h-9 w-48" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-10 w-40" />
       </CardFooter>
     </Card>
   )

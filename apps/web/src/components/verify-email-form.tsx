@@ -5,6 +5,7 @@ import { Link } from "@tanstack/react-router"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { FieldGroup } from "@lyrx/ui/components/field"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
@@ -30,8 +31,13 @@ export function VerifyEmailForm() {
         setNotice(
           "Si cette adresse correspond à un compte, un nouveau lien a été envoyé."
         )
+        toast.success("Nouvel email demandé", {
+          description: "Consultez votre boîte email.",
+        })
       } catch (caught) {
-        setError(getErrorMessage(caught))
+        const message = getErrorMessage(caught)
+        setError(message)
+        toast.error("Envoi impossible", { description: message })
       }
     },
   })
@@ -53,7 +59,7 @@ export function VerifyEmailForm() {
         </Link>
       }
     >
-      {!capabilities?.emailDelivery ? (
+      {capabilities !== undefined && !capabilities.emailDelivery ? (
         <Alert>
           <AlertTitle>Nouvel envoi indisponible</AlertTitle>
           <AlertDescription>
@@ -82,7 +88,10 @@ export function VerifyEmailForm() {
         </form.AppField>
       </FieldGroup>
       <form.AppForm>
-        <form.SubmitButton size="lg" disabled={!capabilities?.emailDelivery}>
+        <form.SubmitButton
+          size="lg"
+          disabled={capabilities?.emailDelivery !== true}
+        >
           Renvoyer l’email
         </form.SubmitButton>
       </form.AppForm>

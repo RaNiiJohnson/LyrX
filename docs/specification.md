@@ -22,8 +22,9 @@ delivery status and proof remain in [progress.md](progress.md).
 
 - Better Auth provides email/password and Google sign-in, email verification,
   password reset, sign-out, and session management.
-- Accounts are not merged only because email strings match. Linking uses Better
-  Auth's verified, trusted-provider mechanisms.
+- Better Auth performs implicit account linking only through its verified,
+  trusted-provider rules. Lyr’X does not add a manual Google-linking control for
+  the normal same-email flow.
 - Google is never presented as working without OAuth configuration. Missing
   provider credentials are shown as an explicit limitation.
 - After first authentication, a member chooses **Artist** or **Fan**. An
@@ -203,15 +204,19 @@ Tests and real-path checks must cover:
 - albums and ordered tracks;
 - published-lyrics search and hidden-content exclusion;
 - flat comments, self-deletion, reports, and moderation;
-- secure sign-in, verification, reset, sessions, and account linking;
+- secure sign-in, verification, reset, sessions, and Better Auth’s automatic
+  same-email linking rules;
 - image export with/without artwork and withdrawal blocking;
 - French/English plus light/dark/system preferences;
 - unavailable external players with a working source-link fallback.
 
-Each UI lot checks desktop and mobile widths, keyboard use, long text, and loading,
-empty, error, and forbidden states. Each backend lot runs typecheck/tests and a
-real Convex push when a deployment is available. Expo web preview alone never
-proves Android behavior.
+UI verification is owned by the implementing agent and is proportional to the
+journey changed: relevant desktop/mobile widths, keyboard behavior, long text,
+and loading, empty, error, or forbidden states are exercised where they can
+actually occur. Loading skeletons cover dynamic regions while stable page chrome
+remains visible; a page is not skeletonized wholesale without a reason. Each
+backend lot runs typecheck/tests and a real Convex push when a deployment is
+available. Expo web preview alone never proves Android behavior.
 
 ## External prerequisites
 

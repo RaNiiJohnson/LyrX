@@ -11,6 +11,8 @@ import {
   FieldSeparator,
 } from "@lyrx/ui/components/field"
 import { Spinner } from "@lyrx/ui/components/spinner"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
@@ -38,7 +40,9 @@ export function SignInForm() {
         if (result.error) throw result.error
         window.location.assign("/onboarding")
       } catch (caught) {
-        setError(getErrorMessage(caught))
+        const message = getErrorMessage(caught)
+        setError(message)
+        toast.error("Connexion impossible", { description: message })
       }
     },
   })
@@ -54,7 +58,9 @@ export function SignInForm() {
       })
       if (result.error) throw result.error
     } catch (caught) {
-      setError(getErrorMessage(caught))
+      const message = getErrorMessage(caught)
+      setError(message)
+      toast.error("Connexion avec Google impossible", { description: message })
       setGooglePending(false)
     }
   }
@@ -78,7 +84,7 @@ export function SignInForm() {
         </p>
       }
     >
-      {!capabilities?.emailDelivery ? (
+      {capabilities !== undefined && !capabilities.emailDelivery ? (
         <Alert>
           <AlertTitle>Envoi d’emails non configuré</AlertTitle>
           <AlertDescription>
@@ -136,25 +142,34 @@ export function SignInForm() {
         <form.SubmitButton size="lg">Se connecter</form.SubmitButton>
       </form.AppForm>
       <FieldSeparator>ou</FieldSeparator>
-      <form.Subscribe selector={(state) => state.isSubmitting}>
-        {(isSubmitting) => (
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            disabled={isSubmitting || googlePending || !capabilities?.google}
-            onClick={signInWithGoogle}
-          >
-            {googlePending ? <Spinner data-icon="inline-start" /> : null}
-            Continuer avec Google
-          </Button>
-        )}
-      </form.Subscribe>
-      <FieldDescription>
-        {capabilities?.google
-          ? "Google est configuré pour ce déploiement."
-          : "Google sera activé lorsque les identifiants OAuth seront configurés."}
-      </FieldDescription>
+      {capabilities === undefined ? (
+        <div className="flex flex-col gap-2" aria-label="Chargement de Google">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+      ) : (
+        <>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                disabled={isSubmitting || googlePending || !capabilities.google}
+                onClick={signInWithGoogle}
+              >
+                {googlePending ? <Spinner data-icon="inline-start" /> : null}
+                Continuer avec Google
+              </Button>
+            )}
+          </form.Subscribe>
+          <FieldDescription>
+            {capabilities.google
+              ? "Google est configuré pour ce déploiement."
+              : "Google sera activé lorsque les identifiants OAuth seront configurés."}
+          </FieldDescription>
+        </>
+      )}
     </AuthCard>
   )
 }

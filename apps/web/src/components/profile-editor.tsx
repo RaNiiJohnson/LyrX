@@ -24,15 +24,16 @@ import {
   FieldSet,
 } from "@lyrx/ui/components/field"
 import { Input } from "@lyrx/ui/components/input"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { Spinner } from "@lyrx/ui/components/spinner"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
-import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 
 export function ProfileEditor() {
   const current = useQuery(api.members.current, {})
-  if (current === undefined) return <Spinner />
+  if (current === undefined) return <ProfileEditorSkeleton />
   if (current.state === "suspended") {
     return (
       <Alert variant="destructive">
@@ -70,13 +71,10 @@ function ReadyProfileEditor({
     api.members.generateProfileImageUploadUrl
   )
   const saveProfileImage = useMutation(api.members.saveProfileImage)
-  const capabilities = useQuery(api.configuration.authCapabilities, {})
   const [error, setError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
   const [imagePending, setImagePending] = useState<"avatar" | "banner" | null>(
     null
   )
-  const [linkPending, setLinkPending] = useState(false)
 
   const form = useAppForm({
     defaultValues: {
@@ -93,7 +91,6 @@ function ReadyProfileEditor({
     },
     onSubmit: async ({ value }) => {
       setError(null)
-      setSaved(false)
       try {
         await updateProfile({
           handle: value.handle,
@@ -112,9 +109,11 @@ function ReadyProfileEditor({
                 }
               : undefined,
         })
-        setSaved(true)
+        toast.success("Profil enregistré")
       } catch (caught) {
-        setError(getErrorMessage(caught))
+        const message = getErrorMessage(caught)
+        setError(message)
+        toast.error("Modification impossible", { description: message })
       }
     },
   })
@@ -126,7 +125,6 @@ function ReadyProfileEditor({
     if (!file) return
     setImagePending(kind)
     setError(null)
-    setSaved(false)
     try {
       const { uploadIntentId, uploadUrl } = await generateUploadUrl({ kind })
       const response = await fetch(uploadUrl, {
@@ -150,27 +148,15 @@ function ReadyProfileEditor({
         uploadIntentId,
       })
       if (!result.ok) throw new Error(result.message)
-      setSaved(true)
+      toast.success(
+        kind === "avatar" ? "Avatar mis à jour" : "Bannière mise à jour"
+      )
     } catch (caught) {
-      setError(getErrorMessage(caught))
+      const message = getErrorMessage(caught)
+      setError(message)
+      toast.error("Envoi de l’image impossible", { description: message })
     } finally {
       setImagePending(null)
-    }
-  }
-
-  async function linkGoogleAccount() {
-    if (!capabilities?.google) return
-    setLinkPending(true)
-    setError(null)
-    try {
-      const result = await authClient.linkSocial({
-        provider: "google",
-        callbackURL: "/profile",
-      })
-      if (result.error) throw result.error
-    } catch (caught) {
-      setError(getErrorMessage(caught))
-      setLinkPending(false)
     }
   }
 
@@ -200,11 +186,6 @@ function ReadyProfileEditor({
             <Alert variant="destructive">
               <AlertTitle>Modification impossible</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          {saved ? (
-            <Alert>
-              <AlertTitle>Profil enregistré</AlertTitle>
             </Alert>
           ) : null}
           <FieldGroup>
@@ -393,23 +374,6 @@ function ReadyProfileEditor({
                 </form.Field>
               </FieldSet>
             ) : null}
-            <FieldSet>
-              <FieldLegend>Compte lié</FieldLegend>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={linkPending || !capabilities?.google}
-                onClick={linkGoogleAccount}
-              >
-                {linkPending ? <Spinner data-icon="inline-start" /> : null}
-                Lier mon compte Google
-              </Button>
-              <FieldDescription>
-                {capabilities?.google
-                  ? "La liaison exige la même adresse email vérifiée."
-                  : "La liaison sera disponible après configuration de Google OAuth."}
-              </FieldDescription>
-            </FieldSet>
           </FieldGroup>
           <form.AppForm>
             <form.SubmitButton size="lg">Enregistrer</form.SubmitButton>
@@ -425,6 +389,26 @@ function ReadyProfileEditor({
             Voir le profil public
           </Link>
         </Button>
+      </CardFooter>
+    </Card>
+  )
+}
+
+function ProfileEditorSkeleton() {
+  return (
+    <Card aria-label="Chargement du profil">
+      <CardHeader className="gap-2">
+        <Skeleton className="h-7 w-36" />
+        <Skeleton className="h-5 w-20" />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-9 w-36" />
       </CardFooter>
     </Card>
   )

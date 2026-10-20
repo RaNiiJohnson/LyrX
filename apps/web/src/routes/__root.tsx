@@ -8,6 +8,7 @@ import { createServerFn } from "@tanstack/react-start"
 import type { ReactNode } from "react"
 
 import { PRODUCT_NAME } from "@lyrx/shared"
+import { Toaster } from "@lyrx/ui/components/sonner"
 import appCss from "@lyrx/ui/globals.css?url"
 
 import { BackendProvider } from "@/components/backend-provider"
@@ -81,6 +82,7 @@ function RootDocument({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="top-center" theme="system" richColors />
         <Scripts />
       </body>
     </html>
