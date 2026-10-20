@@ -57,14 +57,17 @@ not duplicated as trust decisions in clients.
    every protected mutation rejects them server-side.
 5. Keep first-admin assignment internal and single-use. No client-facing path
    can promote an account.
-6. Store only Convex storage identifiers for avatar and banner images. Validate
-   MIME type and size before attaching them, delete rejected/replaced files, and
-   resolve URLs only for public reads.
+6. Store only Convex storage identifiers for avatar and banner images. An upload
+   intent is short-lived, authenticated, rate-limited, and can accept only a
+   storage object created during its lifetime. Persist ownership before
+   attachment; delete a replaced object only when that ownership is proven and
+   no profile still references it. Preserve an unowned client-supplied object
+   rather than risk cross-account deletion. Resolve URLs only for public reads.
 7. Use HTTPS allowlists for named social providers and HTTPS-only custom links.
    Public profile queries project only fields intended for anonymous readers.
 8. Prefer an official Convex component whenever one covers the capability. The
-   Resend component owns queued, durable, idempotent email delivery rather than
-   a hand-written HTTP call.
+   Resend component owns queued, durable, idempotent email delivery, and the
+   Rate Limiter component protects upload-intent creation.
 
 Operational setup and the evidence boundary are documented in
 [authentication.md](authentication.md).

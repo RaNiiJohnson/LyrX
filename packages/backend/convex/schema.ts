@@ -57,6 +57,7 @@ export default defineSchema({
     memberId: v.id("members"),
     kind: profileImageKindValidator,
     createdAt: v.number(),
+    expiresAt: v.number(),
   }),
 
   profileImages: defineTable({

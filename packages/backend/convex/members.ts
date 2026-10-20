@@ -1,14 +1,17 @@
 import { ConvexError, v } from "convex/values"
+import { MINUTE, RateLimiter } from "@convex-dev/rate-limiter"
 
+import { components, internal } from "./_generated/api"
 import schema from "./schema"
 import {
   accountRoleValidator,
   customLinkValidator,
   profileImageKindValidator,
 } from "./model"
-import { query } from "./_generated/server"
+import { internalMutation, query } from "./_generated/server"
 import { memberMutation, verifiedMutation } from "./lib/functions"
 import { findMemberByIdentity } from "./lib/authz"
+import { deleteOwnedProfileImageIfUnreferenced } from "./lib/profileImages"
 import {
   normalizeEmail,
   normalizeHandle,
@@ -28,6 +31,15 @@ const artistInputValidator = v.object({
   youtubeUrl: v.optional(v.string()),
   spotifyUrl: v.optional(v.string()),
   customLinks: v.array(customLinkValidator),
+})
+
+const PROFILE_IMAGE_UPLOAD_TTL_MS = 10 * MINUTE
+const profileImageRateLimiter = new RateLimiter(components.rateLimiter, {
+  profileImageUpload: {
+    kind: "fixed window",
+    rate: 5,
+    period: PROFILE_IMAGE_UPLOAD_TTL_MS,
+  },
 })
 
 const publicProfileValidator = v.object({
@@ -283,15 +295,42 @@ export const generateProfileImageUploadUrl = memberMutation({
         message: "Seul un compte artiste peut ajouter une bannière.",
       })
     }
+    await profileImageRateLimiter.limit(ctx, "profileImageUpload", {
+      key: ctx.member._id,
+      throws: true,
+    })
+    const now = Date.now()
+    const expiresAt = now + PROFILE_IMAGE_UPLOAD_TTL_MS
     const uploadIntentId = await ctx.db.insert("profileImageUploadIntents", {
       memberId: ctx.member._id,
       kind: args.kind,
-      createdAt: Date.now(),
+      createdAt: now,
+      expiresAt,
     })
+    await ctx.scheduler.runAt(
+      expiresAt,
+      internal.members.expireProfileImageUploadIntent,
+      { uploadIntentId }
+    )
     return {
       uploadUrl: await ctx.storage.generateUploadUrl(),
       uploadIntentId,
     }
+  },
+})
+
+export const expireProfileImageUploadIntent = internalMutation({
+  args: { uploadIntentId: v.id("profileImageUploadIntents") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const uploadIntent = await ctx.db.get(
+      "profileImageUploadIntents",
+      args.uploadIntentId
+    )
+    if (uploadIntent && uploadIntent.expiresAt <= Date.now()) {
+      await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
+    }
+    return null
   },
 })
 
@@ -313,7 +352,8 @@ export const saveProfileImage = memberMutation({
     if (
       !uploadIntent ||
       uploadIntent.memberId !== ctx.member._id ||
-      uploadIntent.kind !== args.kind
+      uploadIntent.kind !== args.kind ||
+      uploadIntent.expiresAt <= Date.now()
     ) {
       throw new ConvexError({
         code: "INVALID_UPLOAD_INTENT",
@@ -328,7 +368,6 @@ export const saveProfileImage = memberMutation({
         message: "Le fichier envoyé est introuvable.",
       })
     }
-
     const ownership = await ctx.db
       .query("profileImages")
       .withIndex("by_storage_id", (q) => q.eq("storageId", args.storageId))
@@ -360,6 +399,16 @@ export const saveProfileImage = memberMutation({
         message: "Cette image appartient à un autre compte.",
       })
     }
+    if (
+      metadata._creationTime < uploadIntent.createdAt ||
+      metadata._creationTime > uploadIntent.expiresAt
+    ) {
+      throw new ConvexError({
+        code: "UPLOAD_INTENT_MISMATCH",
+        message:
+          "Ce fichier ne correspond pas à cette autorisation de transfert.",
+      })
+    }
 
     if (args.kind === "banner" && ctx.member.role !== "artist") {
       await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
@@ -370,9 +419,6 @@ export const saveProfileImage = memberMutation({
     }
     const validationError = validateProfileImageMetadata(args.kind, metadata)
     if (validationError) {
-      if (!ownership && !attachedProfile && !attachedArtistProfile) {
-        await ctx.storage.delete(args.storageId)
-      }
       await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
       return {
         ok: false as const,
@@ -406,16 +452,11 @@ export const saveProfileImage = memberMutation({
         updatedAt: Date.now(),
       })
       if (previousStorageId && previousStorageId !== args.storageId) {
-        const previousOwnership = await ctx.db
-          .query("profileImages")
-          .withIndex("by_storage_id", (q) =>
-            q.eq("storageId", previousStorageId)
-          )
-          .unique()
-        if (previousOwnership?.memberId === ctx.member._id) {
-          await ctx.db.delete("profileImages", previousOwnership._id)
-        }
-        await ctx.storage.delete(previousStorageId)
+        await deleteOwnedProfileImageIfUnreferenced(ctx, {
+          memberId: ctx.member._id,
+          storageId: previousStorageId,
+          kind: "avatar",
+        })
       }
       await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
       return { ok: true as const }
@@ -446,14 +487,11 @@ export const saveProfileImage = memberMutation({
       updatedAt: Date.now(),
     })
     if (previousStorageId && previousStorageId !== args.storageId) {
-      const previousOwnership = await ctx.db
-        .query("profileImages")
-        .withIndex("by_storage_id", (q) => q.eq("storageId", previousStorageId))
-        .unique()
-      if (previousOwnership?.memberId === ctx.member._id) {
-        await ctx.db.delete("profileImages", previousOwnership._id)
-      }
-      await ctx.storage.delete(previousStorageId)
+      await deleteOwnedProfileImageIfUnreferenced(ctx, {
+        memberId: ctx.member._id,
+        storageId: previousStorageId,
+        kind: "banner",
+      })
     }
     await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
     return { ok: true as const }

@@ -15,6 +15,7 @@ import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as lib_authz from "../lib/authz.js";
 import type * as lib_functions from "../lib/functions.js";
+import type * as lib_profileImages from "../lib/profileImages.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as members from "../members.js";
 import type * as model from "../model.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/authz": typeof lib_authz;
   "lib/functions": typeof lib_functions;
+  "lib/profileImages": typeof lib_profileImages;
   "lib/validation": typeof lib_validation;
   members: typeof members;
   model: typeof model;
@@ -66,5 +68,6 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   betterAuth: import("../betterAuth/_generated/component.js").ComponentApi<"betterAuth">;
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
   resend: import("@convex-dev/resend/_generated/component.js").ComponentApi<"resend">;
 };

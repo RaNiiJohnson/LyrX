@@ -2,11 +2,19 @@
 
 import { convexTest } from "convex-test"
 import { describe, expect, it } from "vitest"
+import rateLimiterTest from "@convex-dev/rate-limiter/test"
 
 import { api, internal } from "./_generated/api"
 import schema from "./schema"
+import { deleteOwnedProfileImageIfUnreferenced } from "./lib/profileImages"
 
 const modules = import.meta.glob("./**/*.ts")
+
+function createTestBackend() {
+  const t = convexTest(schema, modules)
+  rateLimiterTest.register(t)
+  return t
+}
 
 const verifiedFan = {
   tokenIdentifier: "https://issuer.example|fan-1",
@@ -19,7 +27,7 @@ const verifiedFan = {
 
 describe("member onboarding and authorization", () => {
   it("reports anonymous and unverified session states", async () => {
-    const t = convexTest(schema, modules)
+    const t = createTestBackend()
 
     await expect(t.query(api.members.current, {})).resolves.toEqual({
       state: "anonymous",
@@ -43,7 +51,7 @@ describe("member onboarding and authorization", () => {
   })
 
   it("creates an artist identity atomically and exposes only its public profile", async () => {
-    const t = convexTest(schema, modules)
+    const t = createTestBackend()
     const artist = t.withIdentity({
       ...verifiedFan,
       tokenIdentifier: "https://issuer.example|artist-1",
@@ -83,7 +91,7 @@ describe("member onboarding and authorization", () => {
   })
 
   it("keeps handles unique and onboarding single-use", async () => {
-    const t = convexTest(schema, modules)
+    const t = createTestBackend()
     const first = t.withIdentity(verifiedFan)
     await first.mutation(api.members.completeOnboarding, {
       role: "fan",
@@ -115,7 +123,7 @@ describe("member onboarding and authorization", () => {
   })
 
   it("blocks suspended accounts at the function layer and hides their profile", async () => {
-    const t = convexTest(schema, modules)
+    const t = createTestBackend()
     const fan = t.withIdentity(verifiedFan)
     const created = await fan.mutation(api.members.completeOnboarding, {
       role: "fan",
@@ -142,8 +150,8 @@ describe("member onboarding and authorization", () => {
     })
   })
 
-  it("cleans invalid uploads and limits banner intents to artists", async () => {
-    const t = convexTest(schema, modules)
+  it("preserves unowned invalid uploads and limits banner intents to artists", async () => {
+    const t = createTestBackend()
     const fan = t.withIdentity(verifiedFan)
     await fan.mutation(api.members.completeOnboarding, {
       role: "fan",
@@ -151,12 +159,12 @@ describe("member onboarding and authorization", () => {
       displayName: "Image Fan",
     })
 
-    const avatarStorageId = await t.run(async (ctx) =>
-      ctx.storage.store(new Blob(["avatar"], { type: "image/png" }))
-    )
     const avatarUpload = await fan.mutation(
       api.members.generateProfileImageUploadUrl,
       { kind: "avatar" }
+    )
+    const avatarStorageId = await t.run(async (ctx) =>
+      ctx.storage.store(new Blob(["avatar"], { type: "image/png" }))
     )
     await expect(
       fan.mutation(api.members.saveProfileImage, {
@@ -167,7 +175,7 @@ describe("member onboarding and authorization", () => {
     ).resolves.toMatchObject({ ok: false })
     await expect(
       t.run((ctx) => ctx.db.system.get("_storage", avatarStorageId))
-    ).resolves.toBeNull()
+    ).resolves.not.toBeNull()
 
     await expect(
       fan.mutation(api.members.generateProfileImageUploadUrl, {
@@ -177,7 +185,7 @@ describe("member onboarding and authorization", () => {
   })
 
   it("never attaches or deletes another member's public profile image", async () => {
-    const t = convexTest(schema, modules)
+    const t = createTestBackend()
     const owner = t.withIdentity({
       ...verifiedFan,
       tokenIdentifier: "https://issuer.example|image-owner",
@@ -251,10 +259,70 @@ describe("member onboarding and authorization", () => {
     await expect(
       t.query(api.members.publicByHandle, { handle: "image-owner" })
     ).resolves.toMatchObject({ avatarUrl: publicProfile?.avatarUrl })
+
+    const poisonedStorageId = await t.run(async (ctx) =>
+      ctx.storage.store(new Blob(["poisoned legacy image"]))
+    )
+    await t.run(async (ctx) => {
+      const ownerMember = await ctx.db
+        .query("members")
+        .withIndex("by_auth_user_id", (q) =>
+          q.eq("authUserId", "https://issuer.example|image-owner")
+        )
+        .unique()
+      const attackerMember = await ctx.db
+        .query("members")
+        .withIndex("by_auth_user_id", (q) =>
+          q.eq("authUserId", "https://issuer.example|image-attacker")
+        )
+        .unique()
+      if (!ownerMember || !attackerMember) {
+        throw new Error("Expected both image-test members")
+      }
+      await ctx.db.insert("profileImages", {
+        memberId: attackerMember._id,
+        storageId: poisonedStorageId,
+        kind: "avatar",
+        createdAt: Date.now(),
+      })
+      await expect(
+        deleteOwnedProfileImageIfUnreferenced(ctx, {
+          memberId: ownerMember._id,
+          storageId: poisonedStorageId,
+          kind: "avatar",
+        })
+      ).resolves.toBe(false)
+    })
+    await expect(
+      t.run((ctx) => ctx.db.system.get("_storage", poisonedStorageId))
+    ).resolves.not.toBeNull()
+  })
+
+  it("rate-limits profile image upload intents per member", async () => {
+    const t = createTestBackend()
+    const fan = t.withIdentity(verifiedFan)
+    await fan.mutation(api.members.completeOnboarding, {
+      role: "fan",
+      handle: "rate-limited-image-fan",
+      displayName: "Rate Limited Fan",
+    })
+
+    for (let index = 0; index < 5; index += 1) {
+      await expect(
+        fan.mutation(api.members.generateProfileImageUploadUrl, {
+          kind: "avatar",
+        })
+      ).resolves.toMatchObject({ uploadUrl: expect.any(String) })
+    }
+    await expect(
+      fan.mutation(api.members.generateProfileImageUploadUrl, {
+        kind: "avatar",
+      })
+    ).rejects.toThrow()
   })
 
   it("bootstraps exactly one verified admin through an internal function", async () => {
-    const t = convexTest(schema, modules)
+    const t = createTestBackend()
     const fan = t.withIdentity(verifiedFan)
     const created = await fan.mutation(api.members.completeOnboarding, {
       role: "fan",

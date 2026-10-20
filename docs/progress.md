@@ -19,7 +19,7 @@ begin lot 3.**
 - [x] Two fresh reviewers completed independent product/UX and engineering
       reviews. Their two P2 findings were corrected and reverified.
 - [x] The branch and commit state are recorded at handoff.
-- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 14 tests, and all
+- [x] Lot 2 `pnpm check` passes formatting, lint, TypeScript, 15 tests, and all
       production builds.
 - [x] The mandatory Convex review found one cross-account profile-image
       ownership vulnerability. Upload intents, persisted image ownership,
@@ -100,6 +100,12 @@ The `code-review` Standards and Spec axes and `convex:convex-reviewer` ran on
 - The blocking storage finding was corrected by binding each upload intent and
   stored profile image to its authenticated member. The Resend webhook secret is
   now also part of the typed Convex deployment contract.
+- The corrective re-review additionally required ownership-gated replacement
+  cleanup. Upload intents now expire after ten minutes, are deleted by a
+  scheduled internal mutation, and are limited to five per member per window by
+  the official Convex Rate Limiter component. A submitted storage object must
+  have been created during the intent lifetime; unowned rejected objects are
+  preserved rather than deleted from a client-supplied identifier.
 - The remaining blocking findings concern missing real-path authentication and
   authenticated UI acceptance evidence, not a claimed implementation result.
   Lot 2 therefore remains active until those checks are performed.
