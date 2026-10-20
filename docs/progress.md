@@ -106,6 +106,10 @@ The `code-review` Standards and Spec axes and `convex:convex-reviewer` ran on
   the official Convex Rate Limiter component. A submitted storage object must
   have been created during the intent lifetime; unowned rejected objects are
   preserved rather than deleted from a client-supplied identifier.
+- The final Standards re-review reports no implementation-blocking finding. The
+  final Convex re-review reports 0 Critical and 0 Important findings; its
+  lifecycle-test suggestion was then closed with explicit pre-intent rejection
+  and scheduled-expiry tests.
 - The remaining blocking findings concern missing real-path authentication and
   authenticated UI acceptance evidence, not a claimed implementation result.
   Lot 2 therefore remains active until those checks are performed.
