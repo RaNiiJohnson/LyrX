@@ -4,9 +4,9 @@
 
 ## Verdict
 
-**Validé localement avec Better Auth 1.6.33 épinglé; pas prêt pour Better Auth 1.7.x avec le composant Convex publié.** Le lot 2 a figé `@convex-dev/better-auth@0.12.5` et `better-auth@1.6.33`. La génération du schéma local, le typecheck backend/web, les tests et le build TanStack de production passent. Le composant local permet de posséder le schéma et les index Better Auth, mais ne remplace ni l’adaptateur publié ni son plugin Convex : il ne contourne donc pas la rupture 1.7. Un déploiement Convex réel reste nécessaire pour prouver le bundling et les parcours fournisseurs de bout en bout.
+**Validé avec Better Auth 1.6.33 épinglé; pas prêt pour Better Auth 1.7.x avec le composant Convex publié.** Le lot 2 a figé `@convex-dev/better-auth@0.12.5` et `better-auth@1.6.33`. La génération du schéma, le typecheck backend/web, les tests, le build TanStack de production et le push du composant sur le déploiement de développement passent. Le composant local permet de posséder le schéma et les index Better Auth, mais ne remplace ni l’adaptateur publié ni son plugin Convex : il ne contourne donc pas la rupture 1.7. Les parcours Google et email restent à prouver avec leurs fournisseurs.
 
-Le mot « local » désigne ici le composant et son schéma conservés dans le dépôt. Il ne signifie pas que Convex devient un serveur de base de données local : le guide demande un projet Convex et convex dev, qui initialise un déploiement de développement. Lyr’X n’a pas encore de configuration de déploiement; le lancement réel demandera donc ce prérequis. ([guide Local Install](https://labs.convex.dev/better-auth/features/local-install), [guide TanStack Start](https://labs.convex.dev/better-auth/framework-guides/tanstack-start), [progression Lyr’X](../progress.md))
+Le mot « local » désigne ici le composant et son schéma conservés dans le dépôt. Il ne signifie pas que Convex devient un serveur de base de données local : le guide demande un projet Convex et `convex dev`. Lyr’X utilise désormais le projet cloud de développement `johnsontolotriniavo/lyrx`. ([guide Local Install](https://labs.convex.dev/better-auth/features/local-install), [guide TanStack Start](https://labs.convex.dev/better-auth/framework-guides/tanstack-start), [progression Lyr’X](../progress.md))
 
 ## État observé
 
@@ -74,7 +74,7 @@ Les noms d’environnement Hallomada ont été lus uniquement dans .env-template
 
 ## Résultat du gate du lot 2
 
-Le schéma local, le typecheck, les tests et le build Vite ont été exécutés. Le scan du bundle client n’a trouvé ni import `node:` ni module serveur TanStack explicite. Aucun déploiement Convex ni parcours fournisseur réel n’a été exécuté, faute de configuration et d’autorisation de publication.
+Le schéma local, le typecheck, les tests, le build Vite et le push du composant local vers le déploiement de développement ont été exécutés. Le scan du bundle client n’a trouvé ni import `node:` ni module serveur TanStack explicite. Les requêtes live `members:current` et `configuration:authCapabilities` répondent. Aucun parcours Google ou email réel n’a été exécuté faute de configuration fournisseur.
 
 1. Revalider sur le registre le couple publié, vérifier peerDependencies et les imports du plugin Convex; figer la paire Better Auth 1.6 dans le lockfile. La génération locale seule ne compte pas comme compatibilité.
 2. Lancer la génération du schéma depuis packages/backend/convex/betterAuth/ avec la CLI Better Auth de la version épinglée; conserver sa sortie et vérifier que les champs configurés y figurent. Garder les index propres dans schema.ts.
@@ -82,4 +82,4 @@ Le schéma local, le typecheck, les tests et le build Vite ont été exécutés.
 4. Avec un déploiement de développement, vérifier l’inscription email, la vérification et le reset, la session Convex après connexion/déconnexion, la route proxy GET/POST, et le refus serveur d’une fonction anonyme. Vérifier les rôles et l’absence de promotion admin publique.
 5. Quand les credentials existent, tester de vrais retours Google OAuth, les origines/callbacks et le cas de liaison d’identité vérifiée. Sans credentials ou service email, signaler ces parcours « non vérifiés » et garder l’indisponibilité explicite dans l’interface.
 
-Le choix proposé permet donc de concevoir le lot 2 autour du composant local sans annoncer de support 1.7. Les inconnues restantes sont la publication d’un adaptateur 1.7 compatible, la validation de Better Auth 1.6.33 contre 0.12.5, le déploiement Convex Lyr’X, le fournisseur transactionnel d’email et la configuration Google OAuth. ([roadmap Lyr’X](../roadmap.md), [guide de développement](../development.md), [issue Convex #433](https://github.com/convex/better-auth/issues/433))
+Le choix permet donc de maintenir le lot 2 autour du composant local sans annoncer de support 1.7. Les inconnues restantes sont la publication d’un adaptateur 1.7 compatible, le fournisseur transactionnel d’email et la configuration Google OAuth. ([roadmap Lyr’X](../roadmap.md), [guide de développement](../development.md), [issue Convex #433](https://github.com/convex/better-auth/issues/433))

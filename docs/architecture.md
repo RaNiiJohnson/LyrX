@@ -8,6 +8,8 @@
 - Convex for data, server functions, realtime queries, and application images.
 - Better Auth for email/password and Google authentication.
 - shadcn/ui source components for the web interface.
+- TanStack Form for every interactive web form; fields and validation feedback
+  compose the installed shadcn/ui primitives.
 - Expo / React Native for `apps/mobile` after the web backend stabilizes.
 
 ## Repository boundaries
@@ -60,17 +62,22 @@ not duplicated as trust decisions in clients.
    resolve URLs only for public reads.
 7. Use HTTPS allowlists for named social providers and HTTPS-only custom links.
    Public profile queries project only fields intended for anonymous readers.
+8. Prefer an official Convex component whenever one covers the capability. The
+   Resend component owns queued, durable, idempotent email delivery rather than
+   a hand-written HTTP call.
 
 Operational setup and the evidence boundary are documented in
 [authentication.md](authentication.md).
 
 ## External prerequisites not yet available
 
-- Convex deployment configuration.
-- Google OAuth client credentials.
-- Transactional email provider.
 - Domain and hosting configuration.
 - EAS project and Android signing configuration.
+
+The Convex development project, Google OAuth credentials, and Resend credentials
+are configured on the Europe-region development deployment. Their values and
+local selection files remain ignored; public links and remaining end-to-end
+checks are recorded in [authentication.md](authentication.md).
 
 Absence of these values must be reported as an unverified integration, never
 hidden by a fake success state.

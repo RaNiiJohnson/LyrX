@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "convex/react"
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
 import { Link } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
@@ -25,10 +25,10 @@ import {
 } from "@lyrx/ui/components/field"
 import { Input } from "@lyrx/ui/components/input"
 import { Spinner } from "@lyrx/ui/components/spinner"
-import { Textarea } from "@lyrx/ui/components/textarea"
 
-import { getErrorMessage } from "@/lib/errors"
+import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
+import { getErrorMessage } from "@/lib/errors"
 
 export function ProfileEditor() {
   const current = useQuery(api.members.current, {})
@@ -71,37 +71,53 @@ function ReadyProfileEditor({
   )
   const saveProfileImage = useMutation(api.members.saveProfileImage)
   const capabilities = useQuery(api.configuration.authCapabilities, {})
-  const [handle, setHandle] = useState(current.profile.handle)
-  const [displayName, setDisplayName] = useState(current.profile.displayName)
-  const [bio, setBio] = useState(current.profile.bio ?? "")
-  const [presentation, setPresentation] = useState(
-    current.artistProfile?.presentation ?? ""
-  )
-  const [instagramUrl, setInstagramUrl] = useState(
-    current.artistProfile?.instagramUrl ?? ""
-  )
-  const [facebookUrl, setFacebookUrl] = useState(
-    current.artistProfile?.facebookUrl ?? ""
-  )
-  const [tiktokUrl, setTiktokUrl] = useState(
-    current.artistProfile?.tiktokUrl ?? ""
-  )
-  const [youtubeUrl, setYoutubeUrl] = useState(
-    current.artistProfile?.youtubeUrl ?? ""
-  )
-  const [spotifyUrl, setSpotifyUrl] = useState(
-    current.artistProfile?.spotifyUrl ?? ""
-  )
-  const [customLinks, setCustomLinks] = useState(
-    current.artistProfile?.customLinks ?? []
-  )
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
-  const [pending, setPending] = useState(false)
   const [imagePending, setImagePending] = useState<"avatar" | "banner" | null>(
     null
   )
   const [linkPending, setLinkPending] = useState(false)
+
+  const form = useAppForm({
+    defaultValues: {
+      handle: current.profile.handle,
+      displayName: current.profile.displayName,
+      bio: current.profile.bio ?? "",
+      presentation: current.artistProfile?.presentation ?? "",
+      instagramUrl: current.artistProfile?.instagramUrl ?? "",
+      facebookUrl: current.artistProfile?.facebookUrl ?? "",
+      tiktokUrl: current.artistProfile?.tiktokUrl ?? "",
+      youtubeUrl: current.artistProfile?.youtubeUrl ?? "",
+      spotifyUrl: current.artistProfile?.spotifyUrl ?? "",
+      customLinks: current.artistProfile?.customLinks ?? [],
+    },
+    onSubmit: async ({ value }) => {
+      setError(null)
+      setSaved(false)
+      try {
+        await updateProfile({
+          handle: value.handle,
+          displayName: value.displayName,
+          bio: value.bio || undefined,
+          artist:
+            current.member.role === "artist"
+              ? {
+                  presentation: value.presentation || undefined,
+                  instagramUrl: value.instagramUrl || undefined,
+                  facebookUrl: value.facebookUrl || undefined,
+                  tiktokUrl: value.tiktokUrl || undefined,
+                  youtubeUrl: value.youtubeUrl || undefined,
+                  spotifyUrl: value.spotifyUrl || undefined,
+                  customLinks: value.customLinks,
+                }
+              : undefined,
+        })
+        setSaved(true)
+      } catch (caught) {
+        setError(getErrorMessage(caught))
+      }
+    },
+  })
 
   async function uploadImage(
     kind: "avatar" | "banner",
@@ -157,37 +173,6 @@ function ReadyProfileEditor({
     }
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setPending(true)
-    setError(null)
-    setSaved(false)
-    try {
-      await updateProfile({
-        handle,
-        displayName,
-        bio: bio || undefined,
-        artist:
-          current.member.role === "artist"
-            ? {
-                presentation: presentation || undefined,
-                instagramUrl: instagramUrl || undefined,
-                facebookUrl: facebookUrl || undefined,
-                tiktokUrl: tiktokUrl || undefined,
-                youtubeUrl: youtubeUrl || undefined,
-                spotifyUrl: spotifyUrl || undefined,
-                customLinks,
-              }
-            : undefined,
-      })
-      setSaved(true)
-    } catch (caught) {
-      setError(getErrorMessage(caught))
-    } finally {
-      setPending(false)
-    }
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -202,7 +187,14 @@ function ReadyProfileEditor({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            void form.handleSubmit()
+          }}
+          className="flex flex-col gap-5"
+        >
           {error ? (
             <Alert variant="destructive">
               <AlertTitle>Modification impossible</AlertTitle>
@@ -255,173 +247,149 @@ function ReadyProfileEditor({
                 </p>
               ) : null}
             </FieldSet>
-            <Field>
-              <FieldLabel htmlFor="handle">Pseudo</FieldLabel>
-              <Input
-                id="handle"
-                required
-                minLength={3}
-                maxLength={30}
-                value={handle}
-                onChange={(event) => setHandle(event.target.value)}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="displayName">Nom affiché</FieldLabel>
-              <Input
-                id="displayName"
-                required
-                minLength={2}
-                maxLength={80}
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="bio">Bio</FieldLabel>
-              <Textarea
-                id="bio"
-                maxLength={500}
-                value={bio}
-                onChange={(event) => setBio(event.target.value)}
-              />
-            </Field>
+            <form.AppField
+              name="handle"
+              validators={{
+                onBlur: ({ value }) =>
+                  /^[a-z0-9._-]{3,30}$/.test(value)
+                    ? undefined
+                    : "Utilisez 3 à 30 lettres minuscules, chiffres, points, tirets ou underscores.",
+              }}
+            >
+              {(field) => (
+                <field.TextField
+                  id="handle"
+                  label="Pseudo"
+                  required
+                  minLength={3}
+                  maxLength={30}
+                />
+              )}
+            </form.AppField>
+            <form.AppField
+              name="displayName"
+              validators={{
+                onBlur: ({ value }) =>
+                  value.trim().length >= 2
+                    ? undefined
+                    : "Le nom doit contenir au moins 2 caractères.",
+              }}
+            >
+              {(field) => (
+                <field.TextField
+                  id="displayName"
+                  label="Nom affiché"
+                  required
+                  minLength={2}
+                  maxLength={80}
+                />
+              )}
+            </form.AppField>
+            <form.AppField name="bio">
+              {(field) => (
+                <field.TextareaField id="bio" label="Bio" maxLength={500} />
+              )}
+            </form.AppField>
             {current.member.role === "artist" ? (
               <FieldSet>
                 <FieldLegend>Identité artiste</FieldLegend>
-                <Field>
-                  <FieldLabel htmlFor="presentation">Présentation</FieldLabel>
-                  <Textarea
-                    id="presentation"
-                    maxLength={2000}
-                    value={presentation}
-                    onChange={(event) => setPresentation(event.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="instagram">Instagram</FieldLabel>
-                  <Input
-                    id="instagram"
-                    type="url"
-                    value={instagramUrl}
-                    onChange={(event) => setInstagramUrl(event.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="facebook">Facebook</FieldLabel>
-                  <Input
-                    id="facebook"
-                    type="url"
-                    value={facebookUrl}
-                    onChange={(event) => setFacebookUrl(event.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="tiktok">TikTok</FieldLabel>
-                  <Input
-                    id="tiktok"
-                    type="url"
-                    value={tiktokUrl}
-                    onChange={(event) => setTiktokUrl(event.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="youtube">YouTube</FieldLabel>
-                  <Input
-                    id="youtube"
-                    type="url"
-                    value={youtubeUrl}
-                    onChange={(event) => setYoutubeUrl(event.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="spotify">Spotify</FieldLabel>
-                  <Input
-                    id="spotify"
-                    type="url"
-                    value={spotifyUrl}
-                    onChange={(event) => setSpotifyUrl(event.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <div className="flex items-center justify-between gap-3">
-                    <FieldLabel>Liens personnalisés</FieldLabel>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={customLinks.length >= 8}
-                      onClick={() =>
-                        setCustomLinks((links) => [
-                          ...links,
-                          { label: "", url: "" },
-                        ])
-                      }
-                    >
-                      Ajouter un lien
-                    </Button>
-                  </div>
-                  {customLinks.length === 0 ? (
-                    <FieldDescription>
-                      Aucun lien personnalisé.
-                    </FieldDescription>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {customLinks.map((link, index) => (
-                        <div
-                          className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]"
-                          key={index}
-                        >
-                          <Input
-                            aria-label={`Libellé du lien ${index + 1}`}
-                            maxLength={40}
-                            placeholder="Site officiel"
-                            value={link.label}
-                            onChange={(event) =>
-                              setCustomLinks((links) =>
-                                links.map((item, itemIndex) =>
-                                  itemIndex === index
-                                    ? { ...item, label: event.target.value }
-                                    : item
-                                )
-                              )
-                            }
-                          />
-                          <Input
-                            aria-label={`URL du lien ${index + 1}`}
-                            type="url"
-                            placeholder="https://…"
-                            value={link.url}
-                            onChange={(event) =>
-                              setCustomLinks((links) =>
-                                links.map((item, itemIndex) =>
-                                  itemIndex === index
-                                    ? { ...item, url: event.target.value }
-                                    : item
-                                )
-                              )
-                            }
-                          />
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            aria-label={`Supprimer le lien ${index + 1}`}
-                            onClick={() =>
-                              setCustomLinks((links) =>
-                                links.filter(
-                                  (_item, itemIndex) => itemIndex !== index
-                                )
-                              )
-                            }
-                          >
-                            Supprimer
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                <form.AppField name="presentation">
+                  {(field) => (
+                    <field.TextareaField
+                      id="presentation"
+                      label="Présentation"
+                      maxLength={2000}
+                    />
                   )}
-                </Field>
+                </form.AppField>
+                {[
+                  ["instagramUrl", "instagram", "Instagram"],
+                  ["facebookUrl", "facebook", "Facebook"],
+                  ["tiktokUrl", "tiktok", "TikTok"],
+                  ["youtubeUrl", "youtube", "YouTube"],
+                  ["spotifyUrl", "spotify", "Spotify"],
+                ].map(([name, id, label]) => (
+                  <form.AppField
+                    key={name}
+                    name={
+                      name as
+                        | "instagramUrl"
+                        | "facebookUrl"
+                        | "tiktokUrl"
+                        | "youtubeUrl"
+                        | "spotifyUrl"
+                    }
+                  >
+                    {(field) => (
+                      <field.TextField id={id} label={label} type="url" />
+                    )}
+                  </form.AppField>
+                ))}
+                <form.Field name="customLinks" mode="array">
+                  {(linksField) => (
+                    <Field>
+                      <div className="flex items-center justify-between gap-3">
+                        <FieldLabel>Liens personnalisés</FieldLabel>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={linksField.state.value.length >= 8}
+                          onClick={() =>
+                            linksField.pushValue({ label: "", url: "" })
+                          }
+                        >
+                          Ajouter un lien
+                        </Button>
+                      </div>
+                      {linksField.state.value.length === 0 ? (
+                        <FieldDescription>
+                          Aucun lien personnalisé.
+                        </FieldDescription>
+                      ) : (
+                        <div className="flex flex-col gap-3">
+                          {linksField.state.value.map((_link, index) => (
+                            <div
+                              className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]"
+                              key={index}
+                            >
+                              <form.AppField
+                                name={`customLinks[${index}].label`}
+                              >
+                                {(field) => (
+                                  <field.TextField
+                                    label={`Libellé du lien ${index + 1}`}
+                                    labelExtra={null}
+                                    maxLength={40}
+                                    placeholder="Site officiel"
+                                  />
+                                )}
+                              </form.AppField>
+                              <form.AppField name={`customLinks[${index}].url`}>
+                                {(field) => (
+                                  <field.TextField
+                                    label={`URL du lien ${index + 1}`}
+                                    type="url"
+                                    placeholder="https://…"
+                                  />
+                                )}
+                              </form.AppField>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                aria-label={`Supprimer le lien ${index + 1}`}
+                                onClick={() => linksField.removeValue(index)}
+                              >
+                                Supprimer
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </Field>
+                  )}
+                </form.Field>
               </FieldSet>
             ) : null}
             <FieldSet>
@@ -442,10 +410,9 @@ function ReadyProfileEditor({
               </FieldDescription>
             </FieldSet>
           </FieldGroup>
-          <Button type="submit" size="lg" disabled={pending}>
-            {pending ? <Spinner data-icon="inline-start" /> : null}
-            Enregistrer
-          </Button>
+          <form.AppForm>
+            <form.SubmitButton size="lg">Enregistrer</form.SubmitButton>
+          </form.AppForm>
         </form>
       </CardContent>
       <CardFooter>

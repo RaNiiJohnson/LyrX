@@ -215,10 +215,12 @@ proves Android behavior.
 
 ## External prerequisites
 
-The project does not yet have Convex deployment configuration, Google OAuth
-credentials, transactional email, domain/hosting, or EAS/Android signing. Commit
-examples without secrets and document exact manual steps. Continue work that does
-not need these values; report rather than fake any integration blocked by them.
+The project has a Convex cloud development deployment with Google OAuth and
+Resend credentials stored in the Convex dashboard. It does not yet have
+domain/hosting or EAS/Android signing. Commit examples without secrets and
+document exact manual steps.
+Continue work that does not need these values; report rather than fake any
+integration blocked by them.
 
 ## V1 exclusions
 

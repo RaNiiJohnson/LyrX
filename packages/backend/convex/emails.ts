@@ -1,10 +1,17 @@
+import { Resend } from "@convex-dev/resend"
+
+import { components } from "./_generated/api"
 import type { ActionCtx } from "./_generated/server"
 import { env } from "./_generated/server"
 
 type AuthEmailKind = "password-reset" | "verification"
 
+export const resend = new Resend(components.resend, {
+  testMode: false,
+})
+
 export async function sendAuthEmail(
-  _ctx: ActionCtx,
+  ctx: ActionCtx,
   input: {
     kind: AuthEmailKind
     name: string
@@ -12,9 +19,9 @@ export async function sendAuthEmail(
     url: string
   }
 ) {
-  if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
+  if (!env.RESEND_API_KEY) {
     throw new Error(
-      "EMAIL_DELIVERY_NOT_CONFIGURED: configure RESEND_API_KEY and EMAIL_FROM in the Convex deployment"
+      "EMAIL_DELIVERY_NOT_CONFIGURED: configure RESEND_API_KEY in the Convex deployment"
     )
   }
 
@@ -26,25 +33,13 @@ export async function sendAuthEmail(
     ? "Vérifier mon adresse"
     : "Réinitialiser mon mot de passe"
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: env.EMAIL_FROM,
-      to: [input.to],
-      subject,
-      html: `<p>Bonjour ${escapeHtml(input.name)},</p><p><a href="${escapeHtml(input.url)}">${action}</a></p><p>Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.</p>`,
-      text: `Bonjour ${input.name},\n\n${action} : ${input.url}\n\nSi vous n’êtes pas à l’origine de cette demande, ignorez ce message.`,
-    }),
+  await resend.sendEmail(ctx, {
+    from: env.EMAIL_FROM ?? "Lyr’X <noreply@hallomada.de>",
+    to: input.to,
+    subject,
+    html: `<p>Bonjour ${escapeHtml(input.name)},</p><p><a href="${escapeHtml(input.url)}">${action}</a></p><p>Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.</p>`,
+    text: `Bonjour ${input.name},\n\n${action} : ${input.url}\n\nSi vous n’êtes pas à l’origine de cette demande, ignorez ce message.`,
   })
-
-  if (!response.ok) {
-    const details = await response.text()
-    throw new Error(`EMAIL_DELIVERY_FAILED (${response.status}): ${details}`)
-  }
 }
 
 function escapeHtml(value: string) {

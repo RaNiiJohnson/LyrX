@@ -11,7 +11,7 @@ export default [
       "**/routeTree.gen.ts",
       "packages/backend/.agents/**",
       "packages/backend/.claude/**",
-      "packages/backend/convex/_generated/**",
+      "packages/backend/convex/**/_generated/**",
     ],
   },
   {

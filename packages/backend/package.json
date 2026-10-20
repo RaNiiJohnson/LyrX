@@ -5,8 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./convex/_generated/api": "./convex/_generated/api.ts",
-    "./convex/_generated/dataModel": "./convex/_generated/dataModel.ts"
+    "./convex/_generated/api": "./convex/_generated/api.js",
+    "./convex/_generated/dataModel": "./convex/_generated/dataModel.d.ts"
   },
   "scripts": {
     "auth:schema": "pnpm dlx @better-auth/cli@1.4.21 generate --cwd . --config convex/betterAuth/auth.ts --output convex/betterAuth/generatedSchema.ts --yes && prettier --write convex/betterAuth/generatedSchema.ts",
@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@convex-dev/better-auth": "0.12.5",
+    "@convex-dev/resend": "0.2.9",
     "better-auth": "1.6.33",
     "convex": "1.47.0",
     "convex-helpers": "0.1.128"

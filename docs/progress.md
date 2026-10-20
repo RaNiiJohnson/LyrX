@@ -69,10 +69,13 @@ Implemented locally on 2026-10-19 on `feat/backend-auth-profiles`.
   Production web bundling passes without the reported TanStack server-module
   leakage.
 
-External verification remains pending: no Convex deployment was created or
-pushed, and no real Resend or Google credentials were available. Consequently
-delivered email, reset/verification links, Google consent return, deployed
-session cookies, and live storage uploads are not claimed as verified. See
+The Convex cloud development project `johnsontolotriniavo/lyrx` is now created in
+Europe (Ireland). The functions and local Better Auth component were pushed
+successfully to `lovely-dolphin-50`; live queries prove the anonymous session and
+provider capability states. Google and Resend credentials are configured. The
+Google flow reaches the real consent screen, while final consent/return, actual
+email delivery, reset/verification links, authenticated session cookies,
+webhook events, and live storage uploads are not yet claimed as verified. See
 [authentication.md](authentication.md).
 
 `pnpm peers check` also reports Better Auth's optional Vitest peer range ending
@@ -82,9 +85,24 @@ rather than suppressed, and all repository tests pass.
 
 ## Known external prerequisites
 
-Convex deployment, Google OAuth, transactional email, hosting/domain, EAS, and
-Android signing configuration have not been supplied. The first three limit
-live verification of lot 2 but do not invalidate its local test/build evidence.
+Hosting/domain, EAS, and Android signing configuration have not been supplied.
+Google and email still need their final live account/delivery checks for lot 2.
+
+## Deferred configuration checklist
+
+- [ ] Rotate the Google OAuth client secret once, then keep the replacement only
+      in the Convex dashboard. Never copy provider secrets into
+      `apps/web/.env.local` or any `VITE_` variable.
+- [ ] When Lyr’X owns its production email domain, verify that domain in Resend,
+      add `EMAIL_FROM` to the Convex dashboard, and replace the temporary
+      `Lyr’X <noreply@hallomada.de>` sender without changing application code.
+- [ ] Register and verify all `email.*` events against
+      `https://lovely-dolphin-50.eu-west-1.convex.site/resend-webhook`, then
+      prove delivery, bounce, and complaint status in the Convex Resend
+      component tables.
+- [ ] Before production, change `SITE_URL` and the Google authorized callback
+      from localhost to the final HTTPS origin and repeat the full OAuth return
+      test.
 
 ## Next mission
 

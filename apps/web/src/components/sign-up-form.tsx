@@ -1,53 +1,64 @@
 import { useQuery } from "convex/react"
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
 import { Link } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Button } from "@lyrx/ui/components/button"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@lyrx/ui/components/field"
-import { Input } from "@lyrx/ui/components/input"
+import { FieldGroup, FieldSeparator } from "@lyrx/ui/components/field"
 import { Spinner } from "@lyrx/ui/components/spinner"
 
+import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { AuthCard } from "./auth-card"
 
 export function SignUpForm() {
   const capabilities = useQuery(api.configuration.authCapabilities, {})
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [pending, setPending] = useState(false)
+  const [googlePending, setGooglePending] = useState(false)
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!capabilities?.emailDelivery) return
-    setPending(true)
+  const form = useAppForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+    onSubmit: async ({ value }) => {
+      if (!capabilities?.emailDelivery) return
+      setError(null)
+      setNotice(null)
+      try {
+        const result = await authClient.signUp.email({
+          name: value.name,
+          email: value.email,
+          password: value.password,
+          callbackURL: "/onboarding",
+        })
+        if (result.error) throw result.error
+        setNotice(
+          "Consultez votre boîte email et ouvrez le lien de vérification avant de choisir votre rôle."
+        )
+      } catch (caught) {
+        setError(getErrorMessage(caught))
+      }
+    },
+  })
+
+  async function signUpWithGoogle() {
+    if (!capabilities?.google) return
+    setGooglePending(true)
     setError(null)
-    setNotice(null)
     try {
-      const result = await authClient.signUp.email({
-        name,
-        email,
-        password,
+      const result = await authClient.signIn.social({
+        provider: "google",
         callbackURL: "/onboarding",
       })
       if (result.error) throw result.error
-      setNotice(
-        "Consultez votre boîte email et ouvrez le lien de vérification avant de choisir votre rôle."
-      )
     } catch (caught) {
       setError(getErrorMessage(caught))
-    } finally {
-      setPending(false)
+      setGooglePending(false)
     }
   }
 
@@ -57,7 +68,11 @@ export function SignUpForm() {
       description="L’inscription est suivie d’une vérification email puis du choix Fan ou Artiste."
       error={error}
       notice={notice}
-      onSubmit={handleSubmit}
+      onSubmit={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        void form.handleSubmit()
+      }}
       footer={
         <p className="text-sm text-muted-foreground">
           Déjà membre ?{" "}
@@ -77,52 +92,86 @@ export function SignUpForm() {
         </Alert>
       ) : null}
       <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor="name">Nom affiché</FieldLabel>
-          <Input
-            id="name"
-            autoComplete="name"
-            required
-            minLength={2}
-            maxLength={80}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="email">Adresse email</FieldLabel>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="password">Mot de passe</FieldLabel>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={10}
-            maxLength={128}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <FieldDescription>10 caractères minimum.</FieldDescription>
-        </Field>
+        <form.AppField
+          name="name"
+          validators={{
+            onBlur: ({ value }) =>
+              value.trim().length >= 2
+                ? undefined
+                : "Le nom doit contenir au moins 2 caractères.",
+          }}
+        >
+          {(field) => (
+            <field.TextField
+              id="name"
+              label="Nom affiché"
+              autoComplete="name"
+              required
+              minLength={2}
+              maxLength={80}
+            />
+          )}
+        </form.AppField>
+        <form.AppField
+          name="email"
+          validators={{
+            onBlur: ({ value }) =>
+              value.includes("@") ? undefined : "Adresse email invalide.",
+          }}
+        >
+          {(field) => (
+            <field.TextField
+              id="email"
+              label="Adresse email"
+              type="email"
+              autoComplete="email"
+              required
+            />
+          )}
+        </form.AppField>
+        <form.AppField
+          name="password"
+          validators={{
+            onBlur: ({ value }) =>
+              value.length >= 10
+                ? undefined
+                : "Le mot de passe doit contenir au moins 10 caractères.",
+          }}
+        >
+          {(field) => (
+            <field.TextField
+              id="password"
+              label="Mot de passe"
+              description="10 caractères minimum."
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={10}
+              maxLength={128}
+            />
+          )}
+        </form.AppField>
       </FieldGroup>
-      <Button
-        type="submit"
-        size="lg"
-        disabled={pending || !capabilities?.emailDelivery}
-      >
-        {pending ? <Spinner data-icon="inline-start" /> : null}
-        Créer mon compte
-      </Button>
+      <form.AppForm>
+        <form.SubmitButton size="lg" disabled={!capabilities?.emailDelivery}>
+          Créer mon compte
+        </form.SubmitButton>
+      </form.AppForm>
+      <FieldSeparator>ou</FieldSeparator>
+      <form.Subscribe selector={(state) => state.isSubmitting}>
+        {(isSubmitting) => (
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            disabled={isSubmitting || googlePending || !capabilities?.google}
+            onClick={signUpWithGoogle}
+          >
+            {googlePending ? <Spinner data-icon="inline-start" /> : null}
+            Continuer avec Google
+          </Button>
+        )}
+      </form.Subscribe>
     </AuthCard>
   )
 }

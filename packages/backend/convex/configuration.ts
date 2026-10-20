@@ -8,7 +8,7 @@ export const authCapabilities = query({
     google: v.boolean(),
   }),
   handler: () => ({
-    emailDelivery: Boolean(env.RESEND_API_KEY && env.EMAIL_FROM),
+    emailDelivery: Boolean(env.RESEND_API_KEY),
     google: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
   }),
 })
