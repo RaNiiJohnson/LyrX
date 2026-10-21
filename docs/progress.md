@@ -2,9 +2,8 @@
 
 ## Active lot
 
-**Lot 3 is implemented as of 2026-10-21 and is in its corrective final review.
-Do not begin lot 4 until the mandatory dual-review gate is clean and the user
-approves the next lot.**
+**Lot 3 is complete as of 2026-10-21 after its mandatory dual-review gate.
+Do not begin lot 4 until the user approves the next lot.**
 
 ## Evidence checklist
 
@@ -46,9 +45,8 @@ approves the next lot.**
 - [x] The auth proxy returns a structured HTTP 503 when deployment configuration
       is absent, and the production client bundle contains no explicit Node or
       TanStack server-module import.
-- [x] Lot 3 `pnpm check` passes formatting, lint, TypeScript, 24 tests, and all
-      production builds before the corrective review; the final count will be
-      recorded after corrections.
+- [x] Lot 3 `pnpm check` passes formatting, lint, TypeScript, 38 tests, and all
+      production builds after the corrective review.
 - [x] Chrome verifies the Corail shell in system, light, and dark modes and the
       French/English switch. Both preferences survive a reload, the HTML `lang`
       value follows the locale, and the browser console reports no warning or
@@ -57,8 +55,9 @@ approves the next lot.**
       horizontal overflow (`scrollWidth === innerWidth === 390`), exposes a
       labelled menu, and closes with Escape while returning focus to its
       trigger.
-- [ ] Re-run the Standards and Spec axes after the Lot 3 review corrections,
-      record the clean result, and run the final `pnpm check`.
+- [x] The final Standards re-review reports 0 hard violations and 0 judgement
+      calls. The final Spec re-review reports 0 implementation defects and 0
+      scope-creep findings. The final `pnpm check` is clean.
 
 ## Lot history
 
@@ -165,7 +164,7 @@ The `code-review` Standards and Spec axes and `convex:convex-reviewer` ran on
   resolver, auth-route guards, header state, targeted skeleton transition,
   keyboard focus, console state, and 390×844 overflow.
 
-### Lot 3 — Corail shell, theme, and i18n (corrective review)
+### Lot 3 — Corail shell, theme, and i18n (complete)
 
 Implemented on `feat/corail-shell-theme-i18n`.
 
@@ -193,6 +192,13 @@ Implemented on `feat/corail-shell-theme-i18n`.
 - Lot 3 changes no file under `packages/backend/convex/`; the required Convex
   review is therefore not applicable under the completion rule rather than
   producing invented backend findings.
+- The corrective Standards re-review reports 0 hard violations and 0 judgement
+  calls. The corrective Spec re-review reports 0 implementation defects and 0
+  scope-creep findings. Chrome supplied the available browser evidence; other
+  browser engines were not available in this environment and are not claimed as
+  verified.
+- The final `pnpm check` passes formatting, lint, TypeScript, 38 tests, and all
+  production client and SSR builds.
 
 ## Known external prerequisites
 
@@ -219,5 +225,4 @@ as unverified live integrations; they did not produce a code-review blocker.
 ## Next mission
 
 Do not begin without user approval. Lot 4 introduces artist catalogue and album
-workflows after Lot 3's corrective review and completion documentation are
-closed.
+workflows after Lot 3's completed review gate.
