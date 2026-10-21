@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import {
+  Disc3,
   Home,
   LogIn,
   LogOut,
@@ -141,6 +142,11 @@ function ConfiguredAccountNavigation() {
         aria-label={t("navigation.account")}
         className="hidden items-center gap-1 md:flex"
       >
+        {current.state === "ready" && current.member.role === "artist" ? (
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/studio">{t("navigation.studio")}</Link>
+          </Button>
+        ) : null}
         <Button asChild size="sm">
           <Link to={navigation.href}>{t(navigation.labelKey)}</Link>
         </Button>
@@ -150,6 +156,9 @@ function ConfiguredAccountNavigation() {
       </nav>
       <MobileNavigation
         primary={{ href: navigation.href, label: t(navigation.labelKey) }}
+        showStudio={
+          current.state === "ready" && current.member.role === "artist"
+        }
         onSignOut={signOut}
       />
     </>
@@ -179,12 +188,14 @@ function AnonymousAccountNavigation() {
 
 function MobileNavigation({
   primary,
+  showStudio = false,
   onSignOut,
 }: {
   primary?: {
     href: "/auth/verify-email" | "/onboarding" | "/profile"
     label: string
   }
+  showStudio?: boolean
   onSignOut?: () => Promise<void>
 }) {
   const { t } = useLocale()
@@ -210,6 +221,14 @@ function MobileNavigation({
               {t("navigation.home")}
             </Link>
           </DropdownMenuItem>
+          {showStudio ? (
+            <DropdownMenuItem asChild>
+              <Link to="/studio">
+                <Disc3 />
+                {t("navigation.studio")}
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
           {primary ? (
             <DropdownMenuItem asChild>
               <Link to={primary.href}>

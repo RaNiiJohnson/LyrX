@@ -19,7 +19,14 @@ import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
+import { Route as StudioIndexRouteImport } from './routes/studio/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as StudioAlbumsAlbumIdRouteImport } from './routes/studio/albums/$albumId'
+import { Route as StudioAlbumsNewRouteImport } from './routes/studio/albums/new'
+import { Route as StudioSongsSongIdRouteImport } from './routes/studio/songs/$songId'
+import { Route as StudioSongsNewRouteImport } from './routes/studio/songs/new'
+import { Route as StudioAlbumsAlbumIdPreviewRouteImport } from './routes/studio/albums/$albumId/preview'
+import { Route as StudioSongsSongIdPreviewRouteImport } from './routes/studio/songs/$songId/preview'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -71,11 +78,48 @@ const ProfilesHandleRoute = ProfilesHandleRouteImport.update({
   path: '/profiles/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioIndexRoute = StudioIndexRouteImport.update({
+  id: '/studio/',
+  path: '/studio/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioAlbumsAlbumIdRoute = StudioAlbumsAlbumIdRouteImport.update({
+  id: '/studio/albums/$albumId',
+  path: '/studio/albums/$albumId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioAlbumsNewRoute = StudioAlbumsNewRouteImport.update({
+  id: '/studio/albums/new',
+  path: '/studio/albums/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioSongsSongIdRoute = StudioSongsSongIdRouteImport.update({
+  id: '/studio/songs/$songId',
+  path: '/studio/songs/$songId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioSongsNewRoute = StudioSongsNewRouteImport.update({
+  id: '/studio/songs/new',
+  path: '/studio/songs/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioAlbumsAlbumIdPreviewRoute =
+  StudioAlbumsAlbumIdPreviewRouteImport.update({
+    id: '/preview',
+    path: '/preview',
+    getParentRoute: () => StudioAlbumsAlbumIdRoute,
+  } as any)
+const StudioSongsSongIdPreviewRoute =
+  StudioSongsSongIdPreviewRouteImport.update({
+    id: '/preview',
+    path: '/preview',
+    getParentRoute: () => StudioSongsSongIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -88,7 +132,14 @@ export interface FileRoutesByFullPath {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
+  '/studio/': typeof StudioIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdRouteWithChildren
+  '/studio/albums/new': typeof StudioAlbumsNewRoute
+  '/studio/songs/$songId': typeof StudioSongsSongIdRouteWithChildren
+  '/studio/songs/new': typeof StudioSongsNewRoute
+  '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
+  '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -101,7 +152,14 @@ export interface FileRoutesByTo {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
+  '/studio': typeof StudioIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdRouteWithChildren
+  '/studio/albums/new': typeof StudioAlbumsNewRoute
+  '/studio/songs/$songId': typeof StudioSongsSongIdRouteWithChildren
+  '/studio/songs/new': typeof StudioSongsNewRoute
+  '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
+  '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -115,7 +173,14 @@ export interface FileRoutesById {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
+  '/studio/': typeof StudioIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdRouteWithChildren
+  '/studio/albums/new': typeof StudioAlbumsNewRoute
+  '/studio/songs/$songId': typeof StudioSongsSongIdRouteWithChildren
+  '/studio/songs/new': typeof StudioSongsNewRoute
+  '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
+  '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -130,7 +195,14 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-email'
     | '/profiles/$handle'
+    | '/studio/'
     | '/api/auth/$'
+    | '/studio/albums/$albumId'
+    | '/studio/albums/new'
+    | '/studio/songs/$songId'
+    | '/studio/songs/new'
+    | '/studio/albums/$albumId/preview'
+    | '/studio/songs/$songId/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -143,7 +215,14 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-email'
     | '/profiles/$handle'
+    | '/studio'
     | '/api/auth/$'
+    | '/studio/albums/$albumId'
+    | '/studio/albums/new'
+    | '/studio/songs/$songId'
+    | '/studio/songs/new'
+    | '/studio/albums/$albumId/preview'
+    | '/studio/songs/$songId/preview'
   id:
     | '__root__'
     | '/'
@@ -156,7 +235,14 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-email'
     | '/profiles/$handle'
+    | '/studio/'
     | '/api/auth/$'
+    | '/studio/albums/$albumId'
+    | '/studio/albums/new'
+    | '/studio/songs/$songId'
+    | '/studio/songs/new'
+    | '/studio/albums/$albumId/preview'
+    | '/studio/songs/$songId/preview'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -170,7 +256,12 @@ export interface RootRouteChildren {
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   ProfilesHandleRoute: typeof ProfilesHandleRoute
+  StudioIndexRoute: typeof StudioIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  StudioAlbumsAlbumIdRoute: typeof StudioAlbumsAlbumIdRouteWithChildren
+  StudioAlbumsNewRoute: typeof StudioAlbumsNewRoute
+  StudioSongsSongIdRoute: typeof StudioSongsSongIdRouteWithChildren
+  StudioSongsNewRoute: typeof StudioSongsNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -245,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfilesHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/': {
+      id: '/studio/'
+      path: '/studio'
+      fullPath: '/studio/'
+      preLoaderRoute: typeof StudioIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -252,8 +350,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/albums/$albumId': {
+      id: '/studio/albums/$albumId'
+      path: '/studio/albums/$albumId'
+      fullPath: '/studio/albums/$albumId'
+      preLoaderRoute: typeof StudioAlbumsAlbumIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio/albums/new': {
+      id: '/studio/albums/new'
+      path: '/studio/albums/new'
+      fullPath: '/studio/albums/new'
+      preLoaderRoute: typeof StudioAlbumsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio/songs/$songId': {
+      id: '/studio/songs/$songId'
+      path: '/studio/songs/$songId'
+      fullPath: '/studio/songs/$songId'
+      preLoaderRoute: typeof StudioSongsSongIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio/songs/new': {
+      id: '/studio/songs/new'
+      path: '/studio/songs/new'
+      fullPath: '/studio/songs/new'
+      preLoaderRoute: typeof StudioSongsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio/albums/$albumId/preview': {
+      id: '/studio/albums/$albumId/preview'
+      path: '/preview'
+      fullPath: '/studio/albums/$albumId/preview'
+      preLoaderRoute: typeof StudioAlbumsAlbumIdPreviewRouteImport
+      parentRoute: typeof StudioAlbumsAlbumIdRoute
+    }
+    '/studio/songs/$songId/preview': {
+      id: '/studio/songs/$songId/preview'
+      path: '/preview'
+      fullPath: '/studio/songs/$songId/preview'
+      preLoaderRoute: typeof StudioSongsSongIdPreviewRouteImport
+      parentRoute: typeof StudioSongsSongIdRoute
+    }
   }
 }
+
+interface StudioAlbumsAlbumIdRouteChildren {
+  StudioAlbumsAlbumIdPreviewRoute: typeof StudioAlbumsAlbumIdPreviewRoute
+}
+
+const StudioAlbumsAlbumIdRouteChildren: StudioAlbumsAlbumIdRouteChildren = {
+  StudioAlbumsAlbumIdPreviewRoute: StudioAlbumsAlbumIdPreviewRoute,
+}
+
+const StudioAlbumsAlbumIdRouteWithChildren =
+  StudioAlbumsAlbumIdRoute._addFileChildren(StudioAlbumsAlbumIdRouteChildren)
+
+interface StudioSongsSongIdRouteChildren {
+  StudioSongsSongIdPreviewRoute: typeof StudioSongsSongIdPreviewRoute
+}
+
+const StudioSongsSongIdRouteChildren: StudioSongsSongIdRouteChildren = {
+  StudioSongsSongIdPreviewRoute: StudioSongsSongIdPreviewRoute,
+}
+
+const StudioSongsSongIdRouteWithChildren =
+  StudioSongsSongIdRoute._addFileChildren(StudioSongsSongIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -266,7 +428,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   ProfilesHandleRoute: ProfilesHandleRoute,
+  StudioIndexRoute: StudioIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  StudioAlbumsAlbumIdRoute: StudioAlbumsAlbumIdRouteWithChildren,
+  StudioAlbumsNewRoute: StudioAlbumsNewRoute,
+  StudioSongsSongIdRoute: StudioSongsSongIdRouteWithChildren,
+  StudioSongsNewRoute: StudioSongsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

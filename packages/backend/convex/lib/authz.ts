@@ -70,6 +70,17 @@ export async function requireActiveMember(ctx: DatabaseCtx) {
   return assertActiveMember(member)
 }
 
+export async function requireActiveArtist(ctx: DatabaseCtx) {
+  const member = await requireActiveMember(ctx)
+  if (member.role !== "artist") {
+    throw new ConvexError({
+      code: "ARTIST_REQUIRED",
+      message: "Un compte artiste est nécessaire.",
+    })
+  }
+  return member
+}
+
 export async function requireAdmin(ctx: DatabaseCtx) {
   const member = await requireActiveMember(ctx)
   if (!member.isAdmin) {

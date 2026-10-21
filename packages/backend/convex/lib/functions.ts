@@ -5,7 +5,11 @@ import {
 } from "convex-helpers/server/customFunctions"
 
 import { mutation, query } from "../_generated/server"
-import { requireActiveMember, requireVerifiedIdentity } from "./authz"
+import {
+  requireActiveArtist,
+  requireActiveMember,
+  requireVerifiedIdentity,
+} from "./authz"
 
 export const verifiedQuery = customQuery(
   query,
@@ -32,5 +36,19 @@ export const memberMutation = customMutation(
   mutation,
   customCtx(async (ctx) => ({
     member: await requireActiveMember(ctx),
+  }))
+)
+
+export const artistQuery = customQuery(
+  query,
+  customCtx(async (ctx) => ({
+    member: await requireActiveArtist(ctx),
+  }))
+)
+
+export const artistMutation = customMutation(
+  mutation,
+  customCtx(async (ctx) => ({
+    member: await requireActiveArtist(ctx),
   }))
 )

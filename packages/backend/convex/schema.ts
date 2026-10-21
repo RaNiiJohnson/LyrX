@@ -5,7 +5,12 @@ import {
   accountRoleValidator,
   accountStatusValidator,
   customLinkValidator,
+  catalogueImageKindValidator,
+  catalogueStatusValidator,
+  listeningLinkValidator,
+  lyricSectionKindValidator,
   profileImageKindValidator,
+  songGenreValidator,
 } from "./model"
 
 export default defineSchema({
@@ -68,4 +73,97 @@ export default defineSchema({
   })
     .index("by_storage_id", ["storageId"])
     .index("by_member_id_and_kind", ["memberId", "kind"]),
+
+  songs: defineTable({
+    ownerMemberId: v.id("members"),
+    status: catalogueStatusValidator,
+    title: v.string(),
+    primaryArtist: v.string(),
+    guestArtists: v.array(v.string()),
+    releaseDate: v.optional(v.number()),
+    description: v.optional(v.string()),
+    context: v.optional(v.string()),
+    primaryLanguage: v.string(),
+    genre: v.optional(songGenreValidator),
+    otherGenre: v.optional(v.string()),
+    writers: v.array(v.string()),
+    composers: v.array(v.string()),
+    producers: v.array(v.string()),
+    label: v.optional(v.string()),
+    listeningLinks: v.array(listeningLinkValidator),
+    artworkStorageId: v.optional(v.id("_storage")),
+    firstPublishedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_owner_member_id", ["ownerMemberId"])
+    .index("by_owner_member_id_and_status", ["ownerMemberId", "status"])
+    .index("by_status", ["status"])
+    .index("by_artwork_storage_id", ["artworkStorageId"]),
+
+  songSections: defineTable({
+    songId: v.id("songs"),
+    kind: lyricSectionKindValidator,
+    customLabel: v.optional(v.string()),
+    position: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_song_id_and_position", ["songId", "position"]),
+
+  lyricLines: defineTable({
+    songId: v.id("songs"),
+    sectionId: v.id("songSections"),
+    text: v.string(),
+    position: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_section_id_and_position", ["sectionId", "position"])
+    .index("by_song_id", ["songId"]),
+
+  albums: defineTable({
+    ownerMemberId: v.id("members"),
+    status: catalogueStatusValidator,
+    title: v.string(),
+    releaseDate: v.optional(v.number()),
+    description: v.optional(v.string()),
+    credits: v.array(v.string()),
+    artworkStorageId: v.optional(v.id("_storage")),
+    firstPublishedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_owner_member_id", ["ownerMemberId"])
+    .index("by_owner_member_id_and_status", ["ownerMemberId", "status"])
+    .index("by_status", ["status"])
+    .index("by_artwork_storage_id", ["artworkStorageId"]),
+
+  albumTracks: defineTable({
+    albumId: v.id("albums"),
+    songId: v.id("songs"),
+    ownerMemberId: v.id("members"),
+    position: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_album_id_and_position", ["albumId", "position"])
+    .index("by_song_id", ["songId"])
+    .index("by_owner_member_id", ["ownerMemberId"]),
+
+  catalogueImageUploadIntents: defineTable({
+    ownerMemberId: v.id("members"),
+    kind: catalogueImageKindValidator,
+    resourceId: v.union(v.id("songs"), v.id("albums")),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+  }),
+
+  catalogueImages: defineTable({
+    ownerMemberId: v.id("members"),
+    storageId: v.id("_storage"),
+    kind: catalogueImageKindValidator,
+    createdAt: v.number(),
+  })
+    .index("by_storage_id", ["storageId"])
+    .index("by_owner_member_id_and_kind", ["ownerMemberId", "kind"]),
 })

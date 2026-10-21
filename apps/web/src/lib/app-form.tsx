@@ -9,6 +9,14 @@ import {
   FieldLabel,
 } from "@lyrx/ui/components/field"
 import { Input } from "@lyrx/ui/components/input"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@lyrx/ui/components/select"
 import { Spinner } from "@lyrx/ui/components/spinner"
 import { Textarea } from "@lyrx/ui/components/textarea"
 
@@ -104,6 +112,63 @@ function TextareaField({
   )
 }
 
+type SelectFieldProps = {
+  description?: ReactNode
+  id?: string
+  label: ReactNode
+  options: Array<{ label: ReactNode; value: string }>
+  placeholder?: string
+  required?: boolean
+}
+
+function SelectField({
+  description,
+  id,
+  label,
+  options,
+  placeholder,
+  required,
+}: SelectFieldProps) {
+  const field = useFieldContext<string>()
+  const inputId = id ?? field.name
+  const invalid = field.state.meta.isTouched && !field.state.meta.isValid
+
+  return (
+    <Field data-invalid={invalid || undefined}>
+      <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+      <Select
+        name={field.name}
+        value={field.state.value}
+        required={required}
+        onValueChange={field.handleChange}
+      >
+        <SelectTrigger
+          id={inputId}
+          className="w-full"
+          aria-invalid={invalid || undefined}
+          onBlur={field.handleBlur}
+        >
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {invalid ? (
+        <FieldError errors={toFieldErrors(field.state.meta.errors)} />
+      ) : description ? (
+        <FieldDescription>{description}</FieldDescription>
+      ) : null}
+    </Field>
+  )
+}
+
 function SubmitButton({
   children,
   disabled,
@@ -142,6 +207,7 @@ function toFieldErrors(errors: Array<unknown>) {
 
 export const { useAppForm } = createFormHook({
   fieldComponents: {
+    SelectField,
     TextField,
     TextareaField,
   },

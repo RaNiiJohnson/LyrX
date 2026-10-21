@@ -2,9 +2,9 @@
 
 ## Active lot
 
-**Lot 3 is complete as of 2026-10-21, including the user-directed landing image,
-Soft Pop theme, and typography correction. Do not begin lot 4 until the user
-approves the next lot.**
+**Lot 4 is active as of 2026-10-21 following explicit user approval. This lot
+delivers the owned artist catalogue: song and album drafts, preview, publishing,
+unpublishing, editing, stable lyric lines, artwork, and ordered album tracks.**
 
 ## Evidence checklist
 
@@ -269,5 +269,5 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Do not begin without user approval. Lot 4 introduces artist catalogue and album
-workflows after Lot 3's completed review gate.
+Complete Lot 4 and its mandatory dual-review plus Convex-review gate. Do not
+begin Lot 5 without user approval.
