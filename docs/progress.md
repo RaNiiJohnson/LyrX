@@ -2,9 +2,9 @@
 
 ## Active lot
 
-**Lot 3 was reopened on 2026-10-21 for a user-directed landing image and
-typography correction. Its final corrective review is in progress. Do not begin
-lot 4 until the gate is clean and the user approves the next lot.**
+**Lot 3 is complete as of 2026-10-21, including the user-directed landing image,
+Soft Pop theme, and typography correction. Do not begin lot 4 until the user
+approves the next lot.**
 
 ## Evidence checklist
 
@@ -59,6 +59,10 @@ lot 4 until the gate is clean and the user approves the next lot.**
 - [x] The final Standards re-review reports 0 hard violations and 0 judgement
       calls. The final Spec re-review reports 0 implementation defects and 0
       scope-creep findings. The final `pnpm check` is clean.
+- [x] The user-directed Soft Pop and photographic-hero correction passes its own
+      final Standards re-review with 0 hard violations and 0 judgement calls and
+      its final Spec re-review with 0 remaining or new findings and 0 scope
+      creep. The final `pnpm check` remains clean with 38 tests.
 
 ## Lot history
 
@@ -169,9 +173,9 @@ The `code-review` Standards and Spec axes and `convex:convex-reviewer` ran on
 
 Implemented on `feat/corail-shell-theme-i18n`.
 
-- Reconciled the TweakCN Caffeine baseline with semantic Corail studio tokens:
-  exact brand coral, warm light and night surfaces, accessible interactive
-  primary pairs, selection colors, and complete light/dark semantic surfaces.
+- Built the initial Corail token pass from the TweakCN Caffeine baseline; the
+  later user-directed correction below supersedes that baseline with Soft Pop
+  while retaining the exact coral brand mark.
 - Added the responsive shadcn/Radix shell, desktop and mobile account navigation,
   semantic loading states, and an editorial landing composition that does not
   claim future catalogue capabilities are already available.
@@ -215,9 +219,17 @@ Implemented on `feat/corail-shell-theme-i18n`.
   computed body family is DM Sans Variable, no rendered element uses a CSS
   gradient, the post-reload console is clean, and the 390×844 layout has no
   horizontal overflow.
+- The first corrective review found inaccessible light secondary/destructive
+  contrast and hand-built feature-card surfaces. The fixes use accessible
+  semantic pairs and the installed shadcn Card composition. Follow-up review
+  then restored semantic `h2` headings and removed a typography override from
+  `CardDescription`.
+- The final Standards re-review reports 0 hard violations and 0 judgement calls.
+  The final Spec re-review reports 0 remaining or new findings and 0 scope creep.
+  Lot 3 still changes no Convex file, so its Convex review remains not
+  applicable.
 - `pnpm check` passes formatting, lint, TypeScript, 38 tests, and all production
-  client and SSR builds. The corrective Standards and Spec reviews remain to be
-  recorded before this reopened lot is closed again.
+  client and SSR builds after the final corrections.
 
 ## Known external prerequisites
 
