@@ -107,8 +107,10 @@ function Feature({
           <div className="grid size-9 place-items-center rounded-xl bg-secondary text-secondary-foreground">
             <Icon aria-hidden="true" />
           </div>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription className="leading-6">{description}</CardDescription>
+          <CardTitle>
+            <h2>{title}</h2>
+          </CardTitle>
+          <CardDescription>{description}</CardDescription>
         </CardHeader>
       </Card>
     </article>
