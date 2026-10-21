@@ -46,34 +46,36 @@ export function PageShell({
 
   return (
     <div className="grid min-h-svh grid-rows-[auto_1fr_auto]">
-      <header className="sticky top-0 z-40 px-4 pt-4 sm:px-6">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-full border bg-background/90 px-3 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/75 sm:px-4">
-          <Link
-            to="/"
-            className="group mr-auto flex items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-brand-foreground shadow-sm transition-transform group-hover:-rotate-3">
-              X
-            </span>
-            <span className="text-lg font-semibold tracking-tight">
-              {PRODUCT_NAME}
-            </span>
-          </Link>
+      <header className="sticky top-0 z-40 pt-4">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+          <div className="flex h-14 items-center gap-3 rounded-full border bg-background/90 px-3 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/75 sm:px-4">
+            <Link
+              to="/"
+              className="group mr-auto flex items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-brand-foreground shadow-sm transition-transform group-hover:-rotate-3">
+                X
+              </span>
+              <span className="text-lg font-semibold tracking-tight">
+                {PRODUCT_NAME}
+              </span>
+            </Link>
 
-          <nav aria-label={t("navigation.menu")} className="hidden md:flex">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/">{t("navigation.home")}</Link>
-            </Button>
-          </nav>
+            <nav aria-label={t("navigation.menu")} className="hidden md:flex">
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/">{t("navigation.home")}</Link>
+              </Button>
+            </nav>
 
-          <div className="flex items-center gap-0.5">
-            <LocaleMenu />
-            <ThemeMenu />
-            {getPublicRuntimeConfig() ? (
-              <ConfiguredAccountNavigation />
-            ) : (
-              <AnonymousAccountNavigation />
-            )}
+            <div className="flex items-center gap-0.5">
+              <LocaleMenu />
+              <ThemeMenu />
+              {getPublicRuntimeConfig() ? (
+                <ConfiguredAccountNavigation />
+              ) : (
+                <AnonymousAccountNavigation />
+              )}
+            </div>
           </div>
         </div>
       </header>

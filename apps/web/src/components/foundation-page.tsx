@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router"
-import { useQuery } from "convex/react"
 import {
   ArrowRight,
   BookOpenText,
@@ -7,23 +6,14 @@ import {
   UsersRound,
 } from "lucide-react"
 
-import { api } from "@lyrx/backend/convex/_generated/api"
-import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@lyrx/ui/components/card"
-import { Skeleton } from "@lyrx/ui/components/skeleton"
-import { toast } from "@lyrx/ui/lib/toast"
-
-import { authClient } from "@/lib/auth-client"
-import { getPublicRuntimeConfig } from "@/lib/runtime-config"
 
 import { useLocale } from "./locale-provider"
 import { PageShell } from "./page-shell"
@@ -33,7 +23,7 @@ export function FoundationPage() {
 
   return (
     <PageShell width="wide">
-      <section className="relative isolate flex min-h-[34rem] items-center justify-center overflow-hidden rounded-3xl border bg-muted px-5 py-16 text-center shadow-sm sm:min-h-[38rem] sm:px-10 lg:min-h-[42rem]">
+      <section className="relative isolate flex min-h-[29rem] items-center justify-center overflow-hidden rounded-3xl bg-muted px-5 py-10 text-center shadow-sm sm:min-h-[32rem] sm:px-10 sm:py-12 lg:min-h-[34rem]">
         <img
           src="/images/lyrx-songwriter-hero.webp"
           alt={t("home.heroImageAlt")}
@@ -47,16 +37,16 @@ export function FoundationPage() {
           className="absolute inset-0 -z-10 bg-brand-foreground/65"
         />
 
-        <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 text-hero-foreground">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-5 text-hero-foreground">
           <Badge variant="secondary">{t("home.eyebrow")}</Badge>
-          <div className="flex flex-col items-center gap-5">
-            <h1 className="max-w-4xl font-serif text-5xl leading-[0.95] font-medium tracking-[-0.04em] text-balance sm:text-7xl lg:text-8xl">
+          <div className="flex flex-col items-center gap-4">
+            <h1 className="max-w-4xl font-serif text-4xl leading-[0.95] font-medium tracking-[-0.04em] text-balance sm:text-6xl lg:text-7xl">
               <span className="block">{t("home.titleLead")}</span>
               <span className="block font-normal italic">
                 {t("home.titleEmphasis")}
               </span>
             </h1>
-            <p className="max-w-2xl text-base leading-7 text-pretty text-hero-muted-foreground sm:text-lg sm:leading-8">
+            <p className="max-w-2xl text-sm leading-6 text-pretty text-hero-muted-foreground sm:text-base sm:leading-7">
               {t("home.description")}
             </p>
           </div>
@@ -74,18 +64,7 @@ export function FoundationPage() {
         </div>
       </section>
 
-      <section
-        aria-label={t("home.accountBadge")}
-        className="mx-auto w-full max-w-2xl"
-      >
-        {getPublicRuntimeConfig() ? (
-          <ConfiguredAccountCard />
-        ) : (
-          <MissingBackend />
-        )}
-      </section>
-
-      <section className="grid gap-4 py-8 md:grid-cols-3 md:py-10">
+      <section className="grid gap-4 py-6 md:grid-cols-3 md:py-8">
         <Feature
           icon={BookOpenText}
           title={t("home.featureLyricsTitle")}
@@ -129,150 +108,5 @@ function Feature({
         </CardHeader>
       </Card>
     </article>
-  )
-}
-
-function MissingBackend() {
-  const { t } = useLocale()
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("home.backendTitle")}</CardTitle>
-        <CardDescription>{t("home.backendDescription")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <MissingBackendNotice />
-      </CardContent>
-      <CardFooter>
-        <Button asChild>
-          <Link to="/auth/sign-in">{t("home.backendAction")}</Link>
-        </Button>
-      </CardFooter>
-    </Card>
-  )
-}
-
-export function MissingBackendNotice() {
-  const { t } = useLocale()
-  return (
-    <Alert>
-      <AlertTitle>{t("home.backendNoticeTitle")}</AlertTitle>
-      <AlertDescription>{t("home.backendNoticeDescription")}</AlertDescription>
-    </Alert>
-  )
-}
-
-function ConfiguredAccountCard() {
-  const current = useQuery(api.members.current, {})
-  const { t } = useLocale()
-  if (current === undefined) return <ConfiguredAccountCardSkeleton />
-
-  if (current.state === "anonymous") {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("home.welcomeTitle")}</CardTitle>
-          <CardDescription>{t("home.welcomeDescription")}</CardDescription>
-        </CardHeader>
-        <CardFooter className="flex-wrap gap-2">
-          <Button asChild>
-            <Link to="/auth/sign-in">{t("navigation.signIn")}</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/auth/sign-up">{t("navigation.createAccount")}</Link>
-          </Button>
-        </CardFooter>
-      </Card>
-    )
-  }
-
-  if (current.state === "email-unverified") {
-    return (
-      <Alert>
-        <AlertTitle>{t("home.emailUnverifiedTitle")}</AlertTitle>
-        <AlertDescription>
-          {t("home.emailUnverifiedDescription")}{" "}
-          <Link to="/auth/verify-email">{t("home.emailUnverifiedLink")}</Link>
-        </AlertDescription>
-      </Alert>
-    )
-  }
-
-  if (current.state === "onboarding-required") {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("home.onboardingTitle")}</CardTitle>
-          <CardDescription>{t("home.onboardingDescription")}</CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button asChild>
-            <Link to="/onboarding">{t("navigation.continue")}</Link>
-          </Button>
-        </CardFooter>
-      </Card>
-    )
-  }
-
-  if (current.state === "suspended") {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>{t("home.suspendedTitle")}</AlertTitle>
-        <AlertDescription>{t("home.suspendedDescription")}</AlertDescription>
-      </Alert>
-    )
-  }
-
-  async function signOut() {
-    try {
-      const result = await authClient.signOut()
-      if (result.error) throw result.error
-      window.location.assign("/")
-    } catch {
-      toast.error(t("toast.signOutError"))
-    }
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {t("home.readyGreeting", { name: current.profile.displayName })}
-        </CardTitle>
-        <CardDescription>
-          {t("home.readyDescription", {
-            role:
-              current.member.role === "artist"
-                ? t("common.artist")
-                : t("common.fan"),
-            handle: current.profile.handle,
-          })}
-        </CardDescription>
-      </CardHeader>
-      <CardFooter className="flex-wrap gap-2">
-        <Button asChild>
-          <Link to="/profile">{t("navigation.myProfile")}</Link>
-        </Button>
-        <Button type="button" variant="outline" onClick={signOut}>
-          {t("navigation.signOut")}
-        </Button>
-      </CardFooter>
-    </Card>
-  )
-}
-
-function ConfiguredAccountCardSkeleton() {
-  const { t } = useLocale()
-  return (
-    <Card aria-label={t("common.loadingAccount")}>
-      <CardHeader className="gap-2">
-        <Skeleton className="h-7 w-36" />
-        <Skeleton className="h-4 w-4/5" />
-      </CardHeader>
-      <CardFooter className="gap-2">
-        <Skeleton className="h-9 w-28" />
-        <Skeleton className="h-9 w-32" />
-      </CardFooter>
-    </Card>
   )
 }
