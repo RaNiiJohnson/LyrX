@@ -42,7 +42,7 @@ export function SignInForm() {
         if (result.error) throw result.error
         window.location.assign("/account")
       } catch (caught) {
-        const message = getErrorMessage(caught)
+        const message = getErrorMessage(caught, t)
         setError(message)
         toast.error(t("signIn.error"), { description: message })
       }
@@ -60,7 +60,7 @@ export function SignInForm() {
       })
       if (result.error) throw result.error
     } catch (caught) {
-      const message = getErrorMessage(caught)
+      const message = getErrorMessage(caught, t)
       setError(message)
       toast.error(t("toast.googleError"), { description: message })
       setGooglePending(false)

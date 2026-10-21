@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import { isValidDisplayName, isValidHandle } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
@@ -29,7 +30,7 @@ import { Spinner } from "@lyrx/ui/components/spinner"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
-import { getErrorMessage } from "@/lib/errors"
+import { getErrorMessage, localizedUiError } from "@/lib/errors"
 import { useLocale } from "./locale-provider"
 
 export function ProfileEditor() {
@@ -111,7 +112,7 @@ function ReadyProfileEditor({
         })
         toast.success(t("profile.saved"))
       } catch (caught) {
-        const message = getErrorMessage(caught)
+        const message = getErrorMessage(caught, t)
         setError(message)
         toast.error(t("profile.saveError"), { description: message })
       }
@@ -132,7 +133,9 @@ function ReadyProfileEditor({
         headers: { "Content-Type": file.type },
         body: file,
       })
-      if (!response.ok) throw new Error(t("profile.imageUploadFailed"))
+      if (!response.ok) {
+        throw localizedUiError(t("profile.imageUploadFailed"))
+      }
       const payload: unknown = await response.json()
       if (
         !payload ||
@@ -140,7 +143,7 @@ function ReadyProfileEditor({
         !("storageId" in payload) ||
         typeof payload.storageId !== "string"
       ) {
-        throw new Error(t("profile.imageInvalidResponse"))
+        throw localizedUiError(t("profile.imageInvalidResponse"))
       }
       const result = await saveProfileImage({
         kind,
@@ -154,7 +157,7 @@ function ReadyProfileEditor({
           : t("profile.bannerUpdated")
       )
     } catch (caught) {
-      const message = getErrorMessage(caught)
+      const message = getErrorMessage(caught, t)
       setError(message)
       toast.error(t("profile.imageError"), { description: message })
     } finally {
@@ -239,9 +242,7 @@ function ReadyProfileEditor({
               name="handle"
               validators={{
                 onBlur: ({ value }) =>
-                  /^[a-z0-9._-]{3,30}$/.test(value)
-                    ? undefined
-                    : t("onboarding.handleInvalid"),
+                  isValidHandle(value) ? undefined : t("error.invalidHandle"),
               }}
             >
               {(field) => (
@@ -258,9 +259,9 @@ function ReadyProfileEditor({
               name="displayName"
               validators={{
                 onBlur: ({ value }) =>
-                  value.trim().length >= 2
+                  isValidDisplayName(value)
                     ? undefined
-                    : t("signUp.nameTooShort"),
+                    : t("error.invalidDisplayName"),
               }}
             >
               {(field) => (

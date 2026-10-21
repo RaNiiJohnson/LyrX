@@ -30,6 +30,39 @@ const frenchMessages = {
   "backend.requiredDescription":
     "Ajoutez VITE_CONVEX_URL, VITE_CONVEX_SITE_URL et VITE_SITE_URL dans apps/web/.env.local après avoir configuré le déploiement de développement. Aucun fournisseur externe n’est simulé.",
   "backend.requiredTitle": "Configuration Convex requise",
+  "error.accountExists": "Un compte utilise déjà cette adresse email.",
+  "error.accountSuspended": "Ce compte est suspendu.",
+  "error.artistRoleRequired": "Cette action est réservée aux comptes Artiste.",
+  "error.emailNotVerified": "L’adresse email doit être vérifiée.",
+  "error.emailUnavailable": "Le service d’email est indisponible.",
+  "error.forbidden": "Vous n’avez pas les droits nécessaires.",
+  "error.handleTaken": "Ce pseudo est déjà utilisé.",
+  "error.invalidCredentials": "Email ou mot de passe incorrect.",
+  "error.invalidDisplayName":
+    "Le nom affiché doit contenir entre 2 et 80 caractères.",
+  "error.invalidHandle":
+    "Le pseudo doit contenir 3 à 30 caractères et ne peut pas commencer ou finir par un symbole.",
+  "error.invalidLinkLabel":
+    "Le libellé d’un lien doit contenir entre 1 et 40 caractères.",
+  "error.invalidSocialUrl": "Ce lien ne correspond pas au service attendu.",
+  "error.invalidUploadIntent":
+    "Cette autorisation de transfert n’est plus valide.",
+  "error.invalidUrl": "Saisissez une URL valide.",
+  "error.invalidUrlProtocol": "Les liens doivent utiliser HTTPS.",
+  "error.onboardingAlreadyCompleted": "Ce profil est déjà configuré.",
+  "error.onboardingRequired": "Créez votre profil avant cette action.",
+  "error.profileImageForbidden": "Cette image appartient à un autre compte.",
+  "error.profileUnavailable": "Le profil associé au compte est introuvable.",
+  "error.rateLimited":
+    "Trop de tentatives. Patientez un moment avant de réessayer.",
+  "error.textTooLong": "Ce texte dépasse la longueur autorisée.",
+  "error.tooManyCustomLinks":
+    "Un profil peut contenir au maximum 8 liens personnalisés.",
+  "error.unauthenticated": "Une connexion est nécessaire.",
+  "error.unexpected": "Une erreur inattendue est survenue.",
+  "error.uploadIntentMismatch":
+    "Ce fichier ne correspond pas à cette autorisation de transfert.",
+  "error.uploadNotFound": "Le fichier envoyé est introuvable.",
   "forgot.description":
     "Recevez un lien à usage limité pour choisir un nouveau mot de passe.",
   "forgot.deliveryUnavailableDescription":
@@ -70,7 +103,6 @@ const frenchMessages = {
   "signUp.emailDeliveryTitle": "Inscription temporairement indisponible",
   "signUp.error": "Création du compte impossible",
   "signUp.footerLead": "Déjà membre ?",
-  "signUp.nameTooShort": "Le nom doit contenir au moins 2 caractères.",
   "signUp.notice":
     "Consultez votre boîte email et ouvrez le lien de vérification avant de choisir votre rôle.",
   "signUp.submit": "Créer mon compte",
@@ -159,8 +191,6 @@ const frenchMessages = {
   "onboarding.handle": "Pseudo public",
   "onboarding.handleDescription":
     "Lettres minuscules, chiffres, point, tiret ou underscore.",
-  "onboarding.handleInvalid":
-    "Utilisez 3 à 30 lettres minuscules, chiffres, points, tirets ou underscores.",
   "onboarding.presentation": "Présentation",
   "onboarding.profileCreated": "Profil créé",
   "onboarding.profileError": "Profil non créé",
@@ -245,6 +275,37 @@ const englishMessages = {
   "backend.requiredDescription":
     "Add VITE_CONVEX_URL, VITE_CONVEX_SITE_URL, and VITE_SITE_URL to apps/web/.env.local after configuring the development deployment. No external provider is simulated.",
   "backend.requiredTitle": "Convex configuration required",
+  "error.accountExists": "An account already uses this email address.",
+  "error.accountSuspended": "This account is suspended.",
+  "error.artistRoleRequired": "This action is reserved for Artist accounts.",
+  "error.emailNotVerified": "The email address must be verified.",
+  "error.emailUnavailable": "The email service is unavailable.",
+  "error.forbidden": "You do not have the required permissions.",
+  "error.handleTaken": "This handle is already in use.",
+  "error.invalidCredentials": "Incorrect email or password.",
+  "error.invalidDisplayName":
+    "The display name must contain between 2 and 80 characters.",
+  "error.invalidHandle":
+    "The handle must contain 3 to 30 characters and cannot start or end with a symbol.",
+  "error.invalidLinkLabel":
+    "A link label must contain between 1 and 40 characters.",
+  "error.invalidSocialUrl": "This link does not match the expected service.",
+  "error.invalidUploadIntent": "This upload authorization is no longer valid.",
+  "error.invalidUrl": "Enter a valid URL.",
+  "error.invalidUrlProtocol": "Links must use HTTPS.",
+  "error.onboardingAlreadyCompleted": "This profile is already configured.",
+  "error.onboardingRequired": "Create your profile before this action.",
+  "error.profileImageForbidden": "This image belongs to another account.",
+  "error.profileUnavailable":
+    "The profile linked to this account was not found.",
+  "error.rateLimited": "Too many attempts. Wait a moment before trying again.",
+  "error.textTooLong": "This text exceeds the allowed length.",
+  "error.tooManyCustomLinks": "A profile can contain up to 8 custom links.",
+  "error.unauthenticated": "You need to sign in.",
+  "error.unexpected": "An unexpected error occurred.",
+  "error.uploadIntentMismatch":
+    "This file does not match the upload authorization.",
+  "error.uploadNotFound": "The uploaded file was not found.",
   "forgot.description": "Receive a limited-use link to choose a new password.",
   "forgot.deliveryUnavailableDescription":
     "The email provider must be configured before this flow can be used.",
@@ -283,7 +344,6 @@ const englishMessages = {
   "signUp.emailDeliveryTitle": "Registration temporarily unavailable",
   "signUp.error": "Unable to create the account",
   "signUp.footerLead": "Already a member?",
-  "signUp.nameTooShort": "The name must contain at least 2 characters.",
   "signUp.notice":
     "Check your inbox and open the verification link before choosing your role.",
   "signUp.submit": "Create my account",
@@ -372,8 +432,6 @@ const englishMessages = {
   "onboarding.handle": "Public handle",
   "onboarding.handleDescription":
     "Lowercase letters, numbers, dots, hyphens, or underscores.",
-  "onboarding.handleInvalid":
-    "Use 3 to 30 lowercase letters, numbers, dots, hyphens, or underscores.",
   "onboarding.presentation": "Introduction",
   "onboarding.profileCreated": "Profile created",
   "onboarding.profileError": "Profile not created",

@@ -8,7 +8,7 @@ import { createServerFn } from "@tanstack/react-start"
 import { useEffect } from "react"
 import type { ReactNode } from "react"
 
-import { PRODUCT_NAME } from "@lyrx/shared"
+import { UI_MESSAGES } from "@lyrx/shared"
 import { Toaster } from "@lyrx/ui/components/sonner"
 import { ThemeProvider } from "@lyrx/ui/components/theme-provider"
 import appCss from "@lyrx/ui/globals.css?url"
@@ -49,10 +49,9 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
         name: "viewport",
       },
-      { title: `${PRODUCT_NAME} — Le studio des paroles` },
+      { title: UI_MESSAGES.fr["meta.title"] },
       {
-        content:
-          "Le studio musical Lyr’X pour lire, comprendre et partager les paroles.",
+        content: UI_MESSAGES.fr["meta.description"],
         name: "description",
       },
     ],

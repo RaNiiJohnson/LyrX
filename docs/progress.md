@@ -2,10 +2,9 @@
 
 ## Active lot
 
-**Lot 2 is complete as of 2026-10-20 after its corrective account-UX pass and
-mandatory dual-review gate. Unavailable external evidence remains recorded
-honestly without becoming an invented product requirement. Do not begin lot 3
-without user approval.**
+**Lot 3 is implemented as of 2026-10-21 and is in its corrective final review.
+Do not begin lot 4 until the mandatory dual-review gate is clean and the user
+approves the next lot.**
 
 ## Evidence checklist
 
@@ -47,6 +46,19 @@ without user approval.**
 - [x] The auth proxy returns a structured HTTP 503 when deployment configuration
       is absent, and the production client bundle contains no explicit Node or
       TanStack server-module import.
+- [x] Lot 3 `pnpm check` passes formatting, lint, TypeScript, 24 tests, and all
+      production builds before the corrective review; the final count will be
+      recorded after corrections.
+- [x] Chrome verifies the Corail shell in system, light, and dark modes and the
+      French/English switch. Both preferences survive a reload, the HTML `lang`
+      value follows the locale, and the browser console reports no warning or
+      error.
+- [x] Desktop and 390×844 layouts were inspected. The mobile shell has no
+      horizontal overflow (`scrollWidth === innerWidth === 390`), exposes a
+      labelled menu, and closes with Escape while returning focus to its
+      trigger.
+- [ ] Re-run the Standards and Spec axes after the Lot 3 review corrections,
+      record the clean result, and run the final `pnpm check`.
 
 ## Lot history
 
@@ -153,6 +165,35 @@ The `code-review` Standards and Spec axes and `convex:convex-reviewer` ran on
   resolver, auth-route guards, header state, targeted skeleton transition,
   keyboard focus, console state, and 390×844 overflow.
 
+### Lot 3 — Corail shell, theme, and i18n (corrective review)
+
+Implemented on `feat/corail-shell-theme-i18n`.
+
+- Reconciled the TweakCN Caffeine baseline with semantic Corail studio tokens:
+  exact brand coral, warm light and night surfaces, accessible interactive
+  primary pairs, selection colors, and complete light/dark semantic surfaces.
+- Added the responsive shadcn/Radix shell, desktop and mobile account navigation,
+  semantic loading states, and an editorial landing composition that does not
+  claim future catalogue capabilities are already available.
+- Added `next-themes` light/dark/system preferences under the `lyrx-theme`
+  storage key and a French-first shared message catalogue with remembered
+  French/English switching under `lyrx-locale`. Existing auth, onboarding,
+  profile, loading, validation, and toast UI now follows that locale.
+- The initial Standards review found duplicated SSR metadata ownership and a
+  missing semantic foreground for the exact coral logo mark. The initial Spec
+  review additionally found raw provider/server error details could escape in
+  the wrong language. Corrections now source SSR metadata from the shared
+  catalogue, add an accessible `brand-foreground` pair, and normalize stable
+  Better Auth/Convex error codes into localized messages while hiding unknown
+  provider text behind a translated fallback.
+- The previous profile-validation duplication was closed with shared portable
+  handle/display-name predicates and regression tests. The browser-side handle
+  rule now matches the server’s normalized boundary rule instead of accepting
+  leading or trailing punctuation that Convex would later reject.
+- Lot 3 changes no file under `packages/backend/convex/`; the required Convex
+  review is therefore not applicable under the completion rule rather than
+  producing invented backend findings.
+
 ## Known external prerequisites
 
 Hosting/domain, EAS, and Android signing configuration have not been supplied.
@@ -177,7 +218,6 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Do not begin without user approval. Lot 3 introduces the Corail shell, complete
-semantic design tokens, responsive navigation, French/English switching, and
-light/dark/system preferences. It must build on the account states delivered by
-lot 2 without weakening server authorization.
+Do not begin without user approval. Lot 4 introduces artist catalogue and album
+workflows after Lot 3's corrective review and completion documentation are
+closed.

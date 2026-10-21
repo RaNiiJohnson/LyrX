@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Link } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
+import { isValidDisplayName } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Button } from "@lyrx/ui/components/button"
 import { FieldGroup, FieldSeparator } from "@lyrx/ui/components/field"
@@ -46,7 +47,7 @@ export function SignUpForm() {
           description: t("signUp.successDescription"),
         })
       } catch (caught) {
-        const message = getErrorMessage(caught)
+        const message = getErrorMessage(caught, t)
         setError(message)
         toast.error(t("signUp.error"), { description: message })
       }
@@ -64,7 +65,7 @@ export function SignUpForm() {
       })
       if (result.error) throw result.error
     } catch (caught) {
-      const message = getErrorMessage(caught)
+      const message = getErrorMessage(caught, t)
       setError(message)
       toast.error(t("toast.googleError"), { description: message })
       setGooglePending(false)
@@ -104,7 +105,9 @@ export function SignUpForm() {
           name="name"
           validators={{
             onBlur: ({ value }) =>
-              value.trim().length >= 2 ? undefined : t("signUp.nameTooShort"),
+              isValidDisplayName(value)
+                ? undefined
+                : t("error.invalidDisplayName"),
           }}
         >
           {(field) => (

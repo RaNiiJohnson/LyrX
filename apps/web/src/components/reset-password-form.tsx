@@ -39,7 +39,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
         setNotice(t("reset.notice"))
         toast.success(t("reset.success"))
       } catch (caught) {
-        const message = getErrorMessage(caught)
+        const message = getErrorMessage(caught, t)
         setError(message)
         toast.error(t("reset.updateError"), { description: message })
       }

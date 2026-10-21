@@ -52,7 +52,7 @@ export function PageShell({
             to="/"
             className="group mr-auto flex items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-white shadow-sm transition-transform group-hover:-rotate-3">
+            <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-brand-foreground shadow-sm transition-transform group-hover:-rotate-3">
               X
             </span>
             <span className="text-lg font-semibold tracking-tight">
@@ -128,7 +128,7 @@ function ConfiguredAccountNavigation() {
       window.location.assign("/")
     } catch (caught) {
       toast.error(t("toast.signOutError"), {
-        description: getErrorMessage(caught),
+        description: getErrorMessage(caught, t),
       })
     }
   }

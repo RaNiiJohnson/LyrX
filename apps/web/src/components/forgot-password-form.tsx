@@ -35,7 +35,7 @@ export function ForgotPasswordForm() {
           description: t("forgot.successDescription"),
         })
       } catch (caught) {
-        const message = getErrorMessage(caught)
+        const message = getErrorMessage(caught, t)
         setError(message)
         toast.error(t("toast.sendError"), { description: message })
       }

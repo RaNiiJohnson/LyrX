@@ -8,3 +8,4 @@ export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
 
 export { formatMessage, isSupportedLocale, UI_MESSAGES } from "./i18n"
 export type { MessageKey } from "./i18n"
+export { isValidDisplayName, isValidHandle } from "./profile"

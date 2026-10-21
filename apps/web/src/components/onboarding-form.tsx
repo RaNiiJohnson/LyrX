@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
+import { isValidDisplayName, isValidHandle } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import {
   Card,
@@ -64,7 +65,7 @@ export function OnboardingForm() {
         toast.success(t("onboarding.profileCreated"))
         await navigate({ to: "/profile" })
       } catch (caught) {
-        const message = getErrorMessage(caught)
+        const message = getErrorMessage(caught, t)
         setError(message)
         toast.error(t("onboarding.profileError"), { description: message })
       }
@@ -176,9 +177,7 @@ export function OnboardingForm() {
               name="handle"
               validators={{
                 onBlur: ({ value }) =>
-                  /^[a-z0-9._-]{3,30}$/.test(value)
-                    ? undefined
-                    : t("onboarding.handleInvalid"),
+                  isValidHandle(value) ? undefined : t("error.invalidHandle"),
               }}
             >
               {(field) => (
@@ -197,9 +196,9 @@ export function OnboardingForm() {
               name="displayName"
               validators={{
                 onBlur: ({ value }) =>
-                  value.trim().length >= 2
+                  isValidDisplayName(value)
                     ? undefined
-                    : t("signUp.nameTooShort"),
+                    : t("error.invalidDisplayName"),
               }}
             >
               {(field) => (

@@ -7,6 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -83,6 +84,7 @@
   --background: oklch(0.9837 0.0085 44.89);
   --foreground: oklch(0.2565 0.0162 358.42);
   --brand: oklch(0.6249 0.1794 21.61);
+  --brand-foreground: oklch(0.1898 0.0135 314.48);
   --primary: oklch(0.4788 0.1381 19.66);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.9492 0.0252 20.61);
@@ -168,6 +170,7 @@
   --background: oklch(0.1898 0.0135 314.48);
   --foreground: oklch(0.9507 0.0086 44.89);
   --brand: oklch(0.6249 0.1794 21.61);
+  --brand-foreground: oklch(0.1898 0.0135 314.48);
   --card: oklch(0.2256 0.0153 356.47);
   --card-foreground: oklch(0.9507 0.0086 44.89);
   --popover: oklch(0.2565 0.0162 358.42);
