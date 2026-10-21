@@ -1,5 +1,7 @@
 @import "@fontsource-variable/dm-sans";
 @import "@fontsource-variable/dm-sans/wght-italic.css";
+@import "@fontsource-variable/newsreader";
+@import "@fontsource-variable/newsreader/wght-italic.css";
 @import "@fontsource/space-mono/400.css";
 @import "@fontsource/space-mono/700.css";
 @import "tailwindcss";
@@ -12,6 +14,8 @@
   --color-background: var(--background);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-hero-foreground: var(--hero-foreground);
+  --color-hero-muted-foreground: var(--hero-muted-foreground);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -29,7 +33,7 @@
   --color-destructive: var(--destructive);
   --font-sans: "DM Sans Variable", "DM Sans", sans-serif;
   --font-mono: Space Mono, monospace;
-  --font-serif: "DM Sans Variable", "DM Sans", sans-serif;
+  --font-serif: "Newsreader Variable", Newsreader, ui-serif, Georgia, serif;
   --radius: 1rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);
@@ -84,6 +88,8 @@
   --foreground: oklch(0 0 0);
   --brand: oklch(0.6249 0.1794 21.61);
   --brand-foreground: oklch(0.1898 0.0135 314.48);
+  --hero-foreground: oklch(0.98 0.008 75);
+  --hero-muted-foreground: oklch(0.92 0.012 75);
   --primary: oklch(0.5106 0.2301 276.9656);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.7038 0.123 182.5025);
@@ -116,7 +122,7 @@
   --sidebar-accent-foreground: oklch(0 0 0);
   --sidebar-border: oklch(0 0 0);
   --sidebar-ring: oklch(0.7853 0.1041 274.7134);
-  --font-serif: "DM Sans Variable", "DM Sans", sans-serif;
+  --font-serif: "Newsreader Variable", Newsreader, ui-serif, Georgia, serif;
   --font-mono: Space Mono, monospace;
   --shadow-color: #1a1a1a;
   --shadow-opacity: 0.05;
@@ -171,6 +177,8 @@
   --foreground: oklch(1 0 0);
   --brand: oklch(0.6249 0.1794 21.61);
   --brand-foreground: oklch(0.1898 0.0135 314.48);
+  --hero-foreground: oklch(0.98 0.008 75);
+  --hero-muted-foreground: oklch(0.92 0.012 75);
   --card: oklch(0.2455 0.0217 257.2823);
   --card-foreground: oklch(1 0 0);
   --popover: oklch(0.2455 0.0217 257.2823);
@@ -203,7 +211,7 @@
   --sidebar-border: oklch(1 0 0);
   --sidebar-ring: oklch(0.6801 0.1583 276.9349);
   --font-sans: "DM Sans Variable", "DM Sans", sans-serif;
-  --font-serif: "DM Sans Variable", "DM Sans", sans-serif;
+  --font-serif: "Newsreader Variable", Newsreader, ui-serif, Georgia, serif;
   --font-mono: Space Mono, monospace;
   --shadow-color: #1a1a1a;
   --shadow-opacity: 0.05;

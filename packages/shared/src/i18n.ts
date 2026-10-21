@@ -149,7 +149,8 @@ const frenchMessages = {
   "home.heroImageAlt":
     "Une personne écrit des paroles dans un carnet, au cœur d’un studio de musique.",
   "home.heroSecondaryAction": "Se connecter",
-  "home.title": "Les paroles méritent mieux qu’une simple page de texte.",
+  "home.titleLead": "Les paroles méritent mieux",
+  "home.titleEmphasis": "qu’une simple page de texte.",
   "home.onboardingDescription": "Finalisez votre profil Fan ou Artiste.",
   "home.onboardingTitle": "Choisissez votre rôle",
   "home.readyDescription": "Profil {{role}} · @{{handle}}",
@@ -392,7 +393,8 @@ const englishMessages = {
   "home.heroImageAlt":
     "A person writes lyrics in a notebook inside a warm music studio.",
   "home.heroSecondaryAction": "Sign in",
-  "home.title": "Lyrics deserve more than a plain page of text.",
+  "home.titleLead": "Lyrics deserve more",
+  "home.titleEmphasis": "than a plain page of text.",
   "home.onboardingDescription": "Finish setting up your Fan or Artist profile.",
   "home.onboardingTitle": "Choose your role",
   "home.readyDescription": "{{role}} profile · @{{handle}}",

@@ -46,8 +46,8 @@ export function PageShell({
 
   return (
     <div className="grid min-h-svh grid-rows-[auto_1fr_auto]">
-      <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+      <header className="sticky top-0 z-40 px-4 pt-4 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-full border bg-background/90 px-3 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/75 sm:px-4">
           <Link
             to="/"
             className="group mr-auto flex items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -80,7 +80,7 @@ export function PageShell({
 
       <main
         className={cn(
-          "mx-auto flex w-full flex-col gap-6 px-4 py-8 sm:px-6 sm:py-12",
+          "mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8",
           width === "wide" ? "max-w-6xl" : "max-w-2xl"
         )}
       >

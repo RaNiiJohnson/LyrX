@@ -1,6 +1,11 @@
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
-import { BookOpenText, MessageCircleHeart, UsersRound } from "lucide-react"
+import {
+  ArrowRight,
+  BookOpenText,
+  MessageCircleHeart,
+  UsersRound,
+} from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
@@ -28,49 +33,59 @@ export function FoundationPage() {
 
   return (
     <PageShell width="wide">
-      <section className="grid items-center gap-10 py-6 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16 lg:py-16">
-        <div className="flex flex-col items-start gap-6">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            {t("home.eyebrow")}
-          </Badge>
-          <div className="flex flex-col gap-4">
-            <h1 className="max-w-3xl text-4xl leading-[1.05] font-semibold tracking-[-0.04em] text-balance sm:text-6xl lg:text-7xl">
-              {t("home.title")}
+      <section className="relative isolate flex min-h-[34rem] items-center justify-center overflow-hidden rounded-3xl border bg-muted px-5 py-16 text-center shadow-sm sm:min-h-[38rem] sm:px-10 lg:min-h-[42rem]">
+        <img
+          src="/images/lyrx-songwriter-hero.webp"
+          alt={t("home.heroImageAlt")}
+          width={1536}
+          height={1024}
+          fetchPriority="high"
+          className="absolute inset-0 -z-20 size-full object-cover object-center"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-brand-foreground/65"
+        />
+
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 text-hero-foreground">
+          <Badge variant="secondary">{t("home.eyebrow")}</Badge>
+          <div className="flex flex-col items-center gap-5">
+            <h1 className="max-w-4xl font-serif text-5xl leading-[0.95] font-medium tracking-[-0.04em] text-balance sm:text-7xl lg:text-8xl">
+              <span className="block">{t("home.titleLead")}</span>
+              <span className="block font-normal italic">
+                {t("home.titleEmphasis")}
+              </span>
             </h1>
-            <p className="max-w-2xl text-lg leading-8 text-pretty text-muted-foreground">
+            <p className="max-w-2xl text-base leading-7 text-pretty text-hero-muted-foreground sm:text-lg sm:leading-8">
               {t("home.description")}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-center gap-3">
             <Button asChild size="lg">
-              <Link to="/auth/sign-up">{t("home.heroAction")}</Link>
+              <Link to="/auth/sign-up">
+                {t("home.heroAction")}
+                <ArrowRight data-icon="inline-end" aria-hidden="true" />
+              </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link to="/auth/sign-in">{t("home.heroSecondaryAction")}</Link>
             </Button>
           </div>
         </div>
-
-        <div className="relative min-h-[28rem] overflow-hidden rounded-3xl border bg-muted shadow-sm lg:min-h-[32rem]">
-          <img
-            src="/images/lyrx-songwriter-hero.webp"
-            alt={t("home.heroImageAlt")}
-            width={1536}
-            height={1024}
-            fetchPriority="high"
-            className="absolute inset-0 size-full object-cover"
-          />
-          <div className="absolute inset-x-4 bottom-4 sm:right-auto sm:left-5 sm:w-[21rem]">
-            {getPublicRuntimeConfig() ? (
-              <ConfiguredAccountCard />
-            ) : (
-              <MissingBackend />
-            )}
-          </div>
-        </div>
       </section>
 
-      <section className="grid gap-4 border-t pt-8 md:grid-cols-3 md:pt-10">
+      <section
+        aria-label={t("home.accountBadge")}
+        className="mx-auto w-full max-w-2xl"
+      >
+        {getPublicRuntimeConfig() ? (
+          <ConfiguredAccountCard />
+        ) : (
+          <MissingBackend />
+        )}
+      </section>
+
+      <section className="grid gap-4 py-8 md:grid-cols-3 md:py-10">
         <Feature
           icon={BookOpenText}
           title={t("home.featureLyricsTitle")}
