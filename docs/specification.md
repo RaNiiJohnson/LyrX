@@ -14,7 +14,8 @@ delivery status and proof remain in [progress.md](progress.md).
   language; V1 does not translate them.
 - The approved visual direction uses the TweakCN **Soft Pop** preset as its
   semantic shadcn token baseline while retaining coral `#DF4F55` as the Lyr'X
-  brand mark. DM Sans is the interface and editorial family; Space Mono is the
+  brand mark. DM Sans is the interface and long-form editorial family;
+  Newsreader is reserved for the landing display headline, and Space Mono is the
   monospace family. The landing hero uses locally served editorial music
   photography instead of decorative gradients. All adaptations must preserve
   readable contrast.

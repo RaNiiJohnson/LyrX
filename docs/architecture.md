@@ -78,9 +78,11 @@ not duplicated as trust decisions in clients.
     asynchronous action success or failure. Keep durable, actionable errors in
     the page as well as in transient feedback.
 12. The TweakCN Soft Pop theme is the installed token baseline. Keep its
-    typography self-hosted through Fontsource (`DM Sans Variable` and
-    `Space Mono`) and reconcile its semantic tokens with the Lyr’X coral brand
-    instead of scattering one-off colors through components.
+    typography self-hosted through Fontsource (`DM Sans Variable`, `Newsreader
+    Variable`, and `Space Mono`). Reserve Newsreader for the landing display
+    headline; interface and long-form reading remain in DM Sans. Reconcile the
+    semantic tokens with the Lyr’X coral brand instead of scattering one-off
+    colors through components.
 
 Operational setup and the evidence boundary are documented in
 [authentication.md](authentication.md).

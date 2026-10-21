@@ -46,7 +46,7 @@ approves the next lot.**
 - [x] The auth proxy returns a structured HTTP 503 when deployment configuration
       is absent, and the production client bundle contains no explicit Node or
       TanStack server-module import.
-- [x] Lot 3 `pnpm check` passes formatting, lint, TypeScript, 38 tests, and all
+- [x] Lot 3 `pnpm check` passes formatting, lint, TypeScript, 37 tests, and all
       production builds after the corrective review.
 - [x] Chrome verifies the Corail shell in system, light, and dark modes and the
       French/English switch. Both preferences survive a reload, the HTML `lang`
@@ -62,7 +62,7 @@ approves the next lot.**
 - [x] The user-directed Soft Pop and photographic-hero correction passes its own
       final Standards re-review with 0 hard violations and 0 judgement calls and
       its final Spec re-review with 0 remaining or new findings and 0 scope
-      creep. The final `pnpm check` remains clean with 38 tests.
+      creep. The final `pnpm check` remains clean with 37 tests.
 
 ## Lot history
 
@@ -202,8 +202,9 @@ Implemented on `feat/corail-shell-theme-i18n`.
   scope-creep findings. Chrome supplied the available browser evidence; other
   browser engines were not available in this environment and are not claimed as
   verified.
-- The final `pnpm check` passes formatting, lint, TypeScript, 38 tests, and all
-  production client and SSR builds.
+- The initial completion `pnpm check` passed formatting, lint, TypeScript, 38
+  tests, and all production client and SSR builds before the final landing
+  simplification below removed its obsolete account-state test.
 
 ### Lot 3 visual correction — 2026-10-21
 
@@ -212,9 +213,10 @@ Implemented on `feat/corail-shell-theme-i18n`.
   has localized alternative text, and contains no product promise or readable
   embedded copy.
 - Adopted the user-selected TweakCN Soft Pop tokens while retaining the exact
-  coral Lyr'X brand mark. DM Sans Variable and Space Mono are self-hosted through
-  Fontsource so the selected typography does not depend on a visitor's system
-  fonts.
+  coral Lyr'X brand mark. DM Sans Variable, Newsreader Variable, and Space Mono
+  are self-hosted through Fontsource so the selected typography does not depend
+  on a visitor's system fonts. Newsreader is limited to the landing display
+  headline; the interface and long-form reading remain in DM Sans.
 - Browser verification confirms the image loads at its intrinsic width, the
   computed body family is DM Sans Variable, no rendered element uses a CSS
   gradient, the post-reload console is clean, and the 390×844 layout has no
@@ -224,11 +226,23 @@ Implemented on `feat/corail-shell-theme-i18n`.
   semantic pairs and the installed shadcn Card composition. Follow-up review
   then restored semantic `h2` headings and removed a typography override from
   `CardDescription`.
+- Commits `d8ab13d` and `e3e1edd` completed the approved editorial composition:
+  the existing photograph now fills a shorter borderless hero, the centered
+  headline uses a smaller normal/italic Newsreader treatment, and the capsule
+  header shares the hero's content width. The redundant landing account card
+  and its obsolete backend-limitation test were removed; account state remains
+  available through the header and dedicated account routes.
+- The mandatory follow-up gate reviewed `ebdaab7...HEAD`. Its first pass found
+  only stale typography and verification documentation; after correction, the
+  Standards re-review reports 0 hard violations and 0 judgement calls, and the
+  Spec re-review reports 0 remaining or new findings and 0 scope creep. No file
+  under `packages/backend/convex/` changed, so the Convex review is not
+  applicable.
 - The final Standards re-review reports 0 hard violations and 0 judgement calls.
   The final Spec re-review reports 0 remaining or new findings and 0 scope creep.
   Lot 3 still changes no Convex file, so its Convex review remains not
   applicable.
-- `pnpm check` passes formatting, lint, TypeScript, 38 tests, and all production
+- `pnpm check` passes formatting, lint, TypeScript, 37 tests, and all production
   client and SSR builds after the final corrections.
 
 ## Known external prerequisites
