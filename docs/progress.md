@@ -2,8 +2,9 @@
 
 ## Active lot
 
-**Lot 3 is complete as of 2026-10-21 after its mandatory dual-review gate.
-Do not begin lot 4 until the user approves the next lot.**
+**Lot 3 was reopened on 2026-10-21 for a user-directed landing image and
+typography correction. Its final corrective review is in progress. Do not begin
+lot 4 until the gate is clean and the user approves the next lot.**
 
 ## Evidence checklist
 
@@ -199,6 +200,24 @@ Implemented on `feat/corail-shell-theme-i18n`.
   verified.
 - The final `pnpm check` passes formatting, lint, TypeScript, 38 tests, and all
   production client and SSR builds.
+
+### Lot 3 visual correction — 2026-10-21
+
+- Replaced the landing hero's decorative blurred color treatment with a locally
+  served AI-generated editorial studio photograph. The optimized WebP is 124 KB,
+  has localized alternative text, and contains no product promise or readable
+  embedded copy.
+- Adopted the user-selected TweakCN Soft Pop tokens while retaining the exact
+  coral Lyr'X brand mark. DM Sans Variable and Space Mono are self-hosted through
+  Fontsource so the selected typography does not depend on a visitor's system
+  fonts.
+- Browser verification confirms the image loads at its intrinsic width, the
+  computed body family is DM Sans Variable, no rendered element uses a CSS
+  gradient, the post-reload console is clean, and the 390×844 layout has no
+  horizontal overflow.
+- `pnpm check` passes formatting, lint, TypeScript, 38 tests, and all production
+  client and SSR builds. The corrective Standards and Spec reviews remain to be
+  recorded before this reopened lot is closed again.
 
 ## Known external prerequisites
 

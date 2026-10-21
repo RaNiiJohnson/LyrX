@@ -77,9 +77,10 @@ not duplicated as trust decisions in clients.
 11. Use shadcn Skeleton only for data-dependent regions and Sonner to acknowledge
     asynchronous action success or failure. Keep durable, actionable errors in
     the page as well as in transient feedback.
-12. The TweakCN Caffeine theme is the installed token baseline. Deeper product
-    styling remains a separate design pass; it must reconcile the baseline with
-    Lyr’X brand colors instead of scattering one-off colors through components.
+12. The TweakCN Soft Pop theme is the installed token baseline. Keep its
+    typography self-hosted through Fontsource (`DM Sans Variable` and
+    `Space Mono`) and reconcile its semantic tokens with the Lyr’X coral brand
+    instead of scattering one-off colors through components.
 
 Operational setup and the evidence boundary are documented in
 [authentication.md](authentication.md).

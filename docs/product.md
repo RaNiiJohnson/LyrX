@@ -49,8 +49,9 @@ and production publication are outside V1.
 
 ## Visual direction
 
-The approved direction is **Corail studio**: warm, musical, editorial, and
-comfortable for long-form lyrics. Core references are coral `#DF4F55`, light
-background `#FFF8F5`, night background `#161218`, and light selection
-`#FFE8E7`. Complete accessible semantic tokens arrive in the dedicated visual
-system lot rather than the foundation lot.
+The approved direction uses the TweakCN **Soft Pop** preset as its semantic
+token baseline, adapted for a warm, musical, editorial product. Lyr'X retains
+coral `#DF4F55` as its brand mark, uses DM Sans for interface and editorial text,
+and Space Mono for code-like labels. Landing imagery favors real, tactile music
+photography over decorative gradients. All token adaptations must preserve
+readable contrast and comfortable long-form lyrics in light and dark modes.

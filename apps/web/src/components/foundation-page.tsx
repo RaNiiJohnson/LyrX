@@ -51,16 +51,22 @@ export function FoundationPage() {
           </div>
         </div>
 
-        <div className="relative">
-          <div
-            className="absolute -inset-5 -z-10 rounded-[2rem] bg-secondary/70 blur-2xl"
-            aria-hidden="true"
+        <div className="relative min-h-[28rem] overflow-hidden rounded-3xl border bg-muted shadow-sm lg:min-h-[32rem]">
+          <img
+            src="/images/lyrx-songwriter-hero.webp"
+            alt={t("home.heroImageAlt")}
+            width={1536}
+            height={1024}
+            fetchPriority="high"
+            className="absolute inset-0 size-full object-cover"
           />
-          {getPublicRuntimeConfig() ? (
-            <ConfiguredAccountCard />
-          ) : (
-            <MissingBackend />
-          )}
+          <div className="absolute inset-x-4 bottom-4 sm:right-auto sm:left-5 sm:w-[21rem]">
+            {getPublicRuntimeConfig() ? (
+              <ConfiguredAccountCard />
+            ) : (
+              <MissingBackend />
+            )}
+          </div>
         </div>
       </section>
 

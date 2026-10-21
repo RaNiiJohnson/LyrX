@@ -12,9 +12,12 @@ delivery status and proof remain in [progress.md](progress.md).
 - The interface is available in French and English from V1, with French as the
   initial value and a remembered language choice. Lyrics stay in their original
   language; V1 does not translate them.
-- The approved **Corail studio** direction uses accent `#DF4F55`, light
-  background `#FFF8F5`, night background `#161218`, and light selection
-  `#FFE8E7`. The semantic shadcn token set must preserve readable contrast.
+- The approved visual direction uses the TweakCN **Soft Pop** preset as its
+  semantic shadcn token baseline while retaining coral `#DF4F55` as the Lyr'X
+  brand mark. DM Sans is the interface and editorial family; Space Mono is the
+  monospace family. The landing hero uses locally served editorial music
+  photography instead of decorative gradients. All adaptations must preserve
+  readable contrast.
 - Light, dark, and system preferences are supported and remembered. Lyrics must
   remain comfortable to read.
 

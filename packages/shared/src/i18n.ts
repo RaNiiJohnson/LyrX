@@ -146,6 +146,8 @@ const frenchMessages = {
     "Le futur espace pour comprendre les références et le contexte des chansons.",
   "home.featureMeaningTitle": "Plus près du sens",
   "home.heroAction": "Créer mon espace",
+  "home.heroImageAlt":
+    "Une personne écrit des paroles dans un carnet, au cœur d’un studio de musique.",
   "home.heroSecondaryAction": "Se connecter",
   "home.title": "Les paroles méritent mieux qu’une simple page de texte.",
   "home.onboardingDescription": "Finalisez votre profil Fan ou Artiste.",
@@ -387,6 +389,8 @@ const englishMessages = {
     "The future place to understand the references and context behind songs.",
   "home.featureMeaningTitle": "Closer to the meaning",
   "home.heroAction": "Create my space",
+  "home.heroImageAlt":
+    "A person writes lyrics in a notebook inside a warm music studio.",
   "home.heroSecondaryAction": "Sign in",
   "home.title": "Lyrics deserve more than a plain page of text.",
   "home.onboardingDescription": "Finish setting up your Fan or Artist profile.",
