@@ -101,12 +101,16 @@ function Feature({
   description: string
 }) {
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border bg-card p-5 shadow-xs">
-      <div className="grid size-9 place-items-center rounded-xl bg-secondary text-secondary-foreground">
-        <Icon aria-hidden="true" />
-      </div>
-      <h2 className="font-semibold tracking-tight">{title}</h2>
-      <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+    <article>
+      <Card className="h-full">
+        <CardHeader className="gap-3">
+          <div className="grid size-9 place-items-center rounded-xl bg-secondary text-secondary-foreground">
+            <Icon aria-hidden="true" />
+          </div>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription className="leading-6">{description}</CardDescription>
+        </CardHeader>
+      </Card>
     </article>
   )
 }
