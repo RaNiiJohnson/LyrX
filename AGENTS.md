@@ -8,7 +8,7 @@ Read [docs/product.md](docs/product.md),
 ## Working rules
 
 - Deliver one roadmap lot at a time; do not start the next lot before approval.
-- Before closing any lot, follow the mandatory dual-review gate in
+- Before closing any lot, follow the mandatory local-review gate in
   [.agents/rules/lot-completion.md](.agents/rules/lot-completion.md).
 - Run the checks listed in [docs/development.md](docs/development.md) before handoff.
 - Keep server authorization in Convex functions; UI visibility is not access control.

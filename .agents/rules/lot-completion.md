@@ -5,24 +5,24 @@
 Apply this gate after a roadmap lot is implemented and before declaring it
 complete or requesting approval to begin the next lot.
 
-## Required reviews
+## Required review
 
 1. Pin the completed lot's fixed point to the final commit of the preceding lot
    or the branch base, and confirm that `<fixed-point>...HEAD` is non-empty.
-2. Run the `code-review` skill across the entire lot diff. Keep its Standards
-   and Spec reports separate and use the repository documentation as their
-   source of truth.
-3. Run the `convex:convex-reviewer` skill across every Convex change in the lot.
-   If the lot changed no Convex code, record that the Convex review is not
-   applicable instead of inventing findings.
-4. Resolve every hard standards violation and every Critical or Important
-   finding. Re-run the affected review after corrections. Suggestions may remain
-   only when their trade-off is documented in `docs/progress.md`.
-5. Run the checks required by `docs/development.md`, then record review results,
-   corrections, remaining accepted suggestions, and verification evidence in
+2. The primary agent reviews the entire lot diff once, locally. Check both
+   repository standards and the originating request or specification. Do not
+   run the `code-review` skill or delegate this review to sub-agents.
+3. Run the `convex:convex-reviewer` skill only when the lot changes files under
+   `packages/backend/convex/`. Otherwise record that the Convex review is not
+   applicable.
+4. Resolve every hard standards violation, specification defect, and Critical
+   or Important Convex finding. Re-review corrected files locally. Suggestions
+   may remain only when their trade-off is documented in `docs/progress.md`.
+5. Run the checks required by `docs/development.md`, then record the local review,
+   corrections, accepted suggestions, and verification evidence in
    `docs/progress.md`.
 
-The lot is complete only when both review axes and the Convex review have no
-unresolved blocking findings, required checks pass, documentation is current,
-and the final Git state is identifiable. Start the next lot only after the user
-approves it.
+The lot is complete only when the local review and any applicable Convex review
+have no unresolved blocking findings, required checks pass, documentation is
+current, and the final Git state is identifiable. Start the next lot only after
+the user approves it.
