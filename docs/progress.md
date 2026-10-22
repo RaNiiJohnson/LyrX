@@ -105,8 +105,8 @@ unpublishing, editing, stable lyric lines, artwork, and ordered album tracks.**
   Spec, et 0 finding Convex Critical ou Important. Les suggestions restantes et
   leurs arbitrages sont consignés ci-dessous.
 - Git de clôture : branche `feat/artist-catalogue-albums`, base de revue
-  `f990788`. Le commit d’implémentation final est enregistré juste avant le
-  commit documentaire de clôture.
+  `f990788`, commit d’implémentation final `3b9825d`. Le commit documentaire de
+  clôture le suit sans modification du produit.
 
 #### Idée différée — import assisté de paroles
 
