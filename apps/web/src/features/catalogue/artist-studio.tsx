@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
+import type { FunctionReturnType } from "convex/server"
 import { Disc3, FileMusic, Plus } from "lucide-react"
 import { useState } from "react"
 
@@ -35,7 +36,7 @@ import {
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { getErrorMessage } from "@/lib/errors"
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 export function ArtistStudio() {
   const current = useQuery(api.members.current, {})
@@ -183,7 +184,11 @@ function ReadyArtistStudio() {
   )
 }
 
-function SongCard({ song }: { song: Doc<"songs"> }) {
+type SongSummary = FunctionReturnType<
+  typeof api.catalogue.listMySongs
+>["page"][number]
+
+function SongCard({ song }: { song: SongSummary }) {
   const { t } = useLocale()
   const publish = useMutation(api.catalogue.publishSong)
   const unpublish = useMutation(api.catalogue.unpublishSong)

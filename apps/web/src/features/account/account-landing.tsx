@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from "@lyrx/ui/components/card"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 
 import { getSignedInDestination } from "@/lib/account-navigation"
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 export function AccountLanding() {
   const current = useQuery(api.members.current, {})

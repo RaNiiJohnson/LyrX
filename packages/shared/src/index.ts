@@ -9,3 +9,13 @@ export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
 export { formatMessage, isSupportedLocale, UI_MESSAGES } from "./i18n"
 export type { MessageKey } from "./i18n"
 export { isValidDisplayName, isValidHandle } from "./profile"
+export {
+  LYRIC_SECTION_KINDS,
+  MAX_LYRICS_TEXT_LENGTH,
+  parseLyrics,
+} from "./lyrics"
+export type {
+  LyricSectionKind,
+  ParsedLyricSection,
+  ParsedLyrics,
+} from "./lyrics"

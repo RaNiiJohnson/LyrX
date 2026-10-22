@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router"
 import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
+import type { FunctionReturnType } from "convex/server"
 import {
   ArrowDown,
   ArrowLeft,
@@ -11,7 +12,7 @@ import {
 import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
-import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
@@ -35,14 +36,14 @@ import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
-import { useCatalogueArtworkUpload } from "@/hooks/use-catalogue-artwork-upload"
+import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
 import {
   dateInputFromTimestamp,
   namesFromTextarea,
   timestampFromDateInput,
-} from "@/lib/catalogue-form"
+} from "@/features/catalogue/lib/catalogue-form"
 import { getErrorMessage } from "@/lib/errors"
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 type AlbumFormValues = {
   title: string
@@ -51,6 +52,10 @@ type AlbumFormValues = {
   credits: string
   trackIds: Array<Id<"songs">>
 }
+
+type SongSummary = FunctionReturnType<
+  typeof api.catalogue.listMySongs
+>["page"][number]
 
 function OptionalLabel() {
   const { t } = useLocale()
@@ -115,7 +120,7 @@ function AlbumEditorForm({
   detail?: NonNullable<
     ReturnType<typeof useQuery<typeof api.catalogue.getMyAlbum>>
   >
-  songs: Array<Doc<"songs">>
+  songs: Array<SongSummary>
   songsStatus: "CanLoadMore" | "LoadingMore" | "Exhausted"
   loadMoreSongs: (numItems: number) => void
 }) {

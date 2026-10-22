@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@lyrx/ui/components/card"
 
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 export function AuthCard({
   title,

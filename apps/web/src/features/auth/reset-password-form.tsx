@@ -9,7 +9,7 @@ import { useAppForm } from "@/lib/app-form"
 import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { AuthCard } from "./auth-card"
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 export function ResetPasswordForm({ token }: { token?: string }) {
   const { t } = useLocale()

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { BackendRequired } from "@/components/backend-required"
-import { PageShell } from "@/components/page-shell"
-import { ResetPasswordForm } from "@/components/reset-password-form"
+import { BackendRequired } from "@/app/backend-required"
+import { PageShell } from "@/app/page-shell"
+import { ResetPasswordForm } from "@/features/auth/reset-password-form"
 
 export const Route = createFileRoute("/auth/reset-password")({
   validateSearch: (search: Record<string, unknown>) => ({

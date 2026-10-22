@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { BackendRequired } from "@/components/backend-required"
-import { PageShell } from "@/components/page-shell"
-import { ProfileEditor } from "@/components/profile-editor"
+import { BackendRequired } from "@/app/backend-required"
+import { PageShell } from "@/app/page-shell"
+import { ProfileEditor } from "@/features/profile/profile-editor"
 
 export const Route = createFileRoute("/profile")({ component: ProfilePage })
 

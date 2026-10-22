@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 
-import { AlbumPreview } from "@/components/catalogue-preview"
-import { BackendRequired } from "@/components/backend-required"
-import { CatalogueErrorBoundary } from "@/components/catalogue-error-boundary"
-import { PageShell } from "@/components/page-shell"
+import { BackendRequired } from "@/app/backend-required"
+import { PageShell } from "@/app/page-shell"
+import { AlbumPreview } from "@/features/catalogue/catalogue-preview"
+import { CatalogueRouteError } from "@/features/catalogue/catalogue-error-boundary"
 
 export const Route = createFileRoute("/studio/albums/$albumId/preview")({
   component: AlbumPreviewPage,
+  errorComponent: CatalogueRouteError,
 })
 
 function AlbumPreviewPage() {
@@ -16,9 +17,7 @@ function AlbumPreviewPage() {
   return (
     <PageShell width="wide">
       <BackendRequired>
-        <CatalogueErrorBoundary>
-          <AlbumPreview albumId={albumId as Id<"albums">} />
-        </CatalogueErrorBoundary>
+        <AlbumPreview albumId={albumId as Id<"albums">} />
       </BackendRequired>
     </PageShell>
   )

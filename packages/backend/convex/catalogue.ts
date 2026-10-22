@@ -4,6 +4,7 @@ import {
   paginationResultValidator,
 } from "convex/server"
 import { MINUTE, RateLimiter } from "@convex-dev/rate-limiter"
+import { MAX_LYRICS_TEXT_LENGTH } from "@lyrx/shared"
 
 import { components, internal } from "./_generated/api"
 import type { Doc, Id } from "./_generated/dataModel"
@@ -14,17 +15,12 @@ import {
   type QueryCtx,
 } from "./_generated/server"
 import schema from "./schema"
-import {
-  listeningLinkValidator,
-  lyricSectionKindValidator,
-  songGenreValidator,
-} from "./model"
+import { listeningLinkValidator, songGenreValidator } from "./model"
 import { artistMutation, artistQuery } from "./lib/functions"
 import { isValidCatalogueImageMetadata } from "./lib/catalogueImages"
 
 const MAX_SECTIONS = 40
 const MAX_LINES_PER_SECTION = 100
-const MAX_TOTAL_LINES = 1_000
 const MAX_TRACKS = 100
 const STORAGE_SWEEP_BATCH = 100
 const STORAGE_SWEEP_KEY = "unclaimed-storage-v1"
@@ -36,18 +32,6 @@ const uploadLimiter = new RateLimiter(components.rateLimiter, {
     rate: 5,
     period: IMAGE_TTL_MS,
   },
-})
-
-const lineInput = v.object({
-  id: v.optional(v.id("lyricLines")),
-  text: v.string(),
-})
-
-const sectionInput = v.object({
-  id: v.optional(v.id("songSections")),
-  kind: lyricSectionKindValidator,
-  customLabel: v.optional(v.string()),
-  lines: v.array(lineInput),
 })
 
 const songInputValidator = v.object({
@@ -65,7 +49,7 @@ const songInputValidator = v.object({
   producers: v.array(v.string()),
   label: v.optional(v.string()),
   listeningLinks: v.array(listeningLinkValidator),
-  sections: v.array(sectionInput),
+  lyricsText: v.string(),
 })
 const songInput = songInputValidator.fields
 
@@ -76,14 +60,9 @@ const albumInput = {
   credits: v.array(v.string()),
 }
 
-const sectionWithLines = v.object({
-  section: schema.doc("songSections"),
-  lines: v.array(schema.doc("lyricLines")),
-})
-
 const songDetail = v.object({
   song: schema.doc("songs"),
-  sections: v.array(sectionWithLines),
+  lyricsText: v.string(),
   albumTrack: v.union(schema.doc("albumTracks"), v.null()),
   artworkUrl: v.union(v.string(), v.null()),
 })
@@ -96,6 +75,67 @@ const albumTrackDetail = v.object({
 const albumDetail = v.object({
   album: schema.doc("albums"),
   tracks: v.array(albumTrackDetail),
+  artworkUrl: v.union(v.string(), v.null()),
+})
+
+const songSummary = v.object({
+  _id: v.id("songs"),
+  _creationTime: v.number(),
+  status: v.union(v.literal("draft"), v.literal("published")),
+  title: v.string(),
+  primaryArtist: v.string(),
+  updatedAt: v.number(),
+})
+
+const publicSong = v.object({
+  _id: v.id("songs"),
+  _creationTime: v.number(),
+  status: v.literal("published"),
+  title: v.string(),
+  primaryArtist: v.string(),
+  guestArtists: v.array(v.string()),
+  releaseDate: v.optional(v.number()),
+  description: v.optional(v.string()),
+  context: v.optional(v.string()),
+  primaryLanguage: v.string(),
+  genre: v.optional(songGenreValidator),
+  otherGenre: v.optional(v.string()),
+  writers: v.array(v.string()),
+  composers: v.array(v.string()),
+  producers: v.array(v.string()),
+  label: v.optional(v.string()),
+  listeningLinks: v.array(listeningLinkValidator),
+  firstPublishedAt: v.optional(v.number()),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+
+const publicAlbum = v.object({
+  _id: v.id("albums"),
+  _creationTime: v.number(),
+  status: v.literal("published"),
+  title: v.string(),
+  releaseDate: v.optional(v.number()),
+  description: v.optional(v.string()),
+  credits: v.array(v.string()),
+  firstPublishedAt: v.optional(v.number()),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+
+const publicSongDetail = v.object({
+  song: publicSong,
+  lyricsText: v.string(),
+  album: v.union(
+    v.object({ albumId: v.id("albums"), title: v.string() }),
+    v.null()
+  ),
+  artworkUrl: v.union(v.string(), v.null()),
+})
+
+const publicAlbumDetail = v.object({
+  album: publicAlbum,
+  tracks: v.array(v.object({ position: v.number(), song: publicSong })),
   artworkUrl: v.union(v.string(), v.null()),
 })
 
@@ -203,27 +243,81 @@ function validatedSong(args: Infer<typeof songInputValidator>) {
       provider: link.provider,
       url: validateUrl(link.provider, link.url),
     })),
+    lyricsText: validateLyricsText(args.lyricsText),
   }
 }
 
-function validateLyrics(sections: Array<Infer<typeof sectionInput>>) {
-  if (sections.length > MAX_SECTIONS) bad("INVALID_LYRICS", "Trop de sections.")
-  let total = 0
-  for (const section of sections) {
-    if (section.lines.length > MAX_LINES_PER_SECTION)
-      bad("INVALID_LYRICS", "Trop de lignes dans une section.")
-    total += section.lines.length
-    if (section.kind === "custom")
-      text(section.customLabel ?? "", 80, "Le nom de section")
-    else if (section.customLabel !== undefined)
-      bad(
-        "INVALID_LYRICS",
-        "Seule une section personnalisée peut avoir un nom."
-      )
-    for (const line of section.lines) text(line.text, 1_000, "Une ligne")
+function validateLyricsText(value: string) {
+  if (value.length > MAX_LYRICS_TEXT_LENGTH) {
+    bad(
+      "INVALID_LYRICS",
+      `Les paroles ne peuvent pas dépasser ${MAX_LYRICS_TEXT_LENGTH} caractères.`
+    )
   }
-  if (total > MAX_TOTAL_LINES)
-    bad("INVALID_LYRICS", "Les paroles sont trop longues.")
+  return value
+}
+
+function projectPublicSong(song: Doc<"songs">) {
+  return {
+    _id: song._id,
+    _creationTime: song._creationTime,
+    status: "published" as const,
+    title: song.title,
+    primaryArtist: song.primaryArtist,
+    guestArtists: song.guestArtists,
+    ...(song.releaseDate === undefined
+      ? {}
+      : { releaseDate: song.releaseDate }),
+    ...(song.description === undefined
+      ? {}
+      : { description: song.description }),
+    ...(song.context === undefined ? {} : { context: song.context }),
+    primaryLanguage: song.primaryLanguage,
+    ...(song.genre === undefined ? {} : { genre: song.genre }),
+    ...(song.otherGenre === undefined ? {} : { otherGenre: song.otherGenre }),
+    writers: song.writers,
+    composers: song.composers,
+    producers: song.producers,
+    ...(song.label === undefined ? {} : { label: song.label }),
+    listeningLinks: song.listeningLinks,
+    ...(song.firstPublishedAt === undefined
+      ? {}
+      : { firstPublishedAt: song.firstPublishedAt }),
+    createdAt: song.createdAt,
+    updatedAt: song.updatedAt,
+  }
+}
+
+function projectPublicAlbum(album: Doc<"albums">) {
+  return {
+    _id: album._id,
+    _creationTime: album._creationTime,
+    status: "published" as const,
+    title: album.title,
+    ...(album.releaseDate === undefined
+      ? {}
+      : { releaseDate: album.releaseDate }),
+    ...(album.description === undefined
+      ? {}
+      : { description: album.description }),
+    credits: album.credits,
+    ...(album.firstPublishedAt === undefined
+      ? {}
+      : { firstPublishedAt: album.firstPublishedAt }),
+    createdAt: album.createdAt,
+    updatedAt: album.updatedAt,
+  }
+}
+
+function projectSongSummary(song: Doc<"songs">) {
+  return {
+    _id: song._id,
+    _creationTime: song._creationTime,
+    status: song.status,
+    title: song.title,
+    primaryArtist: song.primaryArtist,
+    updatedAt: song.updatedAt,
+  }
 }
 
 async function ownedSong(
@@ -270,127 +364,51 @@ async function readLyrics(ctx: QueryCtx | MutationCtx, songId: Id<"songs">) {
   )
 }
 
-async function replaceLyrics(
-  ctx: MutationCtx,
-  songId: Id<"songs">,
-  sections: Array<Infer<typeof sectionInput>>,
-  now: number
+const LEGACY_SECTION_HEADINGS: Record<Doc<"songSections">["kind"], string> = {
+  intro: "Intro",
+  verse: "Couplet",
+  chorus: "Refrain",
+  bridge: "Pont",
+  outro: "Outro",
+  custom: "Section",
+}
+
+async function legacyLyricsText(
+  ctx: QueryCtx | MutationCtx,
+  songId: Id<"songs">
 ) {
-  validateLyrics(sections)
-  const existing = await ctx.db
-    .query("songSections")
-    .withIndex("by_song_id_and_position", (q) => q.eq("songId", songId))
-    .take(MAX_SECTIONS + 1)
-  if (existing.length > MAX_SECTIONS)
-    bad("CATALOGUE_INVARIANT", "Trop de sections enregistrées.")
-  const keptSections = new Set<string>()
-  for (const [position, input] of sections.entries()) {
-    let sectionId: Id<"songSections">
-    let createdAt = now
-    if (input.id) {
-      const current = await ctx.db.get("songSections", input.id)
-      if (!current || current.songId !== songId)
-        bad("INVALID_LYRICS", "Section invalide.")
-      sectionId = current._id
-      createdAt = current.createdAt
-      await ctx.db.replace("songSections", sectionId, {
-        songId,
-        kind: input.kind,
-        ...(input.kind === "custom"
-          ? {
-              customLabel: text(
-                input.customLabel ?? "",
-                80,
-                "Le nom de section"
-              ),
-            }
-          : {}),
-        position,
-        createdAt,
-        updatedAt: now,
-      })
-    } else {
-      sectionId = await ctx.db.insert("songSections", {
-        songId,
-        kind: input.kind,
-        ...(input.kind === "custom"
-          ? {
-              customLabel: text(
-                input.customLabel ?? "",
-                80,
-                "Le nom de section"
-              ),
-            }
-          : {}),
-        position,
-        createdAt,
-        updatedAt: now,
-      })
-    }
-    keptSections.add(sectionId)
-    const oldLines = await ctx.db
-      .query("lyricLines")
-      .withIndex("by_section_id_and_position", (q) =>
-        q.eq("sectionId", sectionId)
-      )
-      .take(MAX_LINES_PER_SECTION + 1)
-    if (oldLines.length > MAX_LINES_PER_SECTION)
-      bad("CATALOGUE_INVARIANT", "Trop de lignes enregistrées.")
-    const keptLines = new Set<string>()
-    for (const [linePosition, line] of input.lines.entries()) {
-      if (line.id) {
-        const current = await ctx.db.get("lyricLines", line.id)
-        if (
-          !current ||
-          current.songId !== songId ||
-          current.sectionId !== sectionId
-        )
-          bad("INVALID_LYRICS", "Ligne invalide.")
-        keptLines.add(current._id)
-        await ctx.db.patch("lyricLines", current._id, {
-          text: text(line.text, 1_000, "Une ligne"),
-          position: linePosition,
-          updatedAt: now,
-        })
-      } else {
-        const id = await ctx.db.insert("lyricLines", {
-          songId,
-          sectionId,
-          text: text(line.text, 1_000, "Une ligne"),
-          position: linePosition,
-          createdAt: now,
-          updatedAt: now,
-        })
-        keptLines.add(id)
-      }
-    }
-    for (const line of oldLines)
-      if (!keptLines.has(line._id)) await ctx.db.delete("lyricLines", line._id)
-  }
-  for (const section of existing) {
-    if (keptSections.has(section._id)) continue
-    const lines = await ctx.db
-      .query("lyricLines")
-      .withIndex("by_section_id_and_position", (q) =>
-        q.eq("sectionId", section._id)
-      )
-      .take(MAX_LINES_PER_SECTION + 1)
-    for (const line of lines) await ctx.db.delete("lyricLines", line._id)
-    await ctx.db.delete("songSections", section._id)
-  }
+  const sections = await readLyrics(ctx, songId)
+  return sections
+    .map(({ section, lines }) => {
+      const heading =
+        section.kind === "custom"
+          ? section.customLabel || LEGACY_SECTION_HEADINGS.custom
+          : LEGACY_SECTION_HEADINGS[section.kind]
+      return [`[${heading}]`, ...lines.map((line) => line.text)].join("\n")
+    })
+    .join("\n\n")
+}
+
+async function lyricsTextForSong(
+  ctx: QueryCtx | MutationCtx,
+  song: Doc<"songs">
+) {
+  return song.lyricsText ?? (await legacyLyricsText(ctx, song._id))
 }
 
 export const listMySongs = artistQuery({
   args: { paginationOpts: paginationOptsValidator },
-  returns: paginationResultValidator(schema.doc("songs")),
-  handler: async (ctx, args) =>
-    ctx.db
+  returns: paginationResultValidator(songSummary),
+  handler: async (ctx, args) => {
+    const page = await ctx.db
       .query("songs")
       .withIndex("by_owner_member_id", (q) =>
         q.eq("ownerMemberId", ctx.member._id)
       )
       .order("desc")
-      .paginate(args.paginationOpts),
+      .paginate(args.paginationOpts)
+    return { ...page, page: page.page.map(projectSongSummary) }
+  },
 })
 
 export const listMyAlbums = artistQuery({
@@ -417,7 +435,7 @@ export const getMySong = artistQuery({
       .unique()
     return {
       song,
-      sections: await readLyrics(ctx, song._id),
+      lyricsText: await lyricsTextForSong(ctx, song),
       albumTrack,
       artworkUrl: song.artworkStorageId
         ? await ctx.storage.getUrl(song.artworkStorageId)
@@ -457,7 +475,7 @@ export const getMyAlbum = artistQuery({
 
 export const getPublishedSong = query({
   args: { songId: v.id("songs") },
-  returns: v.union(songDetail, v.null()),
+  returns: v.union(publicSongDetail, v.null()),
   handler: async (ctx, args) => {
     const song = await ctx.db.get("songs", args.songId)
     if (!song || song.status !== "published") return null
@@ -473,9 +491,11 @@ export const getPublishedSong = query({
     const albumTrack =
       candidate && candidateAlbum?.status === "published" ? candidate : null
     return {
-      song,
-      sections: await readLyrics(ctx, song._id),
-      albumTrack,
+      song: projectPublicSong(song),
+      lyricsText: await lyricsTextForSong(ctx, song),
+      album: albumTrack
+        ? { albumId: albumTrack.albumId, title: candidateAlbum!.title }
+        : null,
       artworkUrl: song.artworkStorageId
         ? await ctx.storage.getUrl(song.artworkStorageId)
         : null,
@@ -485,7 +505,7 @@ export const getPublishedSong = query({
 
 export const getPublishedAlbum = query({
   args: { albumId: v.id("albums") },
-  returns: v.union(albumDetail, v.null()),
+  returns: v.union(publicAlbumDetail, v.null()),
   handler: async (ctx, args) => {
     const album = await ctx.db.get("albums", args.albumId)
     if (!album || album.status !== "published") return null
@@ -511,8 +531,11 @@ export const getPublishedAlbum = query({
         : []
     )
     return {
-      album,
-      tracks,
+      album: projectPublicAlbum(album),
+      tracks: tracks.map(({ track, song }) => ({
+        position: track.position,
+        song: projectPublicSong(song),
+      })),
       artworkUrl: album.artworkStorageId
         ? await ctx.storage.getUrl(album.artworkStorageId)
         : null,
@@ -524,7 +547,6 @@ export const createSong = artistMutation({
   args: songInput,
   returns: v.id("songs"),
   handler: async (ctx, args) => {
-    validateLyrics(args.sections)
     const now = Date.now()
     const songId = await ctx.db.insert("songs", {
       ownerMemberId: ctx.member._id,
@@ -533,7 +555,6 @@ export const createSong = artistMutation({
       createdAt: now,
       updatedAt: now,
     })
-    await replaceLyrics(ctx, songId, args.sections, now)
     return songId
   },
 })
@@ -557,7 +578,37 @@ export const updateSong = artistMutation({
       createdAt: current.createdAt,
       updatedAt: now,
     })
-    await replaceLyrics(ctx, args.songId, args.sections, now)
+    return null
+  },
+})
+
+export const backfillSongLyricsText = internalMutation({
+  args: { cursor: v.union(v.string(), v.null()) },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const page = await ctx.db.query("songs").paginate({
+      cursor: args.cursor,
+      // Legacy lyrics may require up to 1,000 bounded line reads per song.
+      // Migrate one song per transaction to stay comfortably inside Convex
+      // read limits while the continuation cursor advances the full table.
+      numItems: 1,
+    })
+    for (const song of page.page) {
+      if (song.lyricsText === undefined) {
+        await ctx.db.patch("songs", song._id, {
+          lyricsText: await legacyLyricsText(ctx, song._id),
+        })
+      }
+    }
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.catalogue.backfillSongLyricsText,
+        {
+          cursor: page.continueCursor,
+        }
+      )
+    }
     return null
   },
 })

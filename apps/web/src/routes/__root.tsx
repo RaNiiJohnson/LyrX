@@ -1,5 +1,5 @@
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Outlet,
   Scripts,
@@ -13,9 +13,10 @@ import { Toaster } from "@lyrx/ui/components/sonner"
 import { ThemeProvider } from "@lyrx/ui/components/theme-provider"
 import appCss from "@lyrx/ui/globals.css?url"
 
-import { BackendProvider } from "@/components/backend-provider"
-import { LocaleProvider, useLocale } from "@/components/locale-provider"
-import { PageShell } from "@/components/page-shell"
+import { BackendProvider } from "@/app/backend-provider"
+import { LocaleProvider, useLocale } from "@/app/locale-provider"
+import { PageShell } from "@/app/page-shell"
+import type { RouterContext } from "@/router"
 
 const getInitialAuthToken = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -24,7 +25,7 @@ const getInitialAuthToken = createServerFn({ method: "GET" }).handler(
   }
 )
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async () => ({ token: await getInitialAuthToken() }),
   component: RootApplication,
   head: () => ({
@@ -61,7 +62,7 @@ export const Route = createRootRoute({
 })
 
 function RootApplication() {
-  const { token } = Route.useRouteContext()
+  const { convexClient, token } = Route.useRouteContext()
   return (
     <ThemeProvider
       attribute="class"
@@ -72,7 +73,7 @@ function RootApplication() {
     >
       <LocaleProvider>
         <LocalizedDocumentMetadata />
-        <BackendProvider initialToken={token}>
+        <BackendProvider client={convexClient} initialToken={token}>
           <Outlet />
         </BackendProvider>
         <Toaster position="top-center" richColors />

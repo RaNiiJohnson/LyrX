@@ -6,7 +6,7 @@ import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
-import { useLocale } from "@/components/locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 type ArtworkResource =
   { kind: "song"; id: Id<"songs"> } | { kind: "album"; id: Id<"albums"> }

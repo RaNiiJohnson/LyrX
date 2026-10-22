@@ -3,9 +3,9 @@
 import { convexTest } from "convex-test"
 import { describe, expect, it, vi } from "vitest"
 import rateLimiterTest from "@convex-dev/rate-limiter/test"
+import { MAX_LYRICS_TEXT_LENGTH } from "@lyrx/shared"
 
 import { api, internal } from "./_generated/api"
-import type { Doc } from "./_generated/dataModel"
 import schema from "./schema"
 import {
   isValidCatalogueImageMetadata,
@@ -26,11 +26,6 @@ function backend() {
   const t = convexTest(schema, modules)
   rateLimiterTest.register(t)
   return t
-}
-
-function expectDefined<T>(value: T | undefined, message: string): T {
-  if (value === undefined) throw new Error(message)
-  return value
 }
 
 async function artist(t: ReturnType<typeof backend>, name: string) {
@@ -56,12 +51,7 @@ const songInput = (title: string) => ({
   listeningLinks: [
     { provider: "spotify" as const, url: "https://open.spotify.com/track/1" },
   ],
-  sections: [
-    {
-      kind: "verse" as const,
-      lines: [{ text: "Andalana voalohany" }, { text: "Andalana faharoa" }],
-    },
-  ],
+  lyricsText: "[Couplet 1]\nAndalana voalohany\nAndalana faharoa",
 })
 
 describe("artist catalogue", () => {
@@ -156,46 +146,82 @@ describe("artist catalogue", () => {
     ).resolves.not.toBeNull()
   })
 
-  it("preserves submitted section and line ids across lyric edits", async () => {
+  it("preserves the canonical lyric text exactly across create and update", async () => {
     const t = backend()
     const { client } = await artist(t, "stable-lyrics")
-    const songId = await client.mutation(
-      api.catalogue.createSong,
-      songInput("Stable")
-    )
+    const initialLyrics = "[Couplet 1]\r\nUne ligne\r\n\r\nUne autre\r\n"
+    const songId = await client.mutation(api.catalogue.createSong, {
+      ...songInput("Stable"),
+      lyricsText: initialLyrics,
+    })
     const before = await client.query(api.catalogue.getMySong, { songId })
-    const section = expectDefined(
-      before.sections[0],
-      "Expected a lyric section"
-    )
-    const first = expectDefined(section.lines[0], "Expected a first lyric line")
-    const second = expectDefined(
-      section.lines[1],
-      "Expected a second lyric line"
-    )
+    expect(before.lyricsText).toBe(initialLyrics)
 
+    const editedLyrics = "[Verse]\nPremière ligne\n\n[Chorus]\nRefrain\n"
     await client.mutation(api.catalogue.updateSong, {
       ...songInput("Stable, édité"),
       songId,
-      sections: [
-        {
-          id: section.section._id,
-          kind: "verse",
-          lines: [
-            { id: first._id, text: "Première ligne modifiée" },
-            { id: second._id, text: second.text },
-            { text: "Nouvelle ligne" },
-          ],
-        },
-      ],
+      lyricsText: editedLyrics,
     })
     const after = await client.query(api.catalogue.getMySong, { songId })
-    expect(after.sections[0]?.section._id).toBe(section.section._id)
-    expect(
-      after.sections[0]?.lines
-        .slice(0, 2)
-        .map((line: Doc<"lyricLines">) => line._id)
-    ).toEqual([first._id, second._id])
+    expect(after.lyricsText).toBe(editedLyrics)
+  })
+
+  it("rejects lyric text beyond the server limit", async () => {
+    const t = backend()
+    const { client } = await artist(t, "lyrics-limit")
+
+    await expect(
+      client.mutation(api.catalogue.createSong, {
+        ...songInput("Trop long"),
+        lyricsText: "a".repeat(MAX_LYRICS_TEXT_LENGTH + 1),
+      })
+    ).rejects.toThrow("ne peuvent pas dépasser")
+  })
+
+  it("reads legacy lyric rows and backfills them without deleting old data", async () => {
+    const t = backend()
+    const { client } = await artist(t, "legacy-lyrics")
+    const songId = await client.mutation(
+      api.catalogue.createSong,
+      songInput("Héritage")
+    )
+    const legacyIds = await t.run(async (ctx) => {
+      await ctx.db.patch("songs", songId, { lyricsText: undefined })
+      const now = Date.now()
+      const sectionId = await ctx.db.insert("songSections", {
+        songId,
+        kind: "chorus",
+        position: 0,
+        createdAt: now,
+        updatedAt: now,
+      })
+      const lineId = await ctx.db.insert("lyricLines", {
+        songId,
+        sectionId,
+        text: "Ancien refrain",
+        position: 0,
+        createdAt: now,
+        updatedAt: now,
+      })
+      return { lineId, sectionId }
+    })
+
+    await expect(
+      client.query(api.catalogue.getMySong, { songId })
+    ).resolves.toMatchObject({ lyricsText: "[Refrain]\nAncien refrain" })
+
+    await t.mutation(internal.catalogue.backfillSongLyricsText, {
+      cursor: null,
+    })
+    const stored = await t.run((ctx) => ctx.db.get("songs", songId))
+    expect(stored?.lyricsText).toBe("[Refrain]\nAncien refrain")
+    await expect(
+      t.run((ctx) => ctx.db.get("songSections", legacyIds.sectionId))
+    ).resolves.not.toBeNull()
+    await expect(
+      t.run((ctx) => ctx.db.get("lyricLines", legacyIds.lineId))
+    ).resolves.not.toBeNull()
   })
 
   it("hides drafts publicly and follows publish/unpublish transitions", async () => {
@@ -235,9 +261,12 @@ describe("artist catalogue", () => {
       albumId,
       rightsConfirmed: true,
     })
-    await expect(
-      t.query(api.catalogue.getPublishedSong, { songId })
-    ).resolves.toMatchObject({ song: { status: "published" } })
+    const publishedSong = await t.query(api.catalogue.getPublishedSong, {
+      songId,
+    })
+    expect(publishedSong).toMatchObject({ song: { status: "published" } })
+    expect(publishedSong?.song).not.toHaveProperty("ownerMemberId")
+    expect(publishedSong?.song).not.toHaveProperty("rightsConfirmedAt")
     const ownedSong = await client.query(api.catalogue.getMySong, { songId })
     const ownedAlbum = await client.query(api.catalogue.getMyAlbum, { albumId })
     expect(ownedSong.song.rightsConfirmedAt).toEqual(expect.any(Number))
@@ -497,6 +526,8 @@ describe("artist catalogue", () => {
     expect(first.page).toHaveLength(100)
     expect(second.page).toHaveLength(5)
     expect(second.isDone).toBe(true)
+    expect(first.page[0]).not.toHaveProperty("lyricsText")
+    expect(first.page[0]).not.toHaveProperty("ownerMemberId")
   })
 
   it("orders album tracks atomically and enforces a single owned album", async () => {

@@ -91,6 +91,8 @@ export default defineSchema({
     producers: v.array(v.string()),
     label: v.optional(v.string()),
     listeningLinks: v.array(listeningLinkValidator),
+    // Optional until the legacy songSections/lyricLines data has been backfilled.
+    lyricsText: v.optional(v.string()),
     artworkStorageId: v.optional(v.id("_storage")),
     firstPublishedAt: v.optional(v.number()),
     rightsConfirmedAt: v.optional(v.number()),

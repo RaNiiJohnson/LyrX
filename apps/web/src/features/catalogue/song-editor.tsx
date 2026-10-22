@@ -1,17 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery } from "convex/react"
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowUp,
-  ImagePlus,
-  Plus,
-  Trash2,
-} from "lucide-react"
+import { ArrowLeft, ImagePlus, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
-import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import { MAX_LYRICS_TEXT_LENGTH } from "@lyrx/shared"
 import type { MessageKey } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
@@ -38,18 +32,17 @@ import { Spinner } from "@lyrx/ui/components/spinner"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
-import { useCatalogueArtworkUpload } from "@/hooks/use-catalogue-artwork-upload"
+import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
+import { LyricsPreview } from "@/features/catalogue/lyrics-preview"
 import {
-  dateInputFromTimestamp,
   emptySongValues,
   LISTENING_PROVIDERS,
-  LYRIC_SECTION_KINDS,
   SONG_GENRES,
-  type SongFormValues,
   toSongMutationInput,
-} from "@/lib/catalogue-form"
+} from "@/features/catalogue/lib/catalogue-form"
+import { songValuesFromDetail } from "@/features/catalogue/lib/song-values"
 import { getErrorMessage } from "@/lib/errors"
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 const genreMessageKeys: Record<(typeof SONG_GENRES)[number], MessageKey> = {
   pop: "studio.genrePop",
@@ -62,18 +55,6 @@ const genreMessageKeys: Record<(typeof SONG_GENRES)[number], MessageKey> = {
   gospel: "studio.genreGospel",
   reggae: "studio.genreReggae",
   other: "studio.genreOtherOption",
-}
-
-const sectionMessageKeys: Record<
-  (typeof LYRIC_SECTION_KINDS)[number],
-  MessageKey
-> = {
-  intro: "studio.sectionIntro",
-  verse: "studio.sectionVerse",
-  chorus: "studio.sectionChorus",
-  bridge: "studio.sectionBridge",
-  outro: "studio.sectionOutro",
-  custom: "studio.sectionCustom",
 }
 
 const providerLabels: Record<(typeof LISTENING_PROVIDERS)[number], string> = {
@@ -585,234 +566,22 @@ function SongEditorForm({
 
               {step === 2 ? (
                 <FieldSet>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <FieldLegend>{t("studio.lyrics")}</FieldLegend>
-                      <OptionalLabel />
-                    </div>
-                    <form.Field name="sections" mode="array">
-                      {(sectionsField) => (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={sectionsField.state.value.length >= 40}
-                          onClick={() =>
-                            sectionsField.pushValue({
-                              kind: "verse",
-                              customLabel: "",
-                              lines: [{ text: "" }],
-                            })
-                          }
-                        >
-                          <Plus /> {t("studio.addSection")}
-                        </Button>
-                      )}
-                    </form.Field>
-                  </div>
-                  <form.Field name="sections" mode="array">
-                    {(sectionsField) => (
-                      <div className="space-y-5">
-                        {sectionsField.state.value.map(
-                          (section, sectionIndex) => (
-                            <Card key={section.id ?? sectionIndex}>
-                              <CardHeader className="flex-row items-center justify-between gap-3">
-                                <CardTitle className="text-base">
-                                  {t("studio.section", {
-                                    number: sectionIndex + 1,
-                                  })}
-                                </CardTitle>
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    aria-label={t("catalogue.moveUp")}
-                                    disabled={sectionIndex === 0}
-                                    onClick={() =>
-                                      sectionsField.moveValue(
-                                        sectionIndex,
-                                        sectionIndex - 1
-                                      )
-                                    }
-                                  >
-                                    <ArrowUp />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    aria-label={t("catalogue.moveDown")}
-                                    disabled={
-                                      sectionIndex ===
-                                      sectionsField.state.value.length - 1
-                                    }
-                                    onClick={() =>
-                                      sectionsField.moveValue(
-                                        sectionIndex,
-                                        sectionIndex + 1
-                                      )
-                                    }
-                                  >
-                                    <ArrowDown />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    aria-label={t("studio.removeSection", {
-                                      number: sectionIndex + 1,
-                                    })}
-                                    disabled={
-                                      sectionsField.state.value.length === 1
-                                    }
-                                    onClick={() =>
-                                      sectionsField.removeValue(sectionIndex)
-                                    }
-                                  >
-                                    <Trash2 />
-                                  </Button>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="space-y-4">
-                                <form.AppField
-                                  name={`sections[${sectionIndex}].kind`}
-                                >
-                                  {(field) => (
-                                    <field.SelectField
-                                      label={t("studio.sectionType")}
-                                      options={LYRIC_SECTION_KINDS.map(
-                                        (kind) => ({
-                                          label: t(sectionMessageKeys[kind]),
-                                          value: kind,
-                                        })
-                                      )}
-                                    />
-                                  )}
-                                </form.AppField>
-                                {section.kind === "custom" ? (
-                                  <form.AppField
-                                    name={`sections[${sectionIndex}].customLabel`}
-                                  >
-                                    {(field) => (
-                                      <field.TextField
-                                        label={t("studio.customSection")}
-                                        required
-                                        maxLength={80}
-                                      />
-                                    )}
-                                  </form.AppField>
-                                ) : null}
-                                <form.Field
-                                  name={`sections[${sectionIndex}].lines`}
-                                  mode="array"
-                                >
-                                  {(linesField) => (
-                                    <div className="space-y-3">
-                                      {linesField.state.value.map(
-                                        (line, lineIndex) => (
-                                          <div
-                                            key={line.id ?? lineIndex}
-                                            className="flex items-end gap-2"
-                                          >
-                                            <div className="min-w-0 flex-1">
-                                              <form.AppField
-                                                name={`sections[${sectionIndex}].lines[${lineIndex}].text`}
-                                              >
-                                                {(field) => (
-                                                  <field.TextField
-                                                    label={t("studio.line", {
-                                                      number: lineIndex + 1,
-                                                    })}
-                                                    maxLength={1000}
-                                                  />
-                                                )}
-                                              </form.AppField>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                              <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                aria-label={t(
-                                                  "catalogue.moveUp"
-                                                )}
-                                                disabled={lineIndex === 0}
-                                                onClick={() =>
-                                                  linesField.moveValue(
-                                                    lineIndex,
-                                                    lineIndex - 1
-                                                  )
-                                                }
-                                              >
-                                                <ArrowUp />
-                                              </Button>
-                                              <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                aria-label={t(
-                                                  "catalogue.moveDown"
-                                                )}
-                                                disabled={
-                                                  lineIndex ===
-                                                  linesField.state.value
-                                                    .length -
-                                                    1
-                                                }
-                                                onClick={() =>
-                                                  linesField.moveValue(
-                                                    lineIndex,
-                                                    lineIndex + 1
-                                                  )
-                                                }
-                                              >
-                                                <ArrowDown />
-                                              </Button>
-                                              <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                aria-label={t(
-                                                  "studio.removeLine",
-                                                  { number: lineIndex + 1 }
-                                                )}
-                                                disabled={
-                                                  linesField.state.value
-                                                    .length === 1
-                                                }
-                                                onClick={() =>
-                                                  linesField.removeValue(
-                                                    lineIndex
-                                                  )
-                                                }
-                                              >
-                                                <Trash2 />
-                                              </Button>
-                                            </div>
-                                          </div>
-                                        )
-                                      )}
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                          linesField.pushValue({ text: "" })
-                                        }
-                                      >
-                                        <Plus /> {t("catalogue.add")}
-                                      </Button>
-                                    </div>
-                                  )}
-                                </form.Field>
-                              </CardContent>
-                            </Card>
-                          )
-                        )}
-                      </div>
+                  <FieldLegend>{t("studio.lyrics")}</FieldLegend>
+                  <form.AppField name="lyricsText">
+                    {(field) => (
+                      <field.TextareaField
+                        label={t("studio.lyricsEditor")}
+                        labelExtra={<OptionalLabel />}
+                        description={t("studio.lyricsEditorDescription")}
+                        maxLength={MAX_LYRICS_TEXT_LENGTH}
+                        rows={18}
+                        className="min-h-80 resize-y font-mono leading-7"
+                      />
                     )}
-                  </form.Field>
+                  </form.AppField>
+                  <form.Subscribe selector={(state) => state.values.lyricsText}>
+                    {(lyricsText) => <LyricsPreview lyricsText={lyricsText} />}
+                  </form.Subscribe>
                 </FieldSet>
               ) : null}
             </FieldGroup>
@@ -846,38 +615,6 @@ function SongEditorForm({
       </Card>
     </section>
   )
-}
-
-function songValuesFromDetail(
-  detail: NonNullable<
-    ReturnType<typeof useQuery<typeof api.catalogue.getMySong>>
-  >
-): SongFormValues {
-  return {
-    title: detail.song.title,
-    primaryArtist: detail.song.primaryArtist,
-    guestArtists: detail.song.guestArtists.join("\n"),
-    releaseDate: dateInputFromTimestamp(detail.song.releaseDate),
-    description: detail.song.description ?? "",
-    context: detail.song.context ?? "",
-    primaryLanguage: detail.song.primaryLanguage,
-    genre: detail.song.genre ?? "",
-    otherGenre: detail.song.otherGenre ?? "",
-    writers: detail.song.writers.join("\n"),
-    composers: detail.song.composers.join("\n"),
-    producers: detail.song.producers.join("\n"),
-    label: detail.song.label ?? "",
-    listeningLinks: detail.song.listeningLinks,
-    sections: detail.sections.map(({ section, lines }) => ({
-      id: section._id,
-      kind: section.kind,
-      customLabel: section.customLabel ?? "",
-      lines: lines.map((line: Doc<"lyricLines">) => ({
-        id: line._id,
-        text: line.text,
-      })),
-    })),
-  }
 }
 
 function SongEditorSkeleton() {

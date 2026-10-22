@@ -20,14 +20,13 @@ import { Skeleton } from "@lyrx/ui/components/skeleton"
 
 import { getPublicRuntimeConfig } from "@/lib/runtime-config"
 import { getAccountNavigation } from "@/lib/account-navigation"
-import { useLocale } from "./locale-provider"
-import { PageShell } from "./page-shell"
+import { useLocale } from "@/app/locale-provider"
 
 export function FoundationPage() {
   const { t } = useLocale()
 
   return (
-    <PageShell width="wide">
+    <>
       <section className="relative isolate flex min-h-[29rem] items-center justify-center overflow-hidden rounded-3xl bg-muted px-5 py-10 text-center shadow-sm sm:min-h-[32rem] sm:px-10 sm:py-12 lg:min-h-[34rem]">
         <img
           src="/images/lyrx-songwriter-hero.webp"
@@ -76,7 +75,7 @@ export function FoundationPage() {
           description={t("home.featureCommunityDescription")}
         />
       </section>
-    </PageShell>
+    </>
   )
 }
 

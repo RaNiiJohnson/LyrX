@@ -1,5 +1,3 @@
-import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
-
 export const SONG_GENRES = [
   "pop",
   "rock",
@@ -13,15 +11,6 @@ export const SONG_GENRES = [
   "other",
 ] as const
 
-export const LYRIC_SECTION_KINDS = [
-  "intro",
-  "verse",
-  "chorus",
-  "bridge",
-  "outro",
-  "custom",
-] as const
-
 export const LISTENING_PROVIDERS = [
   "spotify",
   "apple-music",
@@ -33,7 +22,6 @@ export const LISTENING_PROVIDERS = [
 ] as const
 
 export type SongGenre = (typeof SONG_GENRES)[number]
-export type LyricSectionKind = (typeof LYRIC_SECTION_KINDS)[number]
 export type ListeningProvider = (typeof LISTENING_PROVIDERS)[number]
 
 export type SongFormValues = {
@@ -54,15 +42,7 @@ export type SongFormValues = {
     provider: ListeningProvider
     url: string
   }>
-  sections: Array<{
-    id?: Id<"songSections">
-    kind: LyricSectionKind
-    customLabel: string
-    lines: Array<{
-      id?: Id<"lyricLines">
-      text: string
-    }>
-  }>
+  lyricsText: string
 }
 
 export function namesFromTextarea(value: string) {
@@ -99,17 +79,7 @@ export function toSongMutationInput(value: SongFormValues) {
     producers: namesFromTextarea(value.producers),
     label: value.label || undefined,
     listeningLinks: value.listeningLinks.filter((link) => link.url.trim()),
-    sections: value.sections.map((section) => ({
-      id: section.id,
-      kind: section.kind,
-      customLabel:
-        section.kind === "custom"
-          ? section.customLabel || undefined
-          : undefined,
-      lines: section.lines
-        .filter((line) => line.text.trim())
-        .map((line) => ({ id: line.id, text: line.text })),
-    })),
+    lyricsText: value.lyricsText,
   }
 }
 
@@ -129,12 +99,6 @@ export function emptySongValues(primaryArtist = ""): SongFormValues {
     producers: "",
     label: "",
     listeningLinks: [],
-    sections: [
-      {
-        kind: "verse",
-        customLabel: "",
-        lines: [{ text: "" }],
-      },
-    ],
+    lyricsText: "",
   }
 }

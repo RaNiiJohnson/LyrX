@@ -1,4 +1,5 @@
-import { useQuery } from "convex/react"
+import { convexQuery } from "@convex-dev/react-query"
+import { useSuspenseQuery } from "@tanstack/react-query"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
@@ -14,12 +15,13 @@ import {
 import { Separator } from "@lyrx/ui/components/separator"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 export function PublicProfile({ handle }: { handle: string }) {
   const { t } = useLocale()
-  const profile = useQuery(api.members.publicByHandle, { handle })
-  if (profile === undefined) return <PublicProfileSkeleton />
+  const { data: profile } = useSuspenseQuery(
+    convexQuery(api.members.publicByHandle, { handle })
+  )
   if (!profile) {
     return (
       <Alert>
@@ -145,7 +147,7 @@ export function PublicProfile({ handle }: { handle: string }) {
   )
 }
 
-function PublicProfileSkeleton() {
+export function PublicProfileSkeleton() {
   const { t } = useLocale()
   return (
     <Card aria-label={t("common.loadingPublicProfile")}>

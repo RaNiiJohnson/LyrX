@@ -3,8 +3,8 @@ import { useQuery } from "convex/react"
 import { ArrowLeft, Disc3, FileMusic } from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
-import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
-import type { MessageKey } from "@lyrx/shared"
+import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import { parseLyrics } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
@@ -16,16 +16,7 @@ import {
 } from "@lyrx/ui/components/card"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 
-import { useLocale } from "./locale-provider"
-
-const sectionMessageKeys: Record<Doc<"songSections">["kind"], MessageKey> = {
-  intro: "studio.sectionIntro",
-  verse: "studio.sectionVerse",
-  chorus: "studio.sectionChorus",
-  bridge: "studio.sectionBridge",
-  outro: "studio.sectionOutro",
-  custom: "studio.sectionCustom",
-}
+import { useLocale } from "@/app/locale-provider"
 
 export function SongPreview({ songId }: { songId: Id<"songs"> }) {
   const current = useQuery(api.members.current, {})
@@ -46,6 +37,7 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
   const detail = useQuery(api.catalogue.getMySong, { songId })
   const { t } = useLocale()
   if (detail === undefined) return <PreviewSkeleton />
+  const sections = parseLyrics(detail.lyricsText).sections
 
   return (
     <article className="flex flex-col gap-6">
@@ -96,21 +88,18 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
         </Card>
       ) : null}
       <section className="mx-auto w-full max-w-3xl space-y-8 py-4">
-        {detail.sections.map(({ section, lines }) => (
-          <div key={section._id} className="space-y-3">
-            <h2 className="font-mono text-xs font-medium tracking-[0.2em] text-primary uppercase">
-              {section.kind === "custom"
-                ? section.customLabel
-                : t(
-                    sectionMessageKeys[
-                      section.kind as keyof typeof sectionMessageKeys
-                    ]
-                  )}
-            </h2>
-            <div className="space-y-1 text-lg leading-relaxed">
-              {lines.map((line: Doc<"lyricLines">) => (
-                <p key={line._id}>{line.text}</p>
-              ))}
+        {sections.map((section, index) => (
+          <div
+            key={`${section.heading ?? "unheaded"}-${index}`}
+            className="space-y-3"
+          >
+            {section.heading ? (
+              <h2 className="font-mono text-xs font-medium tracking-[0.2em] text-primary uppercase">
+                {section.heading}
+              </h2>
+            ) : null}
+            <div className="text-lg leading-relaxed whitespace-pre-wrap">
+              {section.lines.join("\n")}
             </div>
           </div>
         ))}

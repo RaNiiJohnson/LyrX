@@ -26,7 +26,7 @@ import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage } from "@/lib/errors"
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 type AccountRole = "artist" | "fan"
 

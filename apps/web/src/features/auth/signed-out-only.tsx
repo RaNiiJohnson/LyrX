@@ -12,7 +12,7 @@ import {
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 
 import { getSignedInDestination } from "@/lib/account-navigation"
-import { useLocale } from "./locale-provider"
+import { useLocale } from "@/app/locale-provider"
 
 export function SignedOutOnly({ children }: { children: ReactNode }) {
   const current = useQuery(api.members.current, {})

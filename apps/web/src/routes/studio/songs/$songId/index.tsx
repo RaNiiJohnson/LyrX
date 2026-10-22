@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 
-import { BackendRequired } from "@/components/backend-required"
-import { CatalogueErrorBoundary } from "@/components/catalogue-error-boundary"
-import { PageShell } from "@/components/page-shell"
-import { SongEditor } from "@/components/song-editor"
+import { BackendRequired } from "@/app/backend-required"
+import { PageShell } from "@/app/page-shell"
+import { CatalogueRouteError } from "@/features/catalogue/catalogue-error-boundary"
+import { SongEditor } from "@/features/catalogue/song-editor"
 
 export const Route = createFileRoute("/studio/songs/$songId/")({
   component: EditSongPage,
+  errorComponent: CatalogueRouteError,
 })
 
 function EditSongPage() {
@@ -16,9 +17,7 @@ function EditSongPage() {
   return (
     <PageShell width="wide">
       <BackendRequired>
-        <CatalogueErrorBoundary>
-          <SongEditor songId={songId as Id<"songs">} />
-        </CatalogueErrorBoundary>
+        <SongEditor songId={songId as Id<"songs">} />
       </BackendRequired>
     </PageShell>
   )

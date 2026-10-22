@@ -224,7 +224,7 @@ const frenchMessages = {
   "onboarding.alreadyTitle": "Profil déjà créé",
   "onboarding.artistProfile": "Profil artiste",
   "onboarding.artistRoleDescription":
-    "Publiez vos chansons, paroles, pochettes et explications.",
+    "Publiez vos chansons, albums, paroles et pochettes.",
   "onboarding.bio": "Bio",
   "onboarding.create": "Créer mon profil",
   "onboarding.description":
@@ -326,7 +326,14 @@ const frenchMessages = {
   "studio.line": "Ligne {{number}}",
   "studio.listeningLink": "Lien d’écoute {{number}}",
   "studio.listeningLinks": "Liens d’écoute",
-  "studio.lyrics": "Paroles structurées",
+  "studio.lyrics": "Paroles",
+  "studio.lyricsEditor": "Texte des paroles",
+  "studio.lyricsEditorDescription":
+    "Écrivez ou collez tout le texte ici. Placez les titres de section seuls sur une ligne, par exemple [Couplet 1], [Refrain], [Verse] ou [Chorus]. Les titres personnalisés sont acceptés et les lignes vides sont conservées.",
+  "studio.lyricsPreview": "Aperçu en lecture seule",
+  "studio.lyricsPreviewDescription":
+    "L’aperçu suit vos balises et retours à la ligne. Toute correction se fait dans le champ ci-dessus.",
+  "studio.lyricsPreviewEmpty": "L’aperçu apparaîtra dès que vous écrirez.",
   "studio.nextStep": "Continuer",
   "studio.newAlbum": "Créer un album",
   "studio.newSong": "Créer un morceau",
@@ -591,7 +598,7 @@ const englishMessages = {
   "onboarding.alreadyTitle": "Profile already created",
   "onboarding.artistProfile": "Artist profile",
   "onboarding.artistRoleDescription":
-    "Publish your songs, lyrics, artwork, and explanations.",
+    "Publish your songs, albums, lyrics, and artwork.",
   "onboarding.bio": "Bio",
   "onboarding.create": "Create my profile",
   "onboarding.description":
@@ -691,7 +698,15 @@ const englishMessages = {
   "studio.line": "Line {{number}}",
   "studio.listeningLink": "Listening link {{number}}",
   "studio.listeningLinks": "Listening links",
-  "studio.lyrics": "Structured lyrics",
+  "studio.lyrics": "Lyrics",
+  "studio.lyricsEditor": "Lyrics text",
+  "studio.lyricsEditorDescription":
+    "Write or paste the complete text here. Put section headings on their own line, for example [Verse 1], [Chorus], [Couplet] or [Refrain]. Custom headings are accepted and blank lines are preserved.",
+  "studio.lyricsPreview": "Read-only preview",
+  "studio.lyricsPreviewDescription":
+    "The preview follows your headings and line breaks. Make every correction in the field above.",
+  "studio.lyricsPreviewEmpty":
+    "The preview will appear when you start writing.",
   "studio.nextStep": "Continue",
   "studio.newAlbum": "Create an album",
   "studio.newSong": "Create a song",

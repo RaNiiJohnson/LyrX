@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { AccountLanding } from "@/components/account-landing"
-import { BackendRequired } from "@/components/backend-required"
-import { PageShell } from "@/components/page-shell"
+import { BackendRequired } from "@/app/backend-required"
+import { PageShell } from "@/app/page-shell"
+import { AccountLanding } from "@/features/account/account-landing"
 
 export const Route = createFileRoute("/account")({
   component: AccountPage,
