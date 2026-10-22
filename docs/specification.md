@@ -40,13 +40,13 @@ delivery status and proof remain in [progress.md](progress.md).
 - Profiles include a unique handle, display name, avatar, and bio. Artist
   profiles add banner, presentation, songs, albums, optional Instagram,
   Facebook, TikTok, YouTube and Spotify links, plus labeled custom links.
-- Reading and search are public. Publishing, proposals, likes, comments, saved
-  passages, and explanation support require an account.
+- Reading and search are public. Publishing, proposals, likes, comments, and
+  saved passages require an account.
 - Administrator is a distinct server-assigned role. Bootstrap the first admin
   without a hard-coded secret or public self-promotion path.
 - Suspended users are rejected by server-side authorization, not only hidden UI.
 
-## Songs, credits, and structured lyrics
+## Songs, credits, and lyrics
 
 A song can contain:
 
@@ -54,16 +54,17 @@ A song can contain:
 - optional album and album position, release date, description, and context;
 - primary language, optional genre including an “other” value;
 - writers, composers, producers, label, and listening links;
-- lyrics organized into intro, verse, chorus, bridge, outro, and custom sections;
-- artist explanations attached to one or more stable lyric lines.
+- lyrics entered as one multiline source text. A heading on its own line in
+  brackets marks a section, for example `[Couplet 1]`, `[Refrain]` or `[Pont]`.
 
 Unknown credits and metadata remain optional. A song may be a standalone single.
-Sections and lines use stable identifiers. Editing text must never silently move
-an explanation, saved excerpt, or request onto a different passage.
+The raw lyric text is the canonical authoring source and must be retained without
+loss. A parser may derive sections and display lines from it, but this is not an
+array of editable line fields. The normal song page renders lyrics read-only;
+lines have no click, annotation, reordering, or individual deletion action.
 
 An artist can create a draft, preview, publish, edit, and unpublish content they
-own. V1 has no artist co-editing. Only the owning artist publishes explanations;
-explanations are public and receive no separate likes or comments.
+own. V1 has no artist co-editing.
 
 ## Albums
 
@@ -114,30 +115,20 @@ explanations are public and receive no separate likes or comments.
   administrators can intervene.
 - V1 has no artist follows or release notifications.
 
-## Explanation requests
-
-- A signed-in listener selects an unexplained stable line range and chooses
-  “I want to understand.” They can support or withdraw support.
-- One account contributes at most once to the same stable selection; identical
-  selections are consolidated rather than duplicated.
-- The artist dashboard ranks the most requested passages. Publishing a public
-  explanation marks the matching request explained.
-- If targeted text is removed or materially changed, the request must not appear
-  to concern new text without warning. V1 promises no notifications.
-
 ## Private lyrics notebook
 
-- A signed-in member selects lines from a public song and saves the excerpt to a
-  private notebook.
+- A signed-in member selects a passage from a public song and saves the excerpt
+  to a private notebook.
 - Members create and name collections; every notebook starts with **My passages**.
   They can remove excerpts, manage collections, return to the source song, and
   create a sharing card while the source remains available.
 - The notebook is never a public line-like system and is strictly private across
   accounts.
-- Store a stable source reference and enough snapshot context to explain what
-  was saved. A source edit must not present the old excerpt as current text. If
-  the source is withdrawn, retain only an unavailable entry as needed and stop
-  redistributing its content.
+- Store the source song, a source revision or content fingerprint, the selected
+  textual range, and enough snapshot context to explain what was saved. A source
+  edit must not present the old excerpt as current text. If the source is
+  withdrawn, retain only an unavailable entry as needed and stop redistributing
+  its content.
 
 ## Signed sharing cards
 
@@ -145,8 +136,7 @@ explanations are public and receive no separate likes or comments.
   short passage and previews a vertical story-oriented image.
 - The card shows the passage, title, artist, a visible Lyr'X signature, and
   artwork as a blurred/darkened background. Without artwork, use Corail studio.
-- Web supports download; Expo uses native save/share capabilities. V1 adds no
-  dedication or personal message.
+- Web supports download; Expo uses native save/share capabilities.
 - Layout limits are documented, previewed, and fail without clipped text. These
   limits are not a legal guarantee.
 - Use application-managed artwork and an export-safe strategy; avoid tainted
@@ -172,7 +162,7 @@ The V1 web dashboard supports:
 
 - pending proposal preview, single acceptance or rejection with a reason;
 - authorized inspection of drafts/proposals;
-- reports about songs, profiles, comments, and explanations;
+- reports about songs, profiles, and comments;
 - hiding or unpublishing content and suspending accounts;
 - correcting metadata and artist/album associations;
 - administrative verified-badge management, never self-assignment.
@@ -184,12 +174,12 @@ drafts to personalize, not certifications of legal compliance.
 ## Data, authorization, concurrency, and cost
 
 - Separate accounts, profiles/artist identities, songs, albums, proposals,
-  explanations, likes, comments, notebooks, requests, and moderation records.
+  likes, comments, notebooks, and moderation records.
 - Every Convex function enforces ownership, proposal/notebook privacy,
   administration, suspension, and public visibility. A hidden button is not
   authorization.
-- Likes, request support, proposal acceptance, and derived counters remain
-  coherent under duplicate clicks and concurrent requests.
+- Likes, proposal acceptance, and derived counters remain coherent under
+  duplicate clicks and concurrent requests.
 - Validate image type, format, and size. Document text/operation limits and add
   reasonable spam protection.
 - Private proposal images must not be distributed through public URLs.
@@ -203,8 +193,9 @@ Tests and real-path checks must cover:
 - artist/fan/admin authorization, server-side admin assignment, suspension;
 - direct artist publishing versus private fan proposals;
 - accept/reject without duplicate publication or private-data leakage;
-- stable annotations, requests, and excerpts across lyrics edits/removal;
-- idempotent/concurrent likes and explanation support;
+- raw lyric-text round trips, parsing, and snapshot excerpts across lyric
+  edits/removal;
+- idempotent/concurrent likes;
 - notebook isolation between accounts;
 - albums and ordered tracks;
 - published-lyrics search and hidden-content exclusion;
@@ -234,8 +225,8 @@ integration blocked by them.
 
 ## V1 exclusions
 
-No lyrics translation, artist subscriptions or release notifications, personal
-dedications, nested comments or mentions, explanation likes, community
-annotations, artist co-editing, automated artist-identity claims, hosted audio or
-video, music recognition, bulk third-party lyrics import, private messaging, or
-production publishing without explicit authorization.
+No lyrics translation, artist subscriptions or release notifications, nested
+comments or mentions, community annotations, artist co-editing, automated
+artist-identity claims, hosted audio or video, music recognition, bulk
+third-party lyrics import, private messaging, or production publishing without
+explicit authorization.

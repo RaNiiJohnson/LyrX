@@ -6,6 +6,17 @@
 delivers the owned artist catalogue: song and album drafts, preview, publishing,
 unpublishing, editing, stable lyric lines, artwork, and ordered album tracks.**
 
+## Next proposed lot (not started)
+
+**Lot 5 — Web structure and lyric entry** was added to the roadmap on
+2026-10-22. The user approved its scope on the same date, but no product code
+has started in this research session. Its instructions and research are in
+[web-structure-and-convex-guidance.md](research/web-structure-and-convex-guidance.md).
+
+The same decision removed lyric-line explanations, explanation requests, and
+sharing-card dedications from Lyr'X's product scope. No product code was changed
+as part of this documentation update.
+
 ## Evidence checklist
 
 - [x] `pnpm install --frozen-lockfile` succeeds from the committed lockfile.
@@ -117,14 +128,16 @@ unpublishing, editing, stable lyric lines, artwork, and ordered album tracks.**
   visuelle finale avec un contenu appartenant à l’utilisateur lui est laissée,
   à sa demande. Commit du correctif : `cfd0f7d`.
 
-#### Idée différée — import assisté de paroles
+#### Décision post-lot — éditeur de paroles du lot 5
 
-- Ne pas intégrer dans le lot 4. Prévoir d’abord un import déterministe `.txt`
-  avec aperçu modifiable : en-têtes comme `[Couplet 1]`, `[Verse 1]`,
-  `[Refrain]`, `[Chorus]`, `[Pont]`, `[Bridge]`, `[Intro]` et `[Outro]`, une
-  ligne de fichier par ligne de paroles, et conversion des en-têtes inconnus en
-  sections personnalisées. Étendre ensuite aux PDF contenant du vrai texte ;
-  réserver l’OCR des scans à une évolution séparée explicitement moins fiable.
+- Le lot 4 conserve son éditeur structuré historique. Le lot 5 le remplacera
+  par un seul `textarea` : le texte brut, les retours à la ligne et les en-têtes
+  comme `[Couplet 1]` ou `[Refrain]` sont la source d’auteur. Il ne s’agit plus
+  d’un import `.txt` séparé, ni d’un ensemble d’inputs ligne par ligne.
+- Un parseur pourra présenter une validation ou un aperçu non modifiable, avec
+  les en-têtes inconnus comme sections personnalisées. Les corrections se font
+  toujours dans le même `textarea`; les PDF et l’OCR ne font pas partie de ce
+  lot.
 
 #### Idée différée — carnet d’écriture avec audio local
 
@@ -371,5 +384,5 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Wait for explicit user approval before beginning Lot 5. The assisted TXT/PDF
-lyrics import and the writing notebook with local audio remain proposal-only.
+Implement the approved Lot 5 only. The writing notebook with local audio and
+the Genius-style sharing-card refinement remain proposal-only.

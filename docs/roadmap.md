@@ -14,10 +14,10 @@ authoritative throughout delivery.
 | 2. Backend, auth, roles, profiles | Email/password flows, prepared Google flow, artist/fan onboarding, profiles, server-only admin assignment | Auth/session tests and authorization matrix |
 | 3. Corail shell, theme, i18n | Responsive French/English shell with light/dark/system themes and persisted choices | Browser matrix and accessibility checks |
 | 4. Artist catalogue and albums | Artists draft, preview, publish, edit, unpublish, and order their own songs/albums | Ownership, lifecycle, stable-line, and album-order tests |
-| 5. Fan proposals and admin validation | Fans submit private songs/artwork; admins accept or refuse once with a reason | Privacy and idempotent moderation tests |
-| 6. Public pages and discovery | Public artist, album, and song pages plus recent/popular discovery | Visibility, pagination, ranking, and external-player checks |
-| 7. Catalogue and lyrics search | Search published titles, artists, albums, genres, and supported lyrics terms with excerpts | Search capability/limit tests and no-private-data proof |
-| 8. Explanations and requests | Artists annotate stable passages; listeners support deduplicated requests | Ownership, deduplication, mutation-safety tests |
+| 5. Web structure and lyric entry | Route-owned screens and data loading, feature-oriented web code, and one-textarea lyric authoring | Route/SSR/auth regression checks, raw-text/parser tests, and production build |
+| 6. Fan proposals and admin validation | Fans submit private songs/artwork; admins accept or refuse once with a reason | Privacy and idempotent moderation tests |
+| 7. Public pages and discovery | Public artist, album, and song pages plus recent/popular discovery | Visibility, pagination, ranking, and external-player checks |
+| 8. Catalogue and lyrics search | Search published titles, artists, albums, genres, and supported lyrics terms with excerpts | Search capability/limit tests and no-private-data proof |
 | 9. Likes, comments, reports | Idempotent song likes, flat comments, deletion, reports, and admin intervention | Concurrency and moderation tests |
 | 10. Private lyric notebook | Private saved excerpts, default/custom collections, source and unavailable states | Cross-account privacy and source-change tests |
 | 11. Signed sharing cards | Preview and download a bounded vertical Lyr'X card with or without artwork | Rendering/export and withdrawn-content tests |
@@ -29,6 +29,6 @@ authoritative throughout delivery.
 ## Dependency notes
 
 Lots 2–12 stabilize the web and shared backend before Expo. Search follows the
-public content model so its visibility rules are testable. Explanations precede
-notebook and sharing because all depend on stable lyric selections. Visual-card
-generation waits until managed image access and withdrawal rules exist.
+public content model so its visibility rules are testable. Notebook excerpts and
+sharing both depend on a source-text snapshot. Visual-card generation waits
+until managed image access and withdrawal rules exist.
