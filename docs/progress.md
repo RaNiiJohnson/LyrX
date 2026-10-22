@@ -107,6 +107,15 @@ unpublishing, editing, stable lyric lines, artwork, and ordered album tracks.**
 - Git de clôture : branche `feat/artist-catalogue-albums`, base de revue
   `f990788`, commit d’implémentation final `3b9825d`. Le commit documentaire de
   clôture le suit sans modification du produit.
+- Correctif post-clôture du 2026-10-22 : les routes parentes d’un morceau et
+  d’un album rendent désormais leur route enfant, tandis que l’éditeur réside
+  dans une route index dédiée. Le bouton Aperçu affiche donc bien l’aperçu au
+  lieu de réafficher le formulaire, et une création ou une modification réussie
+  redirige vers cet aperçu. `pnpm check` reste vert avec 57 tests et les builds
+  client/SSR. La revue locale du diff ne relève aucun défaut ; la revue Convex
+  est non applicable car aucun fichier Convex n’a changé. La vérification
+  visuelle finale avec un contenu appartenant à l’utilisateur lui est laissée,
+  à sa demande. Commit du correctif : `cfd0f7d`.
 
 #### Idée différée — import assisté de paroles
 
