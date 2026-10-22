@@ -151,11 +151,15 @@ function AlbumEditorForm({
         if (albumId) {
           await updateAlbum({ albumId, songIds: value.trackIds, ...input })
           toast.success(t("catalogue.saved"))
+          await navigate({
+            to: "/studio/albums/$albumId/preview",
+            params: { albumId },
+          })
         } else {
           const createdId = await createAlbum(input)
           toast.success(t("catalogue.created"))
           await navigate({
-            to: "/studio/albums/$albumId",
+            to: "/studio/albums/$albumId/preview",
             params: { albumId: createdId },
           })
         }

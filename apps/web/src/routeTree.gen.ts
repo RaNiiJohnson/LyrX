@@ -25,7 +25,9 @@ import { Route as StudioAlbumsAlbumIdRouteImport } from './routes/studio/albums/
 import { Route as StudioAlbumsNewRouteImport } from './routes/studio/albums/new'
 import { Route as StudioSongsSongIdRouteImport } from './routes/studio/songs/$songId'
 import { Route as StudioSongsNewRouteImport } from './routes/studio/songs/new'
+import { Route as StudioAlbumsAlbumIdIndexRouteImport } from './routes/studio/albums/$albumId/index'
 import { Route as StudioAlbumsAlbumIdPreviewRouteImport } from './routes/studio/albums/$albumId/preview'
+import { Route as StudioSongsSongIdIndexRouteImport } from './routes/studio/songs/$songId/index'
 import { Route as StudioSongsSongIdPreviewRouteImport } from './routes/studio/songs/$songId/preview'
 
 const IndexRoute = IndexRouteImport.update({
@@ -108,12 +110,23 @@ const StudioSongsNewRoute = StudioSongsNewRouteImport.update({
   path: '/studio/songs/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioAlbumsAlbumIdIndexRoute =
+  StudioAlbumsAlbumIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => StudioAlbumsAlbumIdRoute,
+  } as any)
 const StudioAlbumsAlbumIdPreviewRoute =
   StudioAlbumsAlbumIdPreviewRouteImport.update({
     id: '/preview',
     path: '/preview',
     getParentRoute: () => StudioAlbumsAlbumIdRoute,
   } as any)
+const StudioSongsSongIdIndexRoute = StudioSongsSongIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StudioSongsSongIdRoute,
+} as any)
 const StudioSongsSongIdPreviewRoute =
   StudioSongsSongIdPreviewRouteImport.update({
     id: '/preview',
@@ -140,6 +153,8 @@ export interface FileRoutesByFullPath {
   '/studio/songs/new': typeof StudioSongsNewRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
   '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
+  '/studio/albums/$albumId/': typeof StudioAlbumsAlbumIdIndexRoute
+  '/studio/songs/$songId/': typeof StudioSongsSongIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -154,12 +169,12 @@ export interface FileRoutesByTo {
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/studio': typeof StudioIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdRouteWithChildren
   '/studio/albums/new': typeof StudioAlbumsNewRoute
-  '/studio/songs/$songId': typeof StudioSongsSongIdRouteWithChildren
   '/studio/songs/new': typeof StudioSongsNewRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
   '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
+  '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdIndexRoute
+  '/studio/songs/$songId': typeof StudioSongsSongIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -181,6 +196,8 @@ export interface FileRoutesById {
   '/studio/songs/new': typeof StudioSongsNewRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
   '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
+  '/studio/albums/$albumId/': typeof StudioAlbumsAlbumIdIndexRoute
+  '/studio/songs/$songId/': typeof StudioSongsSongIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -203,6 +220,8 @@ export interface FileRouteTypes {
     | '/studio/songs/new'
     | '/studio/albums/$albumId/preview'
     | '/studio/songs/$songId/preview'
+    | '/studio/albums/$albumId/'
+    | '/studio/songs/$songId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -217,12 +236,12 @@ export interface FileRouteTypes {
     | '/profiles/$handle'
     | '/studio'
     | '/api/auth/$'
-    | '/studio/albums/$albumId'
     | '/studio/albums/new'
-    | '/studio/songs/$songId'
     | '/studio/songs/new'
     | '/studio/albums/$albumId/preview'
     | '/studio/songs/$songId/preview'
+    | '/studio/albums/$albumId'
+    | '/studio/songs/$songId'
   id:
     | '__root__'
     | '/'
@@ -243,6 +262,8 @@ export interface FileRouteTypes {
     | '/studio/songs/new'
     | '/studio/albums/$albumId/preview'
     | '/studio/songs/$songId/preview'
+    | '/studio/albums/$albumId/'
+    | '/studio/songs/$songId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -378,12 +399,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioSongsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/albums/$albumId/': {
+      id: '/studio/albums/$albumId/'
+      path: '/'
+      fullPath: '/studio/albums/$albumId/'
+      preLoaderRoute: typeof StudioAlbumsAlbumIdIndexRouteImport
+      parentRoute: typeof StudioAlbumsAlbumIdRoute
+    }
     '/studio/albums/$albumId/preview': {
       id: '/studio/albums/$albumId/preview'
       path: '/preview'
       fullPath: '/studio/albums/$albumId/preview'
       preLoaderRoute: typeof StudioAlbumsAlbumIdPreviewRouteImport
       parentRoute: typeof StudioAlbumsAlbumIdRoute
+    }
+    '/studio/songs/$songId/': {
+      id: '/studio/songs/$songId/'
+      path: '/'
+      fullPath: '/studio/songs/$songId/'
+      preLoaderRoute: typeof StudioSongsSongIdIndexRouteImport
+      parentRoute: typeof StudioSongsSongIdRoute
     }
     '/studio/songs/$songId/preview': {
       id: '/studio/songs/$songId/preview'
@@ -397,10 +432,12 @@ declare module '@tanstack/react-router' {
 
 interface StudioAlbumsAlbumIdRouteChildren {
   StudioAlbumsAlbumIdPreviewRoute: typeof StudioAlbumsAlbumIdPreviewRoute
+  StudioAlbumsAlbumIdIndexRoute: typeof StudioAlbumsAlbumIdIndexRoute
 }
 
 const StudioAlbumsAlbumIdRouteChildren: StudioAlbumsAlbumIdRouteChildren = {
   StudioAlbumsAlbumIdPreviewRoute: StudioAlbumsAlbumIdPreviewRoute,
+  StudioAlbumsAlbumIdIndexRoute: StudioAlbumsAlbumIdIndexRoute,
 }
 
 const StudioAlbumsAlbumIdRouteWithChildren =
@@ -408,10 +445,12 @@ const StudioAlbumsAlbumIdRouteWithChildren =
 
 interface StudioSongsSongIdRouteChildren {
   StudioSongsSongIdPreviewRoute: typeof StudioSongsSongIdPreviewRoute
+  StudioSongsSongIdIndexRoute: typeof StudioSongsSongIdIndexRoute
 }
 
 const StudioSongsSongIdRouteChildren: StudioSongsSongIdRouteChildren = {
   StudioSongsSongIdPreviewRoute: StudioSongsSongIdPreviewRoute,
+  StudioSongsSongIdIndexRoute: StudioSongsSongIdIndexRoute,
 }
 
 const StudioSongsSongIdRouteWithChildren =

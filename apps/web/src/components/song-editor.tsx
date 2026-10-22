@@ -175,11 +175,15 @@ function SongEditorForm({
         if (songId) {
           await updateSong({ songId, ...input })
           toast.success(t("catalogue.saved"))
+          await navigate({
+            to: "/studio/songs/$songId/preview",
+            params: { songId },
+          })
         } else {
           const createdId = await createSong(input)
           toast.success(t("catalogue.created"))
           await navigate({
-            to: "/studio/songs/$songId",
+            to: "/studio/songs/$songId/preview",
             params: { songId: createdId },
           })
         }
