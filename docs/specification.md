@@ -12,8 +12,9 @@ delivery status and proof remain in [progress.md](progress.md).
 - The interface is available in French and English from V1, with French as the
   initial value and a remembered language choice. Lyrics stay in their original
   language; V1 does not translate them.
-- The approved visual direction uses the TweakCN **Soft Pop** preset as its
-  semantic shadcn token baseline while retaining coral `#DF4F55` as the Lyr'X
+- The approved visual direction uses the latest user-installed TweakCN
+  **Caffeine** palette as its semantic shadcn token baseline, superseding the
+  earlier Soft Pop tokens while retaining coral `#DF4F55` as the Lyr'X
   brand mark. DM Sans is the interface and long-form editorial family;
   Newsreader is reserved for the landing display headline, and Space Mono is the
   monospace family. The landing hero uses locally served editorial music

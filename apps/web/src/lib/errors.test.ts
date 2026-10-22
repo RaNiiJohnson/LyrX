@@ -16,6 +16,20 @@ describe("localized error messages", () => {
     ).toBe("translated:error.handleTaken")
   })
 
+  it.each([
+    ["INVALID_INPUT", "error.invalidCatalogue"],
+    ["INVALID_IMAGE", "error.invalidImage"],
+    ["INVALID_LYRICS", "error.invalidLyrics"],
+    ["INVALID_TRACKS", "error.invalidTracks"],
+    ["NOT_FOUND", "error.catalogueNotFound"],
+    ["CATALOGUE_INVARIANT", "error.catalogueUnavailable"],
+    ["SONG_ALREADY_IN_ALBUM", "error.songAlreadyInAlbum"],
+  ] as const)("translates catalogue code %s", (code, key) => {
+    expect(getErrorMessage({ data: { code } }, translate)).toBe(
+      `translated:${key}`
+    )
+  })
+
   it("does not leak an unknown provider language into the interface", () => {
     expect(
       getErrorMessage(new Error("Untranslated provider detail"), translate)

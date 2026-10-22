@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router"
-import { useMutation, useQuery } from "convex/react"
+import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
 import { Disc3, FileMusic, Plus } from "lucide-react"
 import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
+import type { Doc } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
+import { Checkbox } from "@lyrx/ui/components/checkbox"
 import {
   Card,
   CardContent,
@@ -54,8 +56,16 @@ export function ArtistStudio() {
 
 function ReadyArtistStudio() {
   const { t } = useLocale()
-  const songs = useQuery(api.catalogue.listMySongs, { limit: 100 })
-  const albums = useQuery(api.catalogue.listMyAlbums, { limit: 100 })
+  const songs = usePaginatedQuery(
+    api.catalogue.listMySongs,
+    {},
+    { initialNumItems: 24 }
+  )
+  const albums = usePaginatedQuery(
+    api.catalogue.listMyAlbums,
+    {},
+    { initialNumItems: 24 }
+  )
 
   return (
     <section className="flex flex-col gap-6">
@@ -73,8 +83,12 @@ function ReadyArtistStudio() {
         </div>
       </div>
 
-      <Tabs defaultValue="songs">
-        <TabsList aria-label={t("studio.title")}>
+      <Tabs defaultValue="songs" className="w-full">
+        <TabsList
+          variant="line"
+          className="w-full justify-start border-b px-0"
+          aria-label={t("studio.title")}
+        >
           <TabsTrigger value="songs">
             <FileMusic /> {t("studio.songs")}
           </TabsTrigger>
@@ -90,9 +104,9 @@ function ReadyArtistStudio() {
               </Link>
             </Button>
           </div>
-          {songs === undefined ? (
+          {songs.status === "LoadingFirstPage" ? (
             <CatalogueListSkeleton />
-          ) : songs.length === 0 ? (
+          ) : songs.results.length === 0 ? (
             <Empty className="border">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -113,11 +127,15 @@ function ReadyArtistStudio() {
             </Empty>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              {songs.map((song) => (
+              {songs.results.map((song) => (
                 <SongCard key={song._id} song={song} />
               ))}
             </div>
           )}
+          <CatalogueLoadMore
+            status={songs.status}
+            onLoadMore={() => songs.loadMore(24)}
+          />
         </TabsContent>
         <TabsContent value="albums" className="space-y-4 pt-3">
           <div className="flex justify-end">
@@ -127,9 +145,9 @@ function ReadyArtistStudio() {
               </Link>
             </Button>
           </div>
-          {albums === undefined ? (
+          {albums.status === "LoadingFirstPage" ? (
             <CatalogueListSkeleton />
-          ) : albums.length === 0 ? (
+          ) : albums.results.length === 0 ? (
             <Empty className="border">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -150,42 +168,48 @@ function ReadyArtistStudio() {
             </Empty>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              {albums.map((album) => (
+              {albums.results.map((album) => (
                 <AlbumCard key={album._id} album={album} />
               ))}
             </div>
           )}
+          <CatalogueLoadMore
+            status={albums.status}
+            onLoadMore={() => albums.loadMore(24)}
+          />
         </TabsContent>
       </Tabs>
     </section>
   )
 }
 
-function SongCard({
-  song,
-}: {
-  song: NonNullable<
-    ReturnType<typeof useQuery<typeof api.catalogue.listMySongs>>
-  >[number]
-}) {
+function SongCard({ song }: { song: Doc<"songs"> }) {
   const { t } = useLocale()
   const publish = useMutation(api.catalogue.publishSong)
   const unpublish = useMutation(api.catalogue.unpublishSong)
   const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [rightsConfirmed, setRightsConfirmed] = useState(false)
 
   async function changeStatus() {
     setPending(true)
+    setError(null)
     try {
-      if (song.status === "draft") await publish({ songId: song._id })
-      else await unpublish({ songId: song._id })
+      if (song.status === "draft") {
+        if (!rightsConfirmed) return
+        await publish({ songId: song._id, rightsConfirmed: true })
+        setRightsConfirmed(false)
+      } else await unpublish({ songId: song._id })
       toast.success(
         song.status === "draft"
           ? t("catalogue.publishedNotice")
           : t("catalogue.unpublishedNotice")
       )
     } catch (caught) {
+      const message = getErrorMessage(caught, t)
+      setError(message)
       toast.error(t("catalogue.saveError"), {
-        description: getErrorMessage(caught, t),
+        description: message,
       })
     } finally {
       setPending(false)
@@ -203,6 +227,29 @@ function SongCard({
           <StatusBadge status={song.status} />
         </div>
       </CardHeader>
+      {song.status === "draft" || error ? (
+        <CardContent>
+          <div className="space-y-4">
+            {song.status === "draft" ? (
+              <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
+                <Checkbox
+                  checked={rightsConfirmed}
+                  onCheckedChange={(checked) =>
+                    setRightsConfirmed(checked === true)
+                  }
+                />
+                <span>{t("catalogue.rightsConfirmation")}</span>
+              </label>
+            ) : null}
+            {error ? (
+              <Alert variant="destructive">
+                <AlertTitle>{t("catalogue.saveError")}</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+          </div>
+        </CardContent>
+      ) : null}
       <CardFooter className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm">
           <Link to="/studio/songs/$songId" params={{ songId: song._id }}>
@@ -221,7 +268,7 @@ function SongCard({
           type="button"
           variant={song.status === "draft" ? "default" : "secondary"}
           size="sm"
-          disabled={pending}
+          disabled={pending || (song.status === "draft" && !rightsConfirmed)}
           onClick={() => void changeStatus()}
         >
           {song.status === "draft"
@@ -233,31 +280,33 @@ function SongCard({
   )
 }
 
-function AlbumCard({
-  album,
-}: {
-  album: NonNullable<
-    ReturnType<typeof useQuery<typeof api.catalogue.listMyAlbums>>
-  >[number]
-}) {
+function AlbumCard({ album }: { album: Doc<"albums"> }) {
   const { t } = useLocale()
   const publish = useMutation(api.catalogue.publishAlbum)
   const unpublish = useMutation(api.catalogue.unpublishAlbum)
   const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [rightsConfirmed, setRightsConfirmed] = useState(false)
 
   async function changeStatus() {
     setPending(true)
+    setError(null)
     try {
-      if (album.status === "draft") await publish({ albumId: album._id })
-      else await unpublish({ albumId: album._id })
+      if (album.status === "draft") {
+        if (!rightsConfirmed) return
+        await publish({ albumId: album._id, rightsConfirmed: true })
+        setRightsConfirmed(false)
+      } else await unpublish({ albumId: album._id })
       toast.success(
         album.status === "draft"
           ? t("catalogue.publishedNotice")
           : t("catalogue.unpublishedNotice")
       )
     } catch (caught) {
+      const message = getErrorMessage(caught, t)
+      setError(message)
       toast.error(t("catalogue.saveError"), {
-        description: getErrorMessage(caught, t),
+        description: message,
       })
     } finally {
       setPending(false)
@@ -272,6 +321,29 @@ function AlbumCard({
           <StatusBadge status={album.status} />
         </div>
       </CardHeader>
+      {album.status === "draft" || error ? (
+        <CardContent>
+          <div className="space-y-4">
+            {album.status === "draft" ? (
+              <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
+                <Checkbox
+                  checked={rightsConfirmed}
+                  onCheckedChange={(checked) =>
+                    setRightsConfirmed(checked === true)
+                  }
+                />
+                <span>{t("catalogue.rightsConfirmation")}</span>
+              </label>
+            ) : null}
+            {error ? (
+              <Alert variant="destructive">
+                <AlertTitle>{t("catalogue.saveError")}</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+          </div>
+        </CardContent>
+      ) : null}
       <CardFooter className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm">
           <Link to="/studio/albums/$albumId" params={{ albumId: album._id }}>
@@ -290,7 +362,7 @@ function AlbumCard({
           type="button"
           variant={album.status === "draft" ? "default" : "secondary"}
           size="sm"
-          disabled={pending}
+          disabled={pending || (album.status === "draft" && !rightsConfirmed)}
           onClick={() => void changeStatus()}
         >
           {album.status === "draft"
@@ -311,9 +383,33 @@ function StatusBadge({ status }: { status: "draft" | "published" }) {
   )
 }
 
-function ArtistStudioSkeleton() {
+function CatalogueLoadMore({
+  status,
+  onLoadMore,
+}: {
+  status: "LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted"
+  onLoadMore: () => void
+}) {
+  const { t } = useLocale()
+  if (status === "LoadingFirstPage" || status === "Exhausted") return null
   return (
-    <div aria-label="Chargement" className="space-y-6">
+    <div className="flex justify-center">
+      <Button
+        type="button"
+        variant="outline"
+        disabled={status === "LoadingMore"}
+        onClick={onLoadMore}
+      >
+        {status === "LoadingMore" ? t("common.loading") : t("common.loadMore")}
+      </Button>
+    </div>
+  )
+}
+
+function ArtistStudioSkeleton() {
+  const { t } = useLocale()
+  return (
+    <div aria-label={t("common.loadingCatalogue")} className="space-y-6">
       <Skeleton className="h-10 w-64" />
       <Skeleton className="h-8 w-52" />
       <CatalogueListSkeleton />

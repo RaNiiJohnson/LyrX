@@ -1,9 +1,18 @@
-import { ConvexError, v } from "convex/values"
+import { ConvexError, type Infer, v } from "convex/values"
+import {
+  paginationOptsValidator,
+  paginationResultValidator,
+} from "convex/server"
 import { MINUTE, RateLimiter } from "@convex-dev/rate-limiter"
 
 import { components, internal } from "./_generated/api"
 import type { Doc, Id } from "./_generated/dataModel"
-import { internalMutation, query } from "./_generated/server"
+import {
+  internalMutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server"
 import schema from "./schema"
 import {
   listeningLinkValidator,
@@ -11,13 +20,15 @@ import {
   songGenreValidator,
 } from "./model"
 import { artistMutation, artistQuery } from "./lib/functions"
+import { isValidCatalogueImageMetadata } from "./lib/catalogueImages"
 
 const MAX_SECTIONS = 40
 const MAX_LINES_PER_SECTION = 100
 const MAX_TOTAL_LINES = 1_000
 const MAX_TRACKS = 100
+const STORAGE_SWEEP_BATCH = 100
+const STORAGE_SWEEP_KEY = "unclaimed-storage-v1"
 const IMAGE_TTL_MS = 10 * MINUTE
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 const uploadLimiter = new RateLimiter(components.rateLimiter, {
   catalogueArtworkUpload: {
@@ -39,7 +50,7 @@ const sectionInput = v.object({
   lines: v.array(lineInput),
 })
 
-const songInput = {
+const songInputValidator = v.object({
   title: v.string(),
   primaryArtist: v.string(),
   guestArtists: v.array(v.string()),
@@ -55,7 +66,8 @@ const songInput = {
   label: v.optional(v.string()),
   listeningLinks: v.array(listeningLinkValidator),
   sections: v.array(sectionInput),
-}
+})
+const songInput = songInputValidator.fields
 
 const albumInput = {
   title: v.string(),
@@ -151,7 +163,7 @@ function optionalDate(value: number | undefined) {
   return value
 }
 
-function validatedSong(args: typeof songInput extends never ? never : any) {
+function validatedSong(args: Infer<typeof songInputValidator>) {
   if (args.listeningLinks.length > 12)
     bad("INVALID_INPUT", "Trop de liens d’écoute.")
   if (
@@ -179,7 +191,7 @@ function validatedSong(args: typeof songInput extends never ? never : any) {
     primaryLanguage: text(args.primaryLanguage, 50, "La langue"),
     ...(args.genre === undefined ? {} : { genre: args.genre }),
     ...(args.genre === "other"
-      ? { otherGenre: text(args.otherGenre, 60, "Le genre") }
+      ? { otherGenre: text(args.otherGenre ?? "", 60, "Le genre") }
       : {}),
     writers: textList(args.writers, 30, "Les auteurs"),
     composers: textList(args.composers, 30, "Les compositeurs"),
@@ -187,22 +199,14 @@ function validatedSong(args: typeof songInput extends never ? never : any) {
     ...(optionalText(args.label, 120, "Le label")
       ? { label: optionalText(args.label, 120, "Le label") }
       : {}),
-    listeningLinks: args.listeningLinks.map(
-      (link: { provider: string; url: string }) => ({
-        provider: link.provider,
-        url: validateUrl(link.provider, link.url),
-      })
-    ),
+    listeningLinks: args.listeningLinks.map((link) => ({
+      provider: link.provider,
+      url: validateUrl(link.provider, link.url),
+    })),
   }
 }
 
-function validateLyrics(
-  sections: Array<{
-    kind: string
-    customLabel?: string
-    lines: Array<{ text: string }>
-  }>
-) {
+function validateLyrics(sections: Array<Infer<typeof sectionInput>>) {
   if (sections.length > MAX_SECTIONS) bad("INVALID_LYRICS", "Trop de sections.")
   let total = 0
   for (const section of sections) {
@@ -223,31 +227,31 @@ function validateLyrics(
 }
 
 async function ownedSong(
-  ctx: any,
+  ctx: QueryCtx | MutationCtx,
   memberId: Id<"members">,
   songId: Id<"songs">
 ) {
   const song = await ctx.db.get("songs", songId)
   if (!song || song.ownerMemberId !== memberId)
     bad("NOT_FOUND", "Morceau introuvable.")
-  return song as Doc<"songs">
+  return song
 }
 
 async function ownedAlbum(
-  ctx: any,
+  ctx: QueryCtx | MutationCtx,
   memberId: Id<"members">,
   albumId: Id<"albums">
 ) {
   const album = await ctx.db.get("albums", albumId)
   if (!album || album.ownerMemberId !== memberId)
     bad("NOT_FOUND", "Album introuvable.")
-  return album as Doc<"albums">
+  return album
 }
 
-async function readLyrics(ctx: any, songId: Id<"songs">) {
+async function readLyrics(ctx: QueryCtx | MutationCtx, songId: Id<"songs">) {
   const sections = await ctx.db
     .query("songSections")
-    .withIndex("by_song_id_and_position", (q: any) => q.eq("songId", songId))
+    .withIndex("by_song_id_and_position", (q) => q.eq("songId", songId))
     .take(MAX_SECTIONS + 1)
   if (sections.length > MAX_SECTIONS)
     bad("CATALOGUE_INVARIANT", "Trop de sections enregistrées.")
@@ -255,7 +259,7 @@ async function readLyrics(ctx: any, songId: Id<"songs">) {
     sections.map(async (section: Doc<"songSections">) => {
       const lines = await ctx.db
         .query("lyricLines")
-        .withIndex("by_section_id_and_position", (q: any) =>
+        .withIndex("by_section_id_and_position", (q) =>
           q.eq("sectionId", section._id)
         )
         .take(MAX_LINES_PER_SECTION + 1)
@@ -267,15 +271,15 @@ async function readLyrics(ctx: any, songId: Id<"songs">) {
 }
 
 async function replaceLyrics(
-  ctx: any,
+  ctx: MutationCtx,
   songId: Id<"songs">,
-  sections: Array<any>,
+  sections: Array<Infer<typeof sectionInput>>,
   now: number
 ) {
   validateLyrics(sections)
   const existing = await ctx.db
     .query("songSections")
-    .withIndex("by_song_id_and_position", (q: any) => q.eq("songId", songId))
+    .withIndex("by_song_id_and_position", (q) => q.eq("songId", songId))
     .take(MAX_SECTIONS + 1)
   if (existing.length > MAX_SECTIONS)
     bad("CATALOGUE_INVARIANT", "Trop de sections enregistrées.")
@@ -293,7 +297,13 @@ async function replaceLyrics(
         songId,
         kind: input.kind,
         ...(input.kind === "custom"
-          ? { customLabel: text(input.customLabel, 80, "Le nom de section") }
+          ? {
+              customLabel: text(
+                input.customLabel ?? "",
+                80,
+                "Le nom de section"
+              ),
+            }
           : {}),
         position,
         createdAt,
@@ -304,7 +314,13 @@ async function replaceLyrics(
         songId,
         kind: input.kind,
         ...(input.kind === "custom"
-          ? { customLabel: text(input.customLabel, 80, "Le nom de section") }
+          ? {
+              customLabel: text(
+                input.customLabel ?? "",
+                80,
+                "Le nom de section"
+              ),
+            }
           : {}),
         position,
         createdAt,
@@ -314,7 +330,7 @@ async function replaceLyrics(
     keptSections.add(sectionId)
     const oldLines = await ctx.db
       .query("lyricLines")
-      .withIndex("by_section_id_and_position", (q: any) =>
+      .withIndex("by_section_id_and_position", (q) =>
         q.eq("sectionId", sectionId)
       )
       .take(MAX_LINES_PER_SECTION + 1)
@@ -355,7 +371,7 @@ async function replaceLyrics(
     if (keptSections.has(section._id)) continue
     const lines = await ctx.db
       .query("lyricLines")
-      .withIndex("by_section_id_and_position", (q: any) =>
+      .withIndex("by_section_id_and_position", (q) =>
         q.eq("sectionId", section._id)
       )
       .take(MAX_LINES_PER_SECTION + 1)
@@ -365,8 +381,8 @@ async function replaceLyrics(
 }
 
 export const listMySongs = artistQuery({
-  args: { limit: v.optional(v.number()) },
-  returns: v.array(schema.doc("songs")),
+  args: { paginationOpts: paginationOptsValidator },
+  returns: paginationResultValidator(schema.doc("songs")),
   handler: async (ctx, args) =>
     ctx.db
       .query("songs")
@@ -374,12 +390,12 @@ export const listMySongs = artistQuery({
         q.eq("ownerMemberId", ctx.member._id)
       )
       .order("desc")
-      .take(Math.min(Math.max(args.limit ?? 50, 1), 100)),
+      .paginate(args.paginationOpts),
 })
 
 export const listMyAlbums = artistQuery({
-  args: { limit: v.optional(v.number()) },
-  returns: v.array(schema.doc("albums")),
+  args: { paginationOpts: paginationOptsValidator },
+  returns: paginationResultValidator(schema.doc("albums")),
   handler: async (ctx, args) =>
     ctx.db
       .query("albums")
@@ -387,7 +403,7 @@ export const listMyAlbums = artistQuery({
         q.eq("ownerMemberId", ctx.member._id)
       )
       .order("desc")
-      .take(Math.min(Math.max(args.limit ?? 50, 1), 100)),
+      .paginate(args.paginationOpts),
 })
 
 export const getMySong = artistQuery({
@@ -445,6 +461,8 @@ export const getPublishedSong = query({
   handler: async (ctx, args) => {
     const song = await ctx.db.get("songs", args.songId)
     if (!song || song.status !== "published") return null
+    const owner = await ctx.db.get("members", song.ownerMemberId)
+    if (!owner || owner.status !== "active") return null
     const candidate = await ctx.db
       .query("albumTracks")
       .withIndex("by_song_id", (q) => q.eq("songId", song._id))
@@ -471,6 +489,8 @@ export const getPublishedAlbum = query({
   handler: async (ctx, args) => {
     const album = await ctx.db.get("albums", args.albumId)
     if (!album || album.status !== "published") return null
+    const owner = await ctx.db.get("members", album.ownerMemberId)
+    if (!owner || owner.status !== "active") return null
     const rows = await ctx.db
       .query("albumTracks")
       .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
@@ -526,7 +546,7 @@ export const updateSong = artistMutation({
     const now = Date.now()
     await ctx.db.replace("songs", args.songId, {
       ownerMemberId: current.ownerMemberId,
-      status: current.status,
+      status: "draft",
       ...validatedSong(args),
       ...(current.artworkStorageId
         ? { artworkStorageId: current.artworkStorageId }
@@ -543,10 +563,11 @@ export const updateSong = artistMutation({
 })
 
 async function setSongStatus(
-  ctx: any,
+  ctx: MutationCtx,
   memberId: Id<"members">,
   songId: Id<"songs">,
-  status: "draft" | "published"
+  status: "draft" | "published",
+  rightsConfirmed = false
 ) {
   const song = await ownedSong(ctx, memberId, songId)
   const now = Date.now()
@@ -556,14 +577,23 @@ async function setSongStatus(
     ...(status === "published" && song.firstPublishedAt === undefined
       ? { firstPublishedAt: now }
       : {}),
+    ...(status === "published" && rightsConfirmed
+      ? { rightsConfirmedAt: now }
+      : {}),
   })
 }
 
 export const publishSong = artistMutation({
-  args: { songId: v.id("songs") },
+  args: { songId: v.id("songs"), rightsConfirmed: v.literal(true) },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await setSongStatus(ctx, ctx.member._id, args.songId, "published")
+    await setSongStatus(
+      ctx,
+      ctx.member._id,
+      args.songId,
+      "published",
+      args.rightsConfirmed
+    )
     return null
   },
 })
@@ -604,14 +634,71 @@ export const createAlbum = artistMutation({
   },
 })
 
+async function replaceAlbumTracks(
+  ctx: MutationCtx,
+  memberId: Id<"members">,
+  albumId: Id<"albums">,
+  songIds: Array<Id<"songs">>
+) {
+  await ownedAlbum(ctx, memberId, albumId)
+  if (songIds.length > MAX_TRACKS || new Set(songIds).size !== songIds.length)
+    bad("INVALID_TRACKS", "La liste des morceaux est invalide.")
+  for (const songId of songIds) {
+    await ownedSong(ctx, memberId, songId)
+    const association = await ctx.db
+      .query("albumTracks")
+      .withIndex("by_song_id", (q) => q.eq("songId", songId))
+      .unique()
+    if (association && association.albumId !== albumId)
+      bad(
+        "SONG_ALREADY_IN_ALBUM",
+        "Un morceau ne peut appartenir qu’à un album."
+      )
+  }
+  const previous = await ctx.db
+    .query("albumTracks")
+    .withIndex("by_album_id_and_position", (q) => q.eq("albumId", albumId))
+    .take(MAX_TRACKS + 1)
+  const bySong = new Map(
+    previous.map((row: Doc<"albumTracks">) => [row.songId, row])
+  )
+  const now = Date.now()
+  for (const [position, songId] of songIds.entries()) {
+    const row = bySong.get(songId)
+    if (row)
+      await ctx.db.patch("albumTracks", row._id, { position, updatedAt: now })
+    else
+      await ctx.db.insert("albumTracks", {
+        albumId,
+        songId,
+        ownerMemberId: memberId,
+        position,
+        createdAt: now,
+        updatedAt: now,
+      })
+  }
+  const kept = new Set(songIds)
+  for (const row of previous)
+    if (!kept.has(row.songId)) await ctx.db.delete("albumTracks", row._id)
+  await ctx.db.patch("albums", albumId, {
+    status: "draft",
+    rightsConfirmedAt: undefined,
+    updatedAt: now,
+  })
+}
+
 export const updateAlbum = artistMutation({
-  args: { albumId: v.id("albums"), ...albumInput },
+  args: {
+    albumId: v.id("albums"),
+    songIds: v.array(v.id("songs")),
+    ...albumInput,
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
     const current = await ownedAlbum(ctx, ctx.member._id, args.albumId)
     await ctx.db.replace("albums", args.albumId, {
       ownerMemberId: current.ownerMemberId,
-      status: current.status,
+      status: "draft",
       title: text(args.title, 160, "Le titre"),
       ...(optionalDate(args.releaseDate) === undefined
         ? {}
@@ -635,6 +722,7 @@ export const updateAlbum = artistMutation({
       createdAt: current.createdAt,
       updatedAt: Date.now(),
     })
+    await replaceAlbumTracks(ctx, ctx.member._id, args.albumId, args.songIds)
     return null
   },
 })
@@ -643,59 +731,17 @@ export const setAlbumTracks = artistMutation({
   args: { albumId: v.id("albums"), songIds: v.array(v.id("songs")) },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await ownedAlbum(ctx, ctx.member._id, args.albumId)
-    if (
-      args.songIds.length > MAX_TRACKS ||
-      new Set(args.songIds).size !== args.songIds.length
-    )
-      bad("INVALID_TRACKS", "La liste des morceaux est invalide.")
-    for (const songId of args.songIds) {
-      await ownedSong(ctx, ctx.member._id, songId)
-      const association = await ctx.db
-        .query("albumTracks")
-        .withIndex("by_song_id", (q) => q.eq("songId", songId))
-        .unique()
-      if (association && association.albumId !== args.albumId)
-        bad(
-          "SONG_ALREADY_IN_ALBUM",
-          "Un morceau ne peut appartenir qu’à un album."
-        )
-    }
-    const previous = await ctx.db
-      .query("albumTracks")
-      .withIndex("by_album_id_and_position", (q) =>
-        q.eq("albumId", args.albumId)
-      )
-      .take(MAX_TRACKS + 1)
-    const bySong = new Map(previous.map((row) => [row.songId, row]))
-    const now = Date.now()
-    for (const [position, songId] of args.songIds.entries()) {
-      const row = bySong.get(songId)
-      if (row)
-        await ctx.db.patch("albumTracks", row._id, { position, updatedAt: now })
-      else
-        await ctx.db.insert("albumTracks", {
-          albumId: args.albumId,
-          songId,
-          ownerMemberId: ctx.member._id,
-          position,
-          createdAt: now,
-          updatedAt: now,
-        })
-    }
-    const kept = new Set(args.songIds)
-    for (const row of previous)
-      if (!kept.has(row.songId)) await ctx.db.delete("albumTracks", row._id)
-    await ctx.db.patch("albums", args.albumId, { updatedAt: now })
+    await replaceAlbumTracks(ctx, ctx.member._id, args.albumId, args.songIds)
     return null
   },
 })
 
 async function setAlbumStatus(
-  ctx: any,
+  ctx: MutationCtx,
   memberId: Id<"members">,
   albumId: Id<"albums">,
-  status: "draft" | "published"
+  status: "draft" | "published",
+  rightsConfirmed = false
 ) {
   const album = await ownedAlbum(ctx, memberId, albumId)
   const now = Date.now()
@@ -705,14 +751,23 @@ async function setAlbumStatus(
     ...(status === "published" && album.firstPublishedAt === undefined
       ? { firstPublishedAt: now }
       : {}),
+    ...(status === "published" && rightsConfirmed
+      ? { rightsConfirmedAt: now }
+      : {}),
   })
 }
 
 export const publishAlbum = artistMutation({
-  args: { albumId: v.id("albums") },
+  args: { albumId: v.id("albums"), rightsConfirmed: v.literal(true) },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await setAlbumStatus(ctx, ctx.member._id, args.albumId, "published")
+    await setAlbumStatus(
+      ctx,
+      ctx.member._id,
+      args.albumId,
+      "published",
+      args.rightsConfirmed
+    )
     return null
   },
 })
@@ -731,9 +786,9 @@ const resourceInput = v.union(
 )
 
 async function assertResourceOwner(
-  ctx: any,
+  ctx: MutationCtx,
   memberId: Id<"members">,
-  resource: any
+  resource: Infer<typeof resourceInput>
 ) {
   if (resource.kind === "song") return ownedSong(ctx, memberId, resource.id)
   return ownedAlbum(ctx, memberId, resource.id)
@@ -774,25 +829,73 @@ export const generateArtworkUploadUrl = artistMutation({
   },
 })
 
+export const registerArtworkUpload = artistMutation({
+  args: {
+    resource: resourceInput,
+    intentId: v.id("catalogueImageUploadIntents"),
+    storageId: v.id("_storage"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await assertResourceOwner(ctx, ctx.member._id, args.resource)
+    const intent = await ctx.db.get(
+      "catalogueImageUploadIntents",
+      args.intentId
+    )
+    if (
+      !intent ||
+      intent.ownerMemberId !== ctx.member._id ||
+      intent.kind !== args.resource.kind ||
+      intent.resourceId !== args.resource.id ||
+      intent.expiresAt < Date.now() ||
+      intent.storageId !== undefined
+    )
+      bad(
+        "INVALID_UPLOAD_INTENT",
+        "Cette autorisation d’envoi est invalide ou expirée."
+      )
+    const reservedIntent = await ctx.db
+      .query("catalogueImageUploadIntents")
+      .withIndex("by_storage_id", (q) => q.eq("storageId", args.storageId))
+      .first()
+    const claimedImage = await ctx.db
+      .query("catalogueImages")
+      .withIndex("by_storage_id", (q) => q.eq("storageId", args.storageId))
+      .first()
+    if (reservedIntent || claimedImage)
+      bad("IMAGE_ALREADY_ATTACHED", "Cette image est déjà réservée.")
+    const metadata = await ctx.db.system.get("_storage", args.storageId)
+    if (!metadata || !isValidCatalogueImageMetadata(metadata, intent.createdAt))
+      bad(
+        "INVALID_IMAGE",
+        "L’image doit être JPEG, PNG ou WebP et ne pas dépasser 10 Mo."
+      )
+    await ctx.db.patch("catalogueImageUploadIntents", intent._id, {
+      storageId: args.storageId,
+    })
+    return null
+  },
+})
+
 async function deleteArtworkIfUnused(
-  ctx: any,
+  ctx: MutationCtx,
   memberId: Id<"members">,
   storageId: Id<"_storage">
 ) {
   const owner = await ctx.db
     .query("catalogueImages")
-    .withIndex("by_storage_id", (q: any) => q.eq("storageId", storageId))
+    .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
     .unique()
   if (!owner || owner.ownerMemberId !== memberId) return
   const song = await ctx.db
     .query("songs")
-    .withIndex("by_artwork_storage_id", (q: any) =>
+    .withIndex("by_artwork_storage_id", (q) =>
       q.eq("artworkStorageId", storageId)
     )
     .unique()
   const album = await ctx.db
     .query("albums")
-    .withIndex("by_artwork_storage_id", (q: any) =>
+    .withIndex("by_artwork_storage_id", (q) =>
       q.eq("artworkStorageId", storageId)
     )
     .unique()
@@ -824,24 +927,12 @@ export const saveArtwork = artistMutation({
       intent.ownerMemberId !== ctx.member._id ||
       intent.kind !== args.resource.kind ||
       intent.resourceId !== args.resource.id ||
-      intent.expiresAt < Date.now()
+      intent.expiresAt < Date.now() ||
+      intent.storageId !== args.storageId
     )
       bad(
         "INVALID_UPLOAD_INTENT",
         "Cette autorisation d’envoi est invalide ou expirée."
-      )
-    const metadata = await ctx.db.system.get("_storage", args.storageId)
-    if (
-      !metadata ||
-      metadata._creationTime < intent.createdAt ||
-      !["image/jpeg", "image/png", "image/webp"].includes(
-        metadata.contentType ?? ""
-      ) ||
-      metadata.size > MAX_IMAGE_BYTES
-    )
-      bad(
-        "INVALID_IMAGE",
-        "L’image doit être JPEG, PNG ou WebP et ne pas dépasser 10 Mo."
       )
     const existingOwner = await ctx.db
       .query("catalogueImages")
@@ -868,11 +959,15 @@ export const saveArtwork = artistMutation({
     if (args.resource.kind === "song")
       await ctx.db.patch("songs", args.resource.id, {
         artworkStorageId: args.storageId,
+        status: "draft",
+        rightsConfirmedAt: undefined,
         updatedAt: Date.now(),
       })
     else
       await ctx.db.patch("albums", args.resource.id, {
         artworkStorageId: args.storageId,
+        status: "draft",
+        rightsConfirmedAt: undefined,
         updatedAt: Date.now(),
       })
     await ctx.db.delete("catalogueImageUploadIntents", intent._id)
@@ -890,8 +985,122 @@ export const expireArtworkUploadIntent = internalMutation({
       "catalogueImageUploadIntents",
       args.intentId
     )
-    if (intent && intent.expiresAt <= Date.now())
+    if (intent && intent.expiresAt <= Date.now()) {
+      if (
+        intent.storageId &&
+        !(await storageIsClaimed(ctx, intent.storageId, intent._id))
+      )
+        await ctx.storage.delete(intent.storageId)
       await ctx.db.delete("catalogueImageUploadIntents", intent._id)
+    }
+    return null
+  },
+})
+
+async function storageIsClaimed(
+  ctx: MutationCtx,
+  storageId: Id<"_storage">,
+  ignoredIntentId?: Id<"catalogueImageUploadIntents">
+) {
+  // This is the single exhaustive claim registry for the global storage sweep.
+  // Any new table that persists a StorageId must be added here before release.
+  const [catalogueImage, profileImage, song, album, profile, artistProfile] =
+    await Promise.all([
+      ctx.db
+        .query("catalogueImages")
+        .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
+        .first(),
+      ctx.db
+        .query("profileImages")
+        .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
+        .first(),
+      ctx.db
+        .query("songs")
+        .withIndex("by_artwork_storage_id", (q) =>
+          q.eq("artworkStorageId", storageId)
+        )
+        .first(),
+      ctx.db
+        .query("albums")
+        .withIndex("by_artwork_storage_id", (q) =>
+          q.eq("artworkStorageId", storageId)
+        )
+        .first(),
+      ctx.db
+        .query("profiles")
+        .withIndex("by_avatar_storage_id", (q) =>
+          q.eq("avatarStorageId", storageId)
+        )
+        .first(),
+      ctx.db
+        .query("artistProfiles")
+        .withIndex("by_banner_storage_id", (q) =>
+          q.eq("bannerStorageId", storageId)
+        )
+        .first(),
+    ])
+  if (
+    catalogueImage ||
+    profileImage ||
+    song ||
+    album ||
+    profile ||
+    artistProfile
+  )
+    return true
+  const registeredIntent = await ctx.db
+    .query("catalogueImageUploadIntents")
+    .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
+    .first()
+  return Boolean(registeredIntent && registeredIntent._id !== ignoredIntentId)
+}
+
+async function sweepUnclaimedStoragePage(ctx: MutationCtx) {
+  const state = await ctx.db
+    .query("storageCleanupCursors")
+    .withIndex("by_key", (q) => q.eq("key", STORAGE_SWEEP_KEY))
+    .unique()
+  const page = await ctx.db.system.query("_storage").paginate({
+    cursor: state?.cursor ?? null,
+    numItems: STORAGE_SWEEP_BATCH,
+  })
+  const cutoff = Date.now() - IMAGE_TTL_MS
+  for (const metadata of page.page) {
+    if (
+      metadata._creationTime <= cutoff &&
+      !(await storageIsClaimed(ctx, metadata._id))
+    )
+      await ctx.storage.delete(metadata._id)
+  }
+  const cursor = page.isDone ? null : page.continueCursor
+  if (state)
+    await ctx.db.patch("storageCleanupCursors", state._id, {
+      cursor,
+      updatedAt: Date.now(),
+    })
+  else
+    await ctx.db.insert("storageCleanupCursors", {
+      key: STORAGE_SWEEP_KEY,
+      cursor,
+      updatedAt: Date.now(),
+    })
+  return page.isDone
+}
+
+async function runStorageSweep(ctx: MutationCtx) {
+  if (!(await sweepUnclaimedStoragePage(ctx)))
+    await ctx.scheduler.runAfter(
+      0,
+      internal.catalogue.sweepUnclaimedStorage,
+      {}
+    )
+}
+
+export const sweepUnclaimedStorage = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    await runStorageSweep(ctx)
     return null
   },
 })

@@ -79,12 +79,14 @@ type TextareaFieldProps = Omit<
   description?: ReactNode
   id?: string
   label: ReactNode
+  labelExtra?: ReactNode
 }
 
 function TextareaField({
   description,
   id,
   label,
+  labelExtra,
   ...textareaProps
 }: TextareaFieldProps) {
   const field = useFieldContext<string>()
@@ -93,7 +95,14 @@ function TextareaField({
 
   return (
     <Field data-invalid={invalid || undefined}>
-      <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+      {labelExtra ? (
+        <div className="flex items-center justify-between gap-3">
+          <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+          {labelExtra}
+        </div>
+      ) : (
+        <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+      )}
       <Textarea
         {...textareaProps}
         id={inputId}
@@ -116,6 +125,7 @@ type SelectFieldProps = {
   description?: ReactNode
   id?: string
   label: ReactNode
+  labelExtra?: ReactNode
   options: Array<{ label: ReactNode; value: string }>
   placeholder?: string
   required?: boolean
@@ -125,6 +135,7 @@ function SelectField({
   description,
   id,
   label,
+  labelExtra,
   options,
   placeholder,
   required,
@@ -135,7 +146,14 @@ function SelectField({
 
   return (
     <Field data-invalid={invalid || undefined}>
-      <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+      {labelExtra ? (
+        <div className="flex items-center justify-between gap-3">
+          <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+          {labelExtra}
+        </div>
+      ) : (
+        <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+      )}
       <Select
         name={field.name}
         value={field.state.value}

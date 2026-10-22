@@ -77,12 +77,20 @@ not duplicated as trust decisions in clients.
 11. Use shadcn Skeleton only for data-dependent regions and Sonner to acknowledge
     asynchronous action success or failure. Keep durable, actionable errors in
     the page as well as in transient feedback.
-12. The TweakCN Soft Pop theme is the installed token baseline. Keep its
+12. The latest user-installed TweakCN Caffeine palette supersedes the earlier
+    Soft Pop token baseline. Keep its
     typography self-hosted through Fontsource (`DM Sans Variable`, `Newsreader
     Variable`, and `Space Mono`). Reserve Newsreader for the landing display
     headline; interface and long-form reading remain in DM Sans. Reconcile the
     semantic tokens with the Lyr’X coral brand instead of scattering one-off
     colors through components.
+13. A single hourly Convex cron scans `_storage` for uploads that remain
+    unclaimed after the grace period, including uploads made near the end of the
+    one-hour upload-URL lifetime. `storageIsClaimed` is therefore the exhaustive
+    registry of every table that can retain a storage identifier. Any future
+    storage-backed capability must extend that registry and its preservation
+    tests before release; otherwise the global sweep must be replaced with a
+    capability-scoped ownership record.
 
 Operational setup and the evidence boundary are documented in
 [authentication.md](authentication.md).

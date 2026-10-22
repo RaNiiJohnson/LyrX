@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "convex/react"
 import { useState } from "react"
 import { Link, useNavigate } from "@tanstack/react-router"
+import { Mic2, UserRound } from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { isValidDisplayName, isValidHandle } from "@lyrx/shared"
@@ -28,6 +29,15 @@ import { getErrorMessage } from "@/lib/errors"
 import { useLocale } from "./locale-provider"
 
 type AccountRole = "artist" | "fan"
+
+function OptionalLabel() {
+  const { t } = useLocale()
+  return (
+    <span className="text-xs font-normal text-muted-foreground">
+      {t("common.optional")}
+    </span>
+  )
+}
 
 export function OnboardingForm() {
   const { t } = useLocale()
@@ -151,6 +161,7 @@ export function OnboardingForm() {
                   <ToggleGroup
                     type="single"
                     variant="outline"
+                    className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2"
                     value={field.state.value}
                     onValueChange={(value) => {
                       if (value === "artist" || value === "fan") {
@@ -160,11 +171,33 @@ export function OnboardingForm() {
                     onBlur={field.handleBlur}
                     aria-label={t("onboarding.role")}
                   >
-                    <ToggleGroupItem value="fan">
-                      {t("common.fan")}
+                    <ToggleGroupItem
+                      value="fan"
+                      className="h-auto min-h-24 w-full items-start justify-start gap-3 p-4 text-left whitespace-normal data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:text-foreground"
+                    >
+                      <UserRound className="mt-0.5 size-5" />
+                      <span className="space-y-1">
+                        <span className="block font-semibold">
+                          {t("common.fan")}
+                        </span>
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          {t("onboarding.fanRoleDescription")}
+                        </span>
+                      </span>
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="artist">
-                      {t("common.artist")}
+                    <ToggleGroupItem
+                      value="artist"
+                      className="h-auto min-h-24 w-full items-start justify-start gap-3 p-4 text-left whitespace-normal data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:text-foreground"
+                    >
+                      <Mic2 className="mt-0.5 size-5" />
+                      <span className="space-y-1">
+                        <span className="block font-semibold">
+                          {t("common.artist")}
+                        </span>
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          {t("onboarding.artistRoleDescription")}
+                        </span>
+                      </span>
                     </ToggleGroupItem>
                   </ToggleGroup>
                 )}
@@ -216,6 +249,7 @@ export function OnboardingForm() {
                 <field.TextareaField
                   id="bio"
                   label={t("onboarding.bio")}
+                  labelExtra={<OptionalLabel />}
                   maxLength={500}
                 />
               )}
@@ -230,6 +264,7 @@ export function OnboardingForm() {
                         <field.TextareaField
                           id="presentation"
                           label={t("onboarding.presentation")}
+                          labelExtra={<OptionalLabel />}
                           maxLength={2000}
                         />
                       )}
@@ -239,6 +274,7 @@ export function OnboardingForm() {
                         <field.TextField
                           id="instagram"
                           label="Instagram"
+                          labelExtra={<OptionalLabel />}
                           type="url"
                           placeholder="https://instagram.com/..."
                         />

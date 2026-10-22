@@ -93,6 +93,7 @@ export default defineSchema({
     listeningLinks: v.array(listeningLinkValidator),
     artworkStorageId: v.optional(v.id("_storage")),
     firstPublishedAt: v.optional(v.number()),
+    rightsConfirmedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -130,6 +131,7 @@ export default defineSchema({
     credits: v.array(v.string()),
     artworkStorageId: v.optional(v.id("_storage")),
     firstPublishedAt: v.optional(v.number()),
+    rightsConfirmedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -154,9 +156,10 @@ export default defineSchema({
     ownerMemberId: v.id("members"),
     kind: catalogueImageKindValidator,
     resourceId: v.union(v.id("songs"), v.id("albums")),
+    storageId: v.optional(v.id("_storage")),
     createdAt: v.number(),
     expiresAt: v.number(),
-  }),
+  }).index("by_storage_id", ["storageId"]),
 
   catalogueImages: defineTable({
     ownerMemberId: v.id("members"),
@@ -166,4 +169,10 @@ export default defineSchema({
   })
     .index("by_storage_id", ["storageId"])
     .index("by_owner_member_id_and_kind", ["ownerMemberId", "kind"]),
+
+  storageCleanupCursors: defineTable({
+    key: v.string(),
+    cursor: v.union(v.string(), v.null()),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
 })

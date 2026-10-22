@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router"
+import { useQuery } from "convex/react"
 import {
   ArrowRight,
   BookOpenText,
@@ -7,6 +8,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@lyrx/ui/components/badge"
+import { api } from "@lyrx/backend/convex/_generated/api"
 import { Button } from "@lyrx/ui/components/button"
 import {
   Card,
@@ -14,7 +16,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@lyrx/ui/components/card"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
 
+import { getPublicRuntimeConfig } from "@/lib/runtime-config"
+import { getAccountNavigation } from "@/lib/account-navigation"
 import { useLocale } from "./locale-provider"
 import { PageShell } from "./page-shell"
 
@@ -50,17 +55,7 @@ export function FoundationPage() {
               {t("home.description")}
             </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/auth/sign-up">
-                {t("home.heroAction")}
-                <ArrowRight data-icon="inline-end" aria-hidden="true" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link to="/auth/sign-in">{t("home.heroSecondaryAction")}</Link>
-            </Button>
-          </div>
+          <HeroActions />
         </div>
       </section>
 
@@ -82,6 +77,69 @@ export function FoundationPage() {
         />
       </section>
     </PageShell>
+  )
+}
+
+function HeroActions() {
+  if (!getPublicRuntimeConfig()) return <AnonymousHeroActions />
+  return <ConfiguredHeroActions />
+}
+
+function AnonymousHeroActions() {
+  const { t } = useLocale()
+  return (
+    <div className="flex flex-wrap justify-center gap-3">
+      <Button asChild size="lg">
+        <Link to="/auth/sign-up">
+          {t("home.heroAction")}
+          <ArrowRight data-icon="inline-end" aria-hidden="true" />
+        </Link>
+      </Button>
+      <Button asChild variant="outline" size="lg">
+        <Link to="/auth/sign-in">{t("home.heroSecondaryAction")}</Link>
+      </Button>
+    </div>
+  )
+}
+
+function ConfiguredHeroActions() {
+  const { t } = useLocale()
+  const current = useQuery(api.members.current, {})
+
+  if (current === undefined) {
+    return (
+      <div className="flex gap-3" aria-label={t("common.loadingAccount")}>
+        <Skeleton className="h-9 w-36" />
+        <Skeleton className="h-9 w-28" />
+      </div>
+    )
+  }
+  if (current.state === "anonymous") return <AnonymousHeroActions />
+
+  const accountNavigation = getAccountNavigation(current.state)
+  if (accountNavigation.kind === "anonymous") return <AnonymousHeroActions />
+  const primary =
+    current.state === "ready" && current.member.role === "artist"
+      ? { to: "/studio" as const, label: t("navigation.studio") }
+      : {
+          to: accountNavigation.href,
+          label: t(accountNavigation.labelKey),
+        }
+
+  return (
+    <div className="flex flex-wrap justify-center gap-3">
+      <Button asChild size="lg">
+        <Link to={primary.to}>
+          {primary.label}
+          <ArrowRight data-icon="inline-end" aria-hidden="true" />
+        </Link>
+      </Button>
+      {current.state === "ready" && current.member.role === "artist" ? (
+        <Button asChild variant="outline" size="lg">
+          <Link to="/profile">{t("navigation.myProfile")}</Link>
+        </Button>
+      ) : null}
+    </div>
   )
 }
 

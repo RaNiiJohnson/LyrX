@@ -49,8 +49,9 @@ and production publication are outside V1.
 
 ## Visual direction
 
-The approved direction uses the TweakCN **Soft Pop** preset as its semantic
-token baseline, adapted for a warm, musical, editorial product. Lyr'X retains
+The approved direction uses the latest user-installed TweakCN **Caffeine**
+preset as its semantic token baseline, adapted for a warm, musical, editorial
+product. Lyr'X retains
 coral `#DF4F55` as its brand mark, uses DM Sans for interface and long-form
 editorial text, Newsreader for the landing display headline, and Space Mono for
 code-like labels. Landing imagery favors real, tactile music photography over

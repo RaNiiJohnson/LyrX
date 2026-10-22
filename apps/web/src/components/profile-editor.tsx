@@ -33,6 +33,15 @@ import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
 import { useLocale } from "./locale-provider"
 
+function OptionalLabel() {
+  const { t } = useLocale()
+  return (
+    <span className="text-xs font-normal text-muted-foreground">
+      {t("common.optional")}
+    </span>
+  )
+}
+
 export function ProfileEditor() {
   const { t } = useLocale()
   const current = useQuery(api.members.current, {})
@@ -199,7 +208,12 @@ function ReadyProfileEditor({
             <FieldSet>
               <FieldLegend>{t("profile.images")}</FieldLegend>
               <Field>
-                <FieldLabel htmlFor="avatar">{t("profile.avatar")}</FieldLabel>
+                <div className="flex items-center justify-between gap-3">
+                  <FieldLabel htmlFor="avatar">
+                    {t("profile.avatar")}
+                  </FieldLabel>
+                  <OptionalLabel />
+                </div>
                 <Input
                   id="avatar"
                   type="file"
@@ -215,9 +229,12 @@ function ReadyProfileEditor({
               </Field>
               {current.member.role === "artist" ? (
                 <Field>
-                  <FieldLabel htmlFor="banner">
-                    {t("profile.banner")}
-                  </FieldLabel>
+                  <div className="flex items-center justify-between gap-3">
+                    <FieldLabel htmlFor="banner">
+                      {t("profile.banner")}
+                    </FieldLabel>
+                    <OptionalLabel />
+                  </div>
                   <Input
                     id="banner"
                     type="file"
@@ -279,6 +296,7 @@ function ReadyProfileEditor({
                 <field.TextareaField
                   id="bio"
                   label={t("profile.bio")}
+                  labelExtra={<OptionalLabel />}
                   maxLength={500}
                 />
               )}
@@ -291,6 +309,7 @@ function ReadyProfileEditor({
                     <field.TextareaField
                       id="presentation"
                       label={t("profile.presentation")}
+                      labelExtra={<OptionalLabel />}
                       maxLength={2000}
                     />
                   )}
@@ -314,7 +333,12 @@ function ReadyProfileEditor({
                     }
                   >
                     {(field) => (
-                      <field.TextField id={id} label={label} type="url" />
+                      <field.TextField
+                        id={id}
+                        label={label}
+                        labelExtra={<OptionalLabel />}
+                        type="url"
+                      />
                     )}
                   </form.AppField>
                 ))}
@@ -323,6 +347,7 @@ function ReadyProfileEditor({
                     <Field>
                       <div className="flex items-center justify-between gap-3">
                         <FieldLabel>{t("profile.customLinks")}</FieldLabel>
+                        <OptionalLabel />
                         <Button
                           type="button"
                           size="sm"

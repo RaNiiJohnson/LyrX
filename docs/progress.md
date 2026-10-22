@@ -2,7 +2,7 @@
 
 ## Active lot
 
-**Lot 4 is active as of 2026-10-21 following explicit user approval. This lot
+**Lot 4 was completed on 2026-10-22 following explicit user approval. It
 delivers the owned artist catalogue: song and album drafts, preview, publishing,
 unpublishing, editing, stable lyric lines, artwork, and ordered album tracks.**
 
@@ -65,6 +65,99 @@ unpublishing, editing, stable lyric lines, artwork, and ordered album tracks.**
       creep. The final `pnpm check` remains clean with 37 tests.
 
 ## Lot history
+
+### Lot 4 — Catalogue artiste (complete)
+
+- Ajout des brouillons de morceaux et d’albums, de l’édition, des aperçus,
+  de la publication/dépublication, des paroles structurées avec identifiants
+  stables, des pochettes et de l’ordre des pistes.
+- Le formulaire de morceau utilise TanStack Form en trois étapes. Les champs
+  obligatoires de l’étape Informations bloquent la progression, affichent leur
+  erreur et reprennent le focus. Les sections et lignes peuvent être déplacées
+  sans perdre leurs identifiants.
+- L’onboarding présente désormais Fan et Artiste sous forme de choix explicites.
+  Les champs facultatifs sont annoncés comme tels dans l’onboarding, le profil
+  et les éditeurs de catalogue. Les onglets Studio et les CTA de l’accueil
+  suivent correctement l’orientation et l’état de session.
+- Les mises à jour de métadonnées et de pistes d’un album sont atomiques. Les
+  contenus publiés d’un membre suspendu ne sont plus publics. Une pochette est
+  validée puis enregistrée sur son intention avant l’attachement ; une intention
+  expirée supprime le fichier enregistré mais non attaché.
+- Les listes Studio utilisent la pagination Convex native et restent donc
+  accessibles au-delà de 100 éléments. Un cron Convex horaire unique nettoie
+  les uploads orphelins, y compris ceux envoyés tard pendant la validité de
+  l’URL, et parcourt toutes les pages de stockage sans multiplier les balayages
+  par intention.
+- La publication exige une attestation explicite des droits ou autorisations
+  nécessaires pour le contenu, les paroles et la pochette. Cette attestation est
+  validée côté Convex et horodatée sur le morceau ou l’album. Toute modification
+  de contenu, de pistes ou de pochette remet l’élément en brouillon et exige une
+  nouvelle attestation avant republication.
+- Les erreurs catalogue sont localisées et persistantes, et les écrans de détail
+  disposent d’un repli localisé au lieu de laisser remonter une erreur racine.
+- Vérification navigateur : accueil authentifié sans CTA d’authentification,
+  validation et focus de la première étape, onglets Studio horizontaux, aucun
+  débordement à 390 px. `pnpm check` passe avec 57 tests et les builds client/SSR.
+- Après synchronisation avec `convex dev --once`, le Studio paginé a été rechargé
+  dans le navigateur : l’erreur de contrat obsolète a disparu et les onglets,
+  l’état vide et les actions sont de nouveau visibles.
+- La clôture obligatoire rapporte 0 violation Standards, 0 défaut ou scope creep
+  Spec, et 0 finding Convex Critical ou Important. Les suggestions restantes et
+  leurs arbitrages sont consignés ci-dessous.
+- Git de clôture : branche `feat/artist-catalogue-albums`, base de revue
+  `f990788`. Le commit d’implémentation final est enregistré juste avant le
+  commit documentaire de clôture.
+
+#### Idée différée — import assisté de paroles
+
+- Ne pas intégrer dans le lot 4. Prévoir d’abord un import déterministe `.txt`
+  avec aperçu modifiable : en-têtes comme `[Couplet 1]`, `[Verse 1]`,
+  `[Refrain]`, `[Chorus]`, `[Pont]`, `[Bridge]`, `[Intro]` et `[Outro]`, une
+  ligne de fichier par ligne de paroles, et conversion des en-têtes inconnus en
+  sections personnalisées. Étendre ensuite aux PDF contenant du vrai texte ;
+  réserver l’OCR des scans à une évolution séparée explicitement moins fiable.
+
+#### Idée différée — carnet d’écriture avec audio local
+
+- Ne pas intégrer dans le lot 4. Distinguer ce futur **carnet d’écriture** du
+  carnet V1 de passages sauvegardés : il contiendrait des textes libres privés,
+  autosauvegardés, nommables et classables en idée, brouillon ou archive. Une
+  note pourrait ensuite être transformée ou liée à un brouillon de morceau sans
+  publication automatique.
+- Prévoir un mode d’écriture sans audio en priorité : sauvegarde automatique,
+  historique léger, compteur, recherche et fonctionnement hors ligne sur
+  mobile. Le texte reste synchronisé dans Convex ; aucune note n’est publique.
+- Pour accompagner l’écriture, parler d’**attacher un audio local** plutôt que
+  de l’importer : le lecteur garde seulement une référence locale et ses
+  métadonnées, sans envoyer ni dupliquer le MP3 dans Convex. Afficher un petit
+  lecteur persistant avec lecture/pause, déplacement, vitesse et boucle A–B
+  pendant que l’éditeur reste utilisable.
+- Sur le Web, un fichier choisi sans téléversement ne peut être garanti après
+  fermeture de la page ; il faudra éventuellement le resélectionner. Réserver
+  l’expérience persistante au client mobile, avec permission locale durable et
+  demande de resélection si le fichier a été déplacé, supprimé ou si l’accès a
+  expiré. Ne pas héberger d’audio dans Lyr’X et ne pas promettre de synchroniser
+  le MP3 entre appareils.
+
+#### Arbitrages de revue conservés
+
+- Les petits composants `OptionalLabel` restent pour l’instant proches de
+  chacun des quatre formulaires : leur extraction imposerait une API partagée
+  uniquement pour un fragment de texte localisé. Les centraliser lorsqu’un
+  troisième comportement, et pas seulement un troisième rendu, apparaît.
+- La table de correspondance des types de sections reste dupliquée entre
+  l’éditeur et l’aperçu afin de ne pas coupler leurs modèles de présentation.
+  Extraire un module de domaine lorsque la lecture publique ajoutera un
+  troisième consommateur.
+- Les requêtes publiques utilisent encore les documents catalogue internes.
+  Introduire des DTO publics minimaux avec le lot Découverte, quand leur contrat
+  de recherche et de page publique sera défini, plutôt que figer aujourd’hui un
+  second schéma incomplet. L’attestation et les identifiants techniques ne sont
+  pas rendus visuellement.
+- Le chemin réel upload → enregistrement → attachement a été déployé mais n’est
+  pas revendiqué comme vérifié de bout en bout dans cette passe : `convex-test`
+  ne conserve pas le type MIME du Blob. Garder ce contrôle d’intégration dans la
+  checklist externe avant production.
 
 ### Lot 1 — Monorepo foundation and working documentation
 
@@ -269,5 +362,5 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Complete Lot 4 and its mandatory dual-review plus Convex-review gate. Do not
-begin Lot 5 without user approval.
+Wait for explicit user approval before beginning Lot 5. The assisted TXT/PDF
+lyrics import and the writing notebook with local audio remain proposal-only.

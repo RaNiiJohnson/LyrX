@@ -7,10 +7,13 @@ const frenchMessages = {
   "common.cancel": "Annuler",
   "common.fan": "Fan",
   "common.loadingCatalogue": "Chargement du catalogue",
+  "common.loading": "Chargement…",
+  "common.loadMore": "Afficher plus",
   "common.loadingAccount": "Chargement du compte",
   "common.loadingOnboarding": "Chargement de l’onboarding",
   "common.loadingProfile": "Chargement du profil",
   "common.loadingPublicProfile": "Chargement du profil public",
+  "common.optional": "Facultatif",
   "common.profile": "Profil",
   "common.remove": "Supprimer",
   "common.save": "Enregistrer",
@@ -27,6 +30,8 @@ const frenchMessages = {
   "catalogue.publish": "Publier",
   "catalogue.published": "Publié",
   "catalogue.publishedNotice": "Le contenu est maintenant public.",
+  "catalogue.rightsConfirmation":
+    "J’atteste disposer des droits ou autorisations nécessaires pour ce contenu, ses paroles et sa pochette.",
   "catalogue.saveError": "Enregistrement impossible",
   "catalogue.saved": "Modifications enregistrées",
   "catalogue.unpublish": "Dépublier",
@@ -218,6 +223,8 @@ const frenchMessages = {
   "onboarding.alreadyEdit": "Modifier mon profil",
   "onboarding.alreadyTitle": "Profil déjà créé",
   "onboarding.artistProfile": "Profil artiste",
+  "onboarding.artistRoleDescription":
+    "Publiez vos chansons, paroles, pochettes et explications.",
   "onboarding.bio": "Bio",
   "onboarding.create": "Créer mon profil",
   "onboarding.description":
@@ -225,6 +232,8 @@ const frenchMessages = {
   "onboarding.emailUnverifiedDescription":
     "Vérifiez {{email}}, puis rechargez cette page. Vous pouvez aussi demander un nouvel email depuis la page de vérification.",
   "onboarding.emailUnverifiedTitle": "Email non vérifié",
+  "onboarding.fanRoleDescription":
+    "Proposez des paroles et des pochettes pour enrichir Lyr’X.",
   "onboarding.handle": "Pseudo public",
   "onboarding.handleDescription":
     "Lettres minuscules, chiffres, point, tiret ou underscore.",
@@ -292,6 +301,7 @@ const frenchMessages = {
   "studio.customSection": "Nom de la section",
   "studio.description":
     "Préparez vos paroles et albums avant de les rendre publics.",
+  "studio.formProgress": "Progression du formulaire",
   "studio.emptyAlbums": "Aucun album pour le moment",
   "studio.emptyAlbumsDescription":
     "Créez un album, puis choisissez et ordonnez ses morceaux.",
@@ -317,6 +327,7 @@ const frenchMessages = {
   "studio.listeningLink": "Lien d’écoute {{number}}",
   "studio.listeningLinks": "Liens d’écoute",
   "studio.lyrics": "Paroles structurées",
+  "studio.nextStep": "Continuer",
   "studio.newAlbum": "Créer un album",
   "studio.newSong": "Créer un morceau",
   "studio.noAvailableTracks": "Tous vos morceaux sont déjà dans cet album.",
@@ -326,6 +337,7 @@ const frenchMessages = {
   "studio.previewDescription":
     "Voici ce que vos lecteurs verront après publication.",
   "studio.primaryArtist": "Artiste principal",
+  "studio.previousStep": "Précédent",
   "studio.producers": "Producteurs",
   "studio.provider": "Plateforme",
   "studio.providerOther": "Autre",
@@ -345,6 +357,10 @@ const frenchMessages = {
   "studio.songEditTitle": "Modifier le morceau",
   "studio.songNewTitle": "Nouveau morceau",
   "studio.songTitle": "Titre",
+  "studio.stepBasics": "Informations",
+  "studio.stepCount": "Étape {{current}} sur {{total}}",
+  "studio.stepCredits": "Crédits et écoute",
+  "studio.stepLyrics": "Paroles",
   "studio.songs": "Morceaux",
   "studio.title": "Studio artiste",
   "studio.url": "URL HTTPS",
@@ -364,10 +380,13 @@ const englishMessages = {
   "common.cancel": "Cancel",
   "common.fan": "Fan",
   "common.loadingCatalogue": "Loading catalogue",
+  "common.loading": "Loading…",
+  "common.loadMore": "Load more",
   "common.loadingAccount": "Loading account",
   "common.loadingOnboarding": "Loading onboarding",
   "common.loadingProfile": "Loading profile",
   "common.loadingPublicProfile": "Loading public profile",
+  "common.optional": "Optional",
   "common.profile": "Profile",
   "common.remove": "Remove",
   "common.save": "Save",
@@ -384,6 +403,8 @@ const englishMessages = {
   "catalogue.publish": "Publish",
   "catalogue.published": "Published",
   "catalogue.publishedNotice": "This content is now public.",
+  "catalogue.rightsConfirmation":
+    "I confirm that I have the rights or permissions required for this content, its lyrics, and its artwork.",
   "catalogue.saveError": "Unable to save",
   "catalogue.saved": "Changes saved",
   "catalogue.unpublish": "Unpublish",
@@ -569,6 +590,8 @@ const englishMessages = {
   "onboarding.alreadyEdit": "Edit my profile",
   "onboarding.alreadyTitle": "Profile already created",
   "onboarding.artistProfile": "Artist profile",
+  "onboarding.artistRoleDescription":
+    "Publish your songs, lyrics, artwork, and explanations.",
   "onboarding.bio": "Bio",
   "onboarding.create": "Create my profile",
   "onboarding.description":
@@ -576,6 +599,7 @@ const englishMessages = {
   "onboarding.emailUnverifiedDescription":
     "Verify {{email}}, then reload this page. You can also request another email from the verification page.",
   "onboarding.emailUnverifiedTitle": "Email not verified",
+  "onboarding.fanRoleDescription": "Submit lyrics and artwork to enrich Lyr’X.",
   "onboarding.handle": "Public handle",
   "onboarding.handleDescription":
     "Lowercase letters, numbers, dots, hyphens, or underscores.",
@@ -642,6 +666,7 @@ const englishMessages = {
   "studio.creditsDescription": "One name per line.",
   "studio.customSection": "Section name",
   "studio.description": "Prepare your lyrics and albums before publishing.",
+  "studio.formProgress": "Form progress",
   "studio.emptyAlbums": "No albums yet",
   "studio.emptyAlbumsDescription":
     "Create an album, then choose and order its songs.",
@@ -667,6 +692,7 @@ const englishMessages = {
   "studio.listeningLink": "Listening link {{number}}",
   "studio.listeningLinks": "Listening links",
   "studio.lyrics": "Structured lyrics",
+  "studio.nextStep": "Continue",
   "studio.newAlbum": "Create an album",
   "studio.newSong": "Create a song",
   "studio.noAvailableTracks": "All your songs are already in this album.",
@@ -676,6 +702,7 @@ const englishMessages = {
   "studio.previewDescription":
     "This is what readers will see after publication.",
   "studio.primaryArtist": "Primary artist",
+  "studio.previousStep": "Previous",
   "studio.producers": "Producers",
   "studio.provider": "Provider",
   "studio.providerOther": "Other",
@@ -695,6 +722,10 @@ const englishMessages = {
   "studio.songEditTitle": "Edit song",
   "studio.songNewTitle": "New song",
   "studio.songTitle": "Title",
+  "studio.stepBasics": "Information",
+  "studio.stepCount": "Step {{current}} of {{total}}",
+  "studio.stepCredits": "Credits and listening",
+  "studio.stepLyrics": "Lyrics",
   "studio.songs": "Songs",
   "studio.title": "Artist studio",
   "studio.url": "HTTPS URL",

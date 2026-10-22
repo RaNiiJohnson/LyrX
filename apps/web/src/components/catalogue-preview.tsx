@@ -4,6 +4,7 @@ import { ArrowLeft, Disc3, FileMusic } from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { MessageKey } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
@@ -16,6 +17,15 @@ import {
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 
 import { useLocale } from "./locale-provider"
+
+const sectionMessageKeys: Record<Doc<"songSections">["kind"], MessageKey> = {
+  intro: "studio.sectionIntro",
+  verse: "studio.sectionVerse",
+  chorus: "studio.sectionChorus",
+  bridge: "studio.sectionBridge",
+  outro: "studio.sectionOutro",
+  custom: "studio.sectionCustom",
+}
 
 export function SongPreview({ songId }: { songId: Id<"songs"> }) {
   const current = useQuery(api.members.current, {})
@@ -89,7 +99,13 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
         {detail.sections.map(({ section, lines }) => (
           <div key={section._id} className="space-y-3">
             <h2 className="font-mono text-xs font-medium tracking-[0.2em] text-primary uppercase">
-              {section.kind === "custom" ? section.customLabel : section.kind}
+              {section.kind === "custom"
+                ? section.customLabel
+                : t(
+                    sectionMessageKeys[
+                      section.kind as keyof typeof sectionMessageKeys
+                    ]
+                  )}
             </h2>
             <div className="space-y-1 text-lg leading-relaxed">
               {lines.map((line: Doc<"lyricLines">) => (
@@ -189,8 +205,9 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
 }
 
 function PreviewSkeleton() {
+  const { t } = useLocale()
   return (
-    <div aria-label="Chargement" className="space-y-5">
+    <div aria-label={t("common.loadingCatalogue")} className="space-y-5">
       <Skeleton className="h-8 w-32" />
       <Skeleton className="h-80 w-full rounded-3xl" />
       <Skeleton className="h-48 w-full" />

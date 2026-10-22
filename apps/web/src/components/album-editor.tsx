@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router"
-import { useMutation, useQuery } from "convex/react"
+import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
 import {
   ArrowDown,
   ArrowLeft,
@@ -11,7 +11,7 @@ import {
 import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
-import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
@@ -35,12 +35,13 @@ import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
+import { useCatalogueArtworkUpload } from "@/hooks/use-catalogue-artwork-upload"
 import {
   dateInputFromTimestamp,
   namesFromTextarea,
   timestampFromDateInput,
 } from "@/lib/catalogue-form"
-import { getErrorMessage, localizedUiError } from "@/lib/errors"
+import { getErrorMessage } from "@/lib/errors"
 import { useLocale } from "./locale-provider"
 
 type AlbumFormValues = {
@@ -48,6 +49,16 @@ type AlbumFormValues = {
   releaseDate: string
   description: string
   credits: string
+  trackIds: Array<Id<"songs">>
+}
+
+function OptionalLabel() {
+  const { t } = useLocale()
+  return (
+    <span className="text-xs font-normal text-muted-foreground">
+      {t("common.optional")}
+    </span>
+  )
 }
 
 export function AlbumEditor({ albumId }: { albumId?: Id<"albums"> }) {
@@ -72,9 +83,13 @@ function ReadyAlbumEditor({ albumId }: { albumId?: Id<"albums"> }) {
     api.catalogue.getMyAlbum,
     albumId ? { albumId } : "skip"
   )
-  const songs = useQuery(api.catalogue.listMySongs, { limit: 100 })
+  const {
+    results: songs,
+    status: songsStatus,
+    loadMore: loadMoreSongs,
+  } = usePaginatedQuery(api.catalogue.listMySongs, {}, { initialNumItems: 50 })
 
-  if ((albumId && detail === undefined) || songs === undefined) {
+  if ((albumId && detail === undefined) || songsStatus === "LoadingFirstPage") {
     return <AlbumEditorSkeleton />
   }
   return (
@@ -83,6 +98,8 @@ function ReadyAlbumEditor({ albumId }: { albumId?: Id<"albums"> }) {
       albumId={albumId}
       detail={detail ?? undefined}
       songs={songs}
+      songsStatus={songsStatus}
+      loadMoreSongs={loadMoreSongs}
     />
   )
 }
@@ -91,27 +108,26 @@ function AlbumEditorForm({
   albumId,
   detail,
   songs,
+  songsStatus,
+  loadMoreSongs,
 }: {
   albumId?: Id<"albums">
   detail?: NonNullable<
     ReturnType<typeof useQuery<typeof api.catalogue.getMyAlbum>>
   >
-  songs: NonNullable<
-    ReturnType<typeof useQuery<typeof api.catalogue.listMySongs>>
-  >
+  songs: Array<Doc<"songs">>
+  songsStatus: "CanLoadMore" | "LoadingMore" | "Exhausted"
+  loadMoreSongs: (numItems: number) => void
 }) {
   const { t } = useLocale()
   const navigate = useNavigate()
   const createAlbum = useMutation(api.catalogue.createAlbum)
   const updateAlbum = useMutation(api.catalogue.updateAlbum)
-  const setAlbumTracks = useMutation(api.catalogue.setAlbumTracks)
-  const generateUploadUrl = useMutation(api.catalogue.generateArtworkUploadUrl)
-  const saveArtwork = useMutation(api.catalogue.saveArtwork)
-  const [trackIds, setTrackIds] = useState<Array<Id<"songs">>>(
-    detail?.tracks.map(({ song }) => song._id) ?? []
-  )
   const [error, setError] = useState<string | null>(null)
-  const [uploadPending, setUploadPending] = useState(false)
+  const { pending: uploadPending, uploadArtwork } = useCatalogueArtworkUpload(
+    albumId ? { kind: "album", id: albumId } : undefined,
+    setError
+  )
 
   const form = useAppForm({
     defaultValues: detail
@@ -121,6 +137,7 @@ function AlbumEditorForm({
           releaseDate: "",
           description: "",
           credits: "",
+          trackIds: [],
         },
     onSubmit: async ({ value }) => {
       setError(null)
@@ -132,8 +149,7 @@ function AlbumEditorForm({
       }
       try {
         if (albumId) {
-          await updateAlbum({ albumId, ...input })
-          await setAlbumTracks({ albumId, songIds: trackIds })
+          await updateAlbum({ albumId, songIds: value.trackIds, ...input })
           toast.success(t("catalogue.saved"))
         } else {
           const createdId = await createAlbum(input)
@@ -150,63 +166,6 @@ function AlbumEditorForm({
       }
     },
   })
-
-  async function uploadArtwork(file: File | undefined) {
-    if (!albumId || !file) return
-    setUploadPending(true)
-    setError(null)
-    try {
-      const resource = { kind: "album" as const, id: albumId }
-      const { uploadUrl, intentId } = await generateUploadUrl({ resource })
-      const response = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      })
-      if (!response.ok) throw localizedUiError(t("catalogue.uploadError"))
-      const payload: unknown = await response.json()
-      if (
-        !payload ||
-        typeof payload !== "object" ||
-        !("storageId" in payload) ||
-        typeof payload.storageId !== "string"
-      ) {
-        throw localizedUiError(t("profile.imageInvalidResponse"))
-      }
-      await saveArtwork({
-        resource,
-        intentId,
-        storageId: payload.storageId as Id<"_storage">,
-      })
-      toast.success(t("catalogue.artworkUpdated"))
-    } catch (caught) {
-      const message = getErrorMessage(caught, t)
-      setError(message)
-      toast.error(t("catalogue.uploadError"), { description: message })
-    } finally {
-      setUploadPending(false)
-    }
-  }
-
-  function moveTrack(index: number, direction: -1 | 1) {
-    const nextIndex = index + direction
-    if (nextIndex < 0 || nextIndex >= trackIds.length) return
-    setTrackIds((current) => {
-      const next = [...current]
-      const currentTrack = next[index]
-      const adjacentTrack = next[nextIndex]
-      if (!currentTrack || !adjacentTrack) return current
-      next[index] = adjacentTrack
-      next[nextIndex] = currentTrack
-      return next
-    })
-  }
-
-  const selectedSongs = trackIds.flatMap((id) => {
-    const song = songs.find((candidate) => candidate._id === id)
-    return song ? [song] : []
-  })
-  const availableSongs = songs.filter((song) => !trackIds.includes(song._id))
 
   return (
     <section className="flex flex-col gap-6">
@@ -269,9 +228,12 @@ function AlbumEditorForm({
               )}
             </div>
             <Field>
-              <FieldLabel htmlFor="album-artwork">
-                {t("catalogue.artwork")}
-              </FieldLabel>
+              <div className="flex items-center justify-between gap-3">
+                <FieldLabel htmlFor="album-artwork">
+                  {t("catalogue.artwork")}
+                </FieldLabel>
+                <OptionalLabel />
+              </div>
               <Input
                 id="album-artwork"
                 type="file"
@@ -331,6 +293,7 @@ function AlbumEditorForm({
                     {(field) => (
                       <field.TextField
                         label={t("studio.releaseDate")}
+                        labelExtra={<OptionalLabel />}
                         type="date"
                       />
                     )}
@@ -340,6 +303,7 @@ function AlbumEditorForm({
                   {(field) => (
                     <field.TextareaField
                       label={t("studio.albumDescription")}
+                      labelExtra={<OptionalLabel />}
                       maxLength={5000}
                       rows={5}
                     />
@@ -349,6 +313,7 @@ function AlbumEditorForm({
                   {(field) => (
                     <field.TextareaField
                       label={t("studio.albumCredits")}
+                      labelExtra={<OptionalLabel />}
                       description={t("studio.albumCreditsDescription")}
                       rows={4}
                     />
@@ -358,79 +323,115 @@ function AlbumEditorForm({
 
               {albumId ? (
                 <FieldSet>
-                  <FieldLegend>{t("studio.albumTracks")}</FieldLegend>
+                  <div className="flex items-center gap-3">
+                    <FieldLegend>{t("studio.albumTracks")}</FieldLegend>
+                    <OptionalLabel />
+                  </div>
                   <FieldDescription>
                     {t("studio.albumTracksDescription")}
                   </FieldDescription>
-                  <div className="space-y-3">
-                    {selectedSongs.map((song, index) => (
-                      <div
-                        key={song._id}
-                        className="flex items-center gap-2 rounded-xl border p-3"
-                      >
-                        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted font-mono text-sm">
-                          {index + 1}
-                        </span>
-                        <span className="min-w-0 flex-1 truncate font-medium">
-                          {song.title}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("catalogue.moveUp")}
-                          disabled={index === 0}
-                          onClick={() => moveTrack(index, -1)}
-                        >
-                          <ArrowUp />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("catalogue.moveDown")}
-                          disabled={index === selectedSongs.length - 1}
-                          onClick={() => moveTrack(index, 1)}
-                        >
-                          <ArrowDown />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("studio.removeTrack")}
-                          onClick={() =>
-                            setTrackIds((current) =>
-                              current.filter((id) => id !== song._id)
-                            )
-                          }
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
-                    ))}
-                    {availableSongs.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        {t("studio.noAvailableTracks")}
-                      </p>
-                    ) : (
-                      <div className="grid gap-2 md:grid-cols-2">
-                        {availableSongs.map((song) => (
-                          <Button
-                            key={song._id}
-                            type="button"
-                            variant="outline"
-                            className="justify-start"
-                            onClick={() =>
-                              setTrackIds((current) => [...current, song._id])
-                            }
-                          >
-                            <Plus /> {song.title}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <form.Field name="trackIds" mode="array">
+                    {(tracksField) => {
+                      const selectedSongs = tracksField.state.value.flatMap(
+                        (id) => {
+                          const song = songs.find(
+                            (candidate) => candidate._id === id
+                          )
+                          return song ? [song] : []
+                        }
+                      )
+                      const availableSongs = songs.filter(
+                        (song) => !tracksField.state.value.includes(song._id)
+                      )
+                      return (
+                        <div className="space-y-3">
+                          {selectedSongs.map((song, index) => (
+                            <div
+                              key={song._id}
+                              className="flex items-center gap-2 rounded-xl border p-3"
+                            >
+                              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted font-mono text-sm">
+                                {index + 1}
+                              </span>
+                              <span className="min-w-0 flex-1 truncate font-medium">
+                                {song.title}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label={t("catalogue.moveUp")}
+                                disabled={index === 0}
+                                onClick={() =>
+                                  tracksField.moveValue(index, index - 1)
+                                }
+                              >
+                                <ArrowUp />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label={t("catalogue.moveDown")}
+                                disabled={index === selectedSongs.length - 1}
+                                onClick={() =>
+                                  tracksField.moveValue(index, index + 1)
+                                }
+                              >
+                                <ArrowDown />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label={t("studio.removeTrack")}
+                                onClick={() => tracksField.removeValue(index)}
+                              >
+                                <Trash2 />
+                              </Button>
+                            </div>
+                          ))}
+                          {availableSongs.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                              {t("studio.noAvailableTracks")}
+                            </p>
+                          ) : (
+                            <div className="grid gap-2 md:grid-cols-2">
+                              {availableSongs.map((song) => (
+                                <Button
+                                  key={song._id}
+                                  type="button"
+                                  variant="outline"
+                                  className="min-w-0 justify-start"
+                                  title={song.title}
+                                  onClick={() =>
+                                    tracksField.pushValue(song._id)
+                                  }
+                                >
+                                  <Plus />
+                                  <span className="min-w-0 truncate">
+                                    {song.title}
+                                  </span>
+                                </Button>
+                              ))}
+                            </div>
+                          )}
+                          {songsStatus !== "Exhausted" ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={songsStatus === "LoadingMore"}
+                              onClick={() => loadMoreSongs(50)}
+                            >
+                              {songsStatus === "LoadingMore"
+                                ? t("common.loading")
+                                : t("common.loadMore")}
+                            </Button>
+                          ) : null}
+                        </div>
+                      )
+                    }}
+                  </form.Field>
                 </FieldSet>
               ) : null}
             </FieldGroup>
@@ -457,12 +458,14 @@ function albumValuesFromDetail(
     releaseDate: dateInputFromTimestamp(detail.album.releaseDate),
     description: detail.album.description ?? "",
     credits: detail.album.credits.join("\n"),
+    trackIds: detail.tracks.map(({ song }) => song._id),
   }
 }
 
 function AlbumEditorSkeleton() {
+  const { t } = useLocale()
   return (
-    <div aria-label="Chargement" className="space-y-5">
+    <div aria-label={t("common.loadingCatalogue")} className="space-y-5">
       <Skeleton className="h-8 w-32" />
       <Skeleton className="h-10 w-72" />
       <Skeleton className="h-64 w-full" />
