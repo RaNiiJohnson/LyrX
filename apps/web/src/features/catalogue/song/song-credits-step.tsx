@@ -56,6 +56,24 @@ export const SongCreditsStep = withForm({
                   label={t("studio.label")}
                   labelExtra={<OptionalLabel />}
                   maxLength={120}
+                  onValueChange={() => {
+                    if (form.state.values.releaseType === "album")
+                      form.setFieldValue("inheritLabel", false)
+                  }}
+                />
+              )}
+            </form.AppField>
+            <form.AppField name="additionalCredits">
+              {(field) => (
+                <field.TextareaField
+                  label={t("studio.generalCredits")}
+                  labelExtra={<OptionalLabel />}
+                  description={t("studio.generalCreditsDescription")}
+                  rows={3}
+                  onValueChange={() => {
+                    if (form.state.values.releaseType === "album")
+                      form.setFieldValue("inheritCredits", false)
+                  }}
                 />
               )}
             </form.AppField>

@@ -25,6 +25,13 @@ export type SongGenre = (typeof SONG_GENRES)[number]
 export type ListeningProvider = (typeof LISTENING_PROVIDERS)[number]
 
 export type SongFormValues = {
+  releaseType: "single" | "album"
+  albumId: string
+  inheritArtwork: boolean
+  inheritPrimaryLanguage: boolean
+  inheritGenre: boolean
+  inheritLabel: boolean
+  inheritCredits: boolean
   title: string
   primaryArtist: string
   guestArtists: string
@@ -38,6 +45,7 @@ export type SongFormValues = {
   composers: string
   producers: string
   label: string
+  additionalCredits: string
   listeningLinks: Array<{
     provider: ListeningProvider
     url: string
@@ -78,27 +86,75 @@ export function toSongMutationInput(value: SongFormValues) {
     composers: namesFromTextarea(value.composers),
     producers: namesFromTextarea(value.producers),
     label: value.label || undefined,
+    additionalCredits: namesFromTextarea(value.additionalCredits),
     listeningLinks: value.listeningLinks.filter((link) => link.url.trim()),
     lyricsText: value.lyricsText,
+    albumContext:
+      value.releaseType === "album" && value.albumId
+        ? {
+            albumId: value.albumId as Id<"albums">,
+            inheritance: {
+              inheritArtwork: value.inheritArtwork,
+              inheritPrimaryLanguage: value.inheritPrimaryLanguage,
+              inheritGenre: value.inheritGenre,
+              inheritLabel: value.inheritLabel,
+              inheritCredits: value.inheritCredits,
+            },
+          }
+        : null,
   }
 }
 
-export function emptySongValues(primaryArtist = ""): SongFormValues {
+export function emptySongValues(
+  primaryArtist = "",
+  album?: Doc<"albums">
+): SongFormValues {
   return {
+    releaseType: album ? "album" : "single",
+    albumId: album?._id ?? "",
+    inheritArtwork: Boolean(album),
+    inheritPrimaryLanguage: Boolean(album),
+    inheritGenre: Boolean(album),
+    inheritLabel: Boolean(album),
+    inheritCredits: Boolean(album),
     title: "",
     primaryArtist,
     guestArtists: "",
     releaseDate: "",
     description: "",
     context: "",
-    primaryLanguage: "fr",
-    genre: "",
-    otherGenre: "",
+    primaryLanguage: album?.primaryLanguage ?? "fr",
+    genre: album?.genre ?? "",
+    otherGenre: album?.otherGenre ?? "",
     writers: "",
     composers: "",
     producers: "",
-    label: "",
+    label: album?.label ?? "",
+    additionalCredits: album?.credits.join("\n") ?? "",
     listeningLinks: [],
     lyricsText: "",
+  }
+}
+import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
+
+
+export function applyAlbumDefaults(
+  values: SongFormValues,
+  album: Doc<"albums">
+): SongFormValues {
+  return {
+    ...values,
+    releaseType: "album",
+    albumId: album._id,
+    inheritArtwork: true,
+    inheritPrimaryLanguage: true,
+    inheritGenre: true,
+    inheritLabel: true,
+    inheritCredits: true,
+    primaryLanguage: album.primaryLanguage ?? values.primaryLanguage,
+    genre: album.genre ?? "",
+    otherGenre: album.otherGenre ?? "",
+    label: album.label ?? "",
+    additionalCredits: album.credits.join("\n"),
   }
 }

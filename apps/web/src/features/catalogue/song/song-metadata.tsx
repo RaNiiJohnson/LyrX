@@ -32,6 +32,7 @@ const informationLabels = {
 } as const satisfies Record<string, MessageKey>
 
 const creditLabels = {
+  additionalCredits: "studio.generalCredits",
   composers: "studio.composers",
   guestArtists: "studio.guestArtists",
   label: "studio.label",

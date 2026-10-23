@@ -48,23 +48,47 @@ const songInputValidator = v.object({
   composers: v.array(v.string()),
   producers: v.array(v.string()),
   label: v.optional(v.string()),
+  additionalCredits: v.optional(v.array(v.string())),
   listeningLinks: v.array(listeningLinkValidator),
   lyricsText: v.string(),
 })
 const songInput = songInputValidator.fields
 
-const albumInput = {
+const albumInheritanceValidator = v.object({
+  inheritArtwork: v.boolean(),
+  inheritPrimaryLanguage: v.boolean(),
+  inheritGenre: v.boolean(),
+  inheritLabel: v.boolean(),
+  inheritCredits: v.boolean(),
+})
+
+const albumContextValidator = v.union(
+  v.object({
+    albumId: v.id("albums"),
+    inheritance: albumInheritanceValidator,
+  }),
+  v.null()
+)
+
+const albumInputValidator = v.object({
   title: v.string(),
   releaseDate: v.optional(v.number()),
   description: v.optional(v.string()),
+  primaryLanguage: v.optional(v.string()),
+  genre: v.optional(songGenreValidator),
+  otherGenre: v.optional(v.string()),
+  label: v.optional(v.string()),
   credits: v.array(v.string()),
-}
+})
+const albumInput = albumInputValidator.fields
 
 const songDetail = v.object({
   song: schema.doc("songs"),
   lyricsText: v.string(),
   albumTrack: v.union(schema.doc("albumTracks"), v.null()),
+  album: v.union(schema.doc("albums"), v.null()),
   artworkUrl: v.union(v.string(), v.null()),
+  albumArtworkUrl: v.union(v.string(), v.null()),
 })
 
 const albumTrackDetail = v.object({
@@ -84,6 +108,7 @@ const songSummary = v.object({
   status: v.union(v.literal("draft"), v.literal("published")),
   title: v.string(),
   primaryArtist: v.string(),
+  albumId: v.union(v.id("albums"), v.null()),
   updatedAt: v.number(),
 })
 
@@ -104,6 +129,7 @@ const publicSong = v.object({
   composers: v.array(v.string()),
   producers: v.array(v.string()),
   label: v.optional(v.string()),
+  additionalCredits: v.optional(v.array(v.string())),
   listeningLinks: v.array(listeningLinkValidator),
   firstPublishedAt: v.optional(v.number()),
   createdAt: v.number(),
@@ -117,6 +143,10 @@ const publicAlbum = v.object({
   title: v.string(),
   releaseDate: v.optional(v.number()),
   description: v.optional(v.string()),
+  primaryLanguage: v.optional(v.string()),
+  genre: v.optional(songGenreValidator),
+  otherGenre: v.optional(v.string()),
+  label: v.optional(v.string()),
   credits: v.array(v.string()),
   firstPublishedAt: v.optional(v.number()),
   createdAt: v.number(),
@@ -127,7 +157,11 @@ const publicSongDetail = v.object({
   song: publicSong,
   lyricsText: v.string(),
   album: v.union(
-    v.object({ albumId: v.id("albums"), title: v.string() }),
+    v.object({
+      albumId: v.id("albums"),
+      title: v.string(),
+      releaseDate: v.optional(v.number()),
+    }),
     v.null()
   ),
   artworkUrl: v.union(v.string(), v.null()),
@@ -239,11 +273,64 @@ function validatedSong(args: Infer<typeof songInputValidator>) {
     ...(optionalText(args.label, 120, "Le label")
       ? { label: optionalText(args.label, 120, "Le label") }
       : {}),
+    ...(args.additionalCredits && args.additionalCredits.length > 0
+      ? {
+          additionalCredits: textList(
+            args.additionalCredits,
+            50,
+            "Les crédits complémentaires"
+          ),
+        }
+      : {}),
     listeningLinks: args.listeningLinks.map((link) => ({
       provider: link.provider,
       url: validateUrl(link.provider, link.url),
     })),
     lyricsText: validateLyricsText(args.lyricsText),
+  }
+}
+
+function validatedAlbum(args: Infer<typeof albumInputValidator>) {
+  if (
+    args.genre === "other" &&
+    !optionalText(args.otherGenre, 60, "Le genre")
+  ) {
+    bad("INVALID_INPUT", "Précisez le genre personnalisé.")
+  }
+  if (args.genre !== "other" && args.otherGenre !== undefined) {
+    bad("INVALID_INPUT", "Le genre personnalisé exige le choix « autre ».")
+  }
+  return {
+    title: text(args.title, 160, "Le titre"),
+    ...(optionalDate(args.releaseDate) === undefined
+      ? {}
+      : { releaseDate: optionalDate(args.releaseDate) }),
+    ...(optionalText(args.description, 5_000, "La description")
+      ? {
+          description: optionalText(
+            args.description,
+            5_000,
+            "La description"
+          ),
+        }
+      : {}),
+    ...(optionalText(args.primaryLanguage, 50, "La langue")
+      ? {
+          primaryLanguage: optionalText(
+            args.primaryLanguage,
+            50,
+            "La langue"
+          ),
+        }
+      : {}),
+    ...(args.genre === undefined ? {} : { genre: args.genre }),
+    ...(args.genre === "other"
+      ? { otherGenre: text(args.otherGenre ?? "", 60, "Le genre") }
+      : {}),
+    ...(optionalText(args.label, 120, "Le label")
+      ? { label: optionalText(args.label, 120, "Le label") }
+      : {}),
+    credits: textList(args.credits, 50, "Les crédits généraux"),
   }
 }
 
@@ -279,6 +366,9 @@ function projectPublicSong(song: Doc<"songs">) {
     composers: song.composers,
     producers: song.producers,
     ...(song.label === undefined ? {} : { label: song.label }),
+    ...(song.additionalCredits === undefined
+      ? {}
+      : { additionalCredits: song.additionalCredits }),
     listeningLinks: song.listeningLinks,
     ...(song.firstPublishedAt === undefined
       ? {}
@@ -300,6 +390,14 @@ function projectPublicAlbum(album: Doc<"albums">) {
     ...(album.description === undefined
       ? {}
       : { description: album.description }),
+    ...(album.primaryLanguage === undefined
+      ? {}
+      : { primaryLanguage: album.primaryLanguage }),
+    ...(album.genre === undefined ? {} : { genre: album.genre }),
+    ...(album.otherGenre === undefined
+      ? {}
+      : { otherGenre: album.otherGenre }),
+    ...(album.label === undefined ? {} : { label: album.label }),
     credits: album.credits,
     ...(album.firstPublishedAt === undefined
       ? {}
@@ -309,13 +407,17 @@ function projectPublicAlbum(album: Doc<"albums">) {
   }
 }
 
-function projectSongSummary(song: Doc<"songs">) {
+function projectSongSummary(
+  song: Doc<"songs">,
+  albumId: Id<"albums"> | null
+) {
   return {
     _id: song._id,
     _creationTime: song._creationTime,
     status: song.status,
     title: song.title,
     primaryArtist: song.primaryArtist,
+    albumId,
     updatedAt: song.updatedAt,
   }
 }
@@ -407,7 +509,18 @@ export const listMySongs = artistQuery({
       )
       .order("desc")
       .paginate(args.paginationOpts)
-    return { ...page, page: page.page.map(projectSongSummary) }
+    return {
+      ...page,
+      page: await Promise.all(
+        page.page.map(async (song) => {
+          const track = await ctx.db
+            .query("albumTracks")
+            .withIndex("by_song_id", (q) => q.eq("songId", song._id))
+            .unique()
+          return projectSongSummary(song, track?.albumId ?? null)
+        })
+      ),
+    }
   },
 })
 
@@ -433,12 +546,17 @@ export const getMySong = artistQuery({
       .query("albumTracks")
       .withIndex("by_song_id", (q) => q.eq("songId", song._id))
       .unique()
+    const album = albumTrack ? await ctx.db.get("albums", albumTrack.albumId) : null
     return {
       song,
       lyricsText: await lyricsTextForSong(ctx, song),
       albumTrack,
+      album,
       artworkUrl: song.artworkStorageId
         ? await ctx.storage.getUrl(song.artworkStorageId)
+        : null,
+      albumArtworkUrl: album?.artworkStorageId
+        ? await ctx.storage.getUrl(album.artworkStorageId)
         : null,
     }
   },
@@ -494,7 +612,13 @@ export const getPublishedSong = query({
       song: projectPublicSong(song),
       lyricsText: await lyricsTextForSong(ctx, song),
       album: albumTrack
-        ? { albumId: albumTrack.albumId, title: candidateAlbum!.title }
+        ? {
+            albumId: albumTrack.albumId,
+            title: candidateAlbum!.title,
+            ...(candidateAlbum!.releaseDate === undefined
+              ? {}
+              : { releaseDate: candidateAlbum!.releaseDate }),
+          }
         : null,
       artworkUrl: song.artworkStorageId
         ? await ctx.storage.getUrl(song.artworkStorageId)
@@ -543,33 +667,215 @@ export const getPublishedAlbum = query({
   },
 })
 
-export const createSong = artistMutation({
-  args: songInput,
-  returns: v.id("songs"),
-  handler: async (ctx, args) => {
-    const now = Date.now()
-    const songId = await ctx.db.insert("songs", {
-      ownerMemberId: ctx.member._id,
+type AlbumInheritance = Infer<typeof albumInheritanceValidator>
+
+function trackInheritance(track: Doc<"albumTracks">): AlbumInheritance {
+  return {
+    inheritArtwork: track.inheritArtwork ?? false,
+    inheritPrimaryLanguage: track.inheritPrimaryLanguage ?? false,
+    inheritGenre: track.inheritGenre ?? false,
+    inheritLabel: track.inheritLabel ?? false,
+    inheritCredits: track.inheritCredits ?? false,
+  }
+}
+
+function materializeAlbumMetadata(
+  song: ReturnType<typeof validatedSong>,
+  album: Doc<"albums">,
+  inheritance: AlbumInheritance
+) {
+  const materialized: ReturnType<typeof validatedSong> & {
+    artworkStorageId?: Id<"_storage">
+  } = { ...song }
+  if (inheritance.inheritArtwork) {
+    if (album.artworkStorageId) materialized.artworkStorageId = album.artworkStorageId
+    else delete materialized.artworkStorageId
+  }
+  if (inheritance.inheritPrimaryLanguage && album.primaryLanguage) {
+    materialized.primaryLanguage = album.primaryLanguage
+  }
+  if (inheritance.inheritGenre) {
+    delete materialized.genre
+    delete materialized.otherGenre
+    if (album.genre) materialized.genre = album.genre
+    if (album.otherGenre) materialized.otherGenre = album.otherGenre
+  }
+  if (inheritance.inheritLabel) {
+    delete materialized.label
+    if (album.label) materialized.label = album.label
+  }
+  if (inheritance.inheritCredits) {
+    delete materialized.additionalCredits
+    if (album.credits.length > 0) materialized.additionalCredits = album.credits
+  }
+  return materialized
+}
+
+async function patchInheritedSongs(
+  ctx: MutationCtx,
+  album: Doc<"albums">
+) {
+  const tracks = await ctx.db
+    .query("albumTracks")
+    .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
+    .take(MAX_TRACKS + 1)
+  if (tracks.length > MAX_TRACKS)
+    bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+  const now = Date.now()
+  for (const track of tracks) {
+    const inheritance = trackInheritance(track)
+    const patch: Partial<Doc<"songs">> = {
       status: "draft",
-      ...validatedSong(args),
+      rightsConfirmedAt: undefined,
+      updatedAt: now,
+    }
+    let changed = false
+    if (inheritance.inheritArtwork) {
+      patch.artworkStorageId = album.artworkStorageId
+      changed = true
+    }
+    if (inheritance.inheritPrimaryLanguage && album.primaryLanguage) {
+      patch.primaryLanguage = album.primaryLanguage
+      changed = true
+    }
+    if (inheritance.inheritGenre) {
+      patch.genre = album.genre
+      patch.otherGenre = album.otherGenre
+      changed = true
+    }
+    if (inheritance.inheritLabel) {
+      patch.label = album.label
+      changed = true
+    }
+    if (inheritance.inheritCredits) {
+      patch.additionalCredits =
+        album.credits.length > 0 ? album.credits : undefined
+      changed = true
+    }
+    if (changed) await ctx.db.patch("songs", track.songId, patch)
+  }
+}
+
+async function setSongAlbumContext(
+  ctx: MutationCtx,
+  memberId: Id<"members">,
+  songId: Id<"songs">,
+  context: Infer<typeof albumContextValidator> | undefined
+) {
+  if (context === undefined) return
+  const current = await ctx.db
+    .query("albumTracks")
+    .withIndex("by_song_id", (q) => q.eq("songId", songId))
+    .unique()
+  const now = Date.now()
+  if (context === null) {
+    if (current) {
+      await ctx.db.delete("albumTracks", current._id)
+      await ctx.db.patch("albums", current.albumId, {
+        status: "draft",
+        rightsConfirmedAt: undefined,
+        updatedAt: now,
+      })
+    }
+    return
+  }
+
+  await ownedAlbum(ctx, memberId, context.albumId)
+  if (current && current.albumId !== context.albumId) {
+    await ctx.db.delete("albumTracks", current._id)
+    await ctx.db.patch("albums", current.albumId, {
+      status: "draft",
+      rightsConfirmedAt: undefined,
+      updatedAt: now,
+    })
+  }
+  if (current?.albumId === context.albumId) {
+    await ctx.db.patch("albumTracks", current._id, {
+      ...context.inheritance,
+      updatedAt: now,
+    })
+  } else {
+    const rows = await ctx.db
+      .query("albumTracks")
+      .withIndex("by_album_id_and_position", (q) =>
+        q.eq("albumId", context.albumId)
+      )
+      .take(MAX_TRACKS + 1)
+    if (rows.length >= MAX_TRACKS)
+      bad("INVALID_TRACKS", "Cet album contient déjà trop de morceaux.")
+    await ctx.db.insert("albumTracks", {
+      albumId: context.albumId,
+      songId,
+      ownerMemberId: memberId,
+      position: rows.length,
+      ...context.inheritance,
       createdAt: now,
       updatedAt: now,
     })
+  }
+  await ctx.db.patch("albums", context.albumId, {
+    status: "draft",
+    rightsConfirmedAt: undefined,
+    updatedAt: now,
+  })
+}
+
+export const createSong = artistMutation({
+  args: {
+    ...songInput,
+    albumContext: v.optional(albumContextValidator),
+  },
+  returns: v.id("songs"),
+  handler: async (ctx, args) => {
+    const now = Date.now()
+    const album = args.albumContext
+      ? await ownedAlbum(ctx, ctx.member._id, args.albumContext.albumId)
+      : null
+    const song = album
+      ? materializeAlbumMetadata(
+          validatedSong(args),
+          album,
+          args.albumContext!.inheritance
+        )
+      : validatedSong(args)
+    const songId = await ctx.db.insert("songs", {
+      ownerMemberId: ctx.member._id,
+      status: "draft",
+      ...song,
+      createdAt: now,
+      updatedAt: now,
+    })
+    await setSongAlbumContext(ctx, ctx.member._id, songId, args.albumContext)
     return songId
   },
 })
 
 export const updateSong = artistMutation({
-  args: { songId: v.id("songs"), ...songInput },
+  args: {
+    songId: v.id("songs"),
+    ...songInput,
+    albumContext: v.optional(albumContextValidator),
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
     const current = await ownedSong(ctx, ctx.member._id, args.songId)
     const now = Date.now()
+    const album = args.albumContext
+      ? await ownedAlbum(ctx, ctx.member._id, args.albumContext.albumId)
+      : null
+    const song = album
+      ? materializeAlbumMetadata(
+          validatedSong(args),
+          album,
+          args.albumContext!.inheritance
+        )
+      : validatedSong(args)
     await ctx.db.replace("songs", args.songId, {
       ownerMemberId: current.ownerMemberId,
       status: "draft",
-      ...validatedSong(args),
-      ...(current.artworkStorageId
+      ...song,
+      ...((!album || !args.albumContext?.inheritance.inheritArtwork) &&
+      current.artworkStorageId
         ? { artworkStorageId: current.artworkStorageId }
         : {}),
       ...(current.firstPublishedAt
@@ -578,6 +884,12 @@ export const updateSong = artistMutation({
       createdAt: current.createdAt,
       updatedAt: now,
     })
+    await setSongAlbumContext(
+      ctx,
+      ctx.member._id,
+      args.songId,
+      args.albumContext
+    )
     return null
   },
 })
@@ -703,20 +1015,7 @@ export const createAlbum = artistMutation({
     return ctx.db.insert("albums", {
       ownerMemberId: ctx.member._id,
       status: "draft",
-      title: text(args.title, 160, "Le titre"),
-      ...(optionalDate(args.releaseDate) === undefined
-        ? {}
-        : { releaseDate: optionalDate(args.releaseDate) }),
-      ...(optionalText(args.description, 5_000, "La description")
-        ? {
-            description: optionalText(
-              args.description,
-              5_000,
-              "La description"
-            ),
-          }
-        : {}),
-      credits: textList(args.credits, 50, "Les crédits"),
+      ...validatedAlbum(args),
       createdAt: now,
       updatedAt: now,
     })
@@ -788,20 +1087,7 @@ export const updateAlbum = artistMutation({
     await ctx.db.replace("albums", args.albumId, {
       ownerMemberId: current.ownerMemberId,
       status: "draft",
-      title: text(args.title, 160, "Le titre"),
-      ...(optionalDate(args.releaseDate) === undefined
-        ? {}
-        : { releaseDate: optionalDate(args.releaseDate) }),
-      ...(optionalText(args.description, 5_000, "La description")
-        ? {
-            description: optionalText(
-              args.description,
-              5_000,
-              "La description"
-            ),
-          }
-        : {}),
-      credits: textList(args.credits, 50, "Les crédits"),
+      ...validatedAlbum(args),
       ...(current.artworkStorageId
         ? { artworkStorageId: current.artworkStorageId }
         : {}),
@@ -812,6 +1098,8 @@ export const updateAlbum = artistMutation({
       updatedAt: Date.now(),
     })
     await replaceAlbumTracks(ctx, ctx.member._id, args.albumId, args.songIds)
+    const updated = await ownedAlbum(ctx, ctx.member._id, args.albumId)
+    await patchInheritedSongs(ctx, updated)
     return null
   },
 })
@@ -821,6 +1109,115 @@ export const setAlbumTracks = artistMutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await replaceAlbumTracks(ctx, ctx.member._id, args.albumId, args.songIds)
+    return null
+  },
+})
+
+export const attachSongToAlbum = artistMutation({
+  args: {
+    albumId: v.id("albums"),
+    songId: v.id("songs"),
+    inheritance: albumInheritanceValidator,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const album = await ownedAlbum(ctx, ctx.member._id, args.albumId)
+    const song = await ownedSong(ctx, ctx.member._id, args.songId)
+    const current = await ctx.db
+      .query("albumTracks")
+      .withIndex("by_song_id", (q) => q.eq("songId", song._id))
+      .unique()
+    if (current && current.albumId !== album._id)
+      bad(
+        "SONG_ALREADY_IN_ALBUM",
+        "Ce morceau appartient déjà à un autre album."
+      )
+    const materialized = materializeAlbumMetadata(
+      validatedSong({
+        ...song,
+        lyricsText: await lyricsTextForSong(ctx, song),
+      }),
+      album,
+      args.inheritance
+    )
+    await ctx.db.replace("songs", song._id, {
+      ownerMemberId: song.ownerMemberId,
+      status: "draft",
+      ...materialized,
+      ...(!args.inheritance.inheritArtwork && song.artworkStorageId
+        ? { artworkStorageId: song.artworkStorageId }
+        : {}),
+      ...(song.firstPublishedAt
+        ? { firstPublishedAt: song.firstPublishedAt }
+        : {}),
+      createdAt: song.createdAt,
+      updatedAt: Date.now(),
+    })
+    await setSongAlbumContext(ctx, ctx.member._id, song._id, {
+      albumId: album._id,
+      inheritance: args.inheritance,
+    })
+    return null
+  },
+})
+
+export const detachSongFromAlbum = artistMutation({
+  args: { albumId: v.id("albums"), songId: v.id("songs") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ownedAlbum(ctx, ctx.member._id, args.albumId)
+    const song = await ownedSong(ctx, ctx.member._id, args.songId)
+    const track = await ctx.db
+      .query("albumTracks")
+      .withIndex("by_song_id", (q) => q.eq("songId", song._id))
+      .unique()
+    if (!track || track.albumId !== args.albumId)
+      bad("NOT_FOUND", "Ce morceau ne fait pas partie de cet album.")
+    await ctx.db.delete("albumTracks", track._id)
+    const now = Date.now()
+    await ctx.db.patch("songs", song._id, {
+      status: "draft",
+      rightsConfirmedAt: undefined,
+      updatedAt: now,
+    })
+    await ctx.db.patch("albums", args.albumId, {
+      status: "draft",
+      rightsConfirmedAt: undefined,
+      updatedAt: now,
+    })
+    return null
+  },
+})
+
+export const reorderAlbumTracks = artistMutation({
+  args: { albumId: v.id("albums"), songIds: v.array(v.id("songs")) },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const album = await ownedAlbum(ctx, ctx.member._id, args.albumId)
+    const current = await ctx.db
+      .query("albumTracks")
+      .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
+      .take(MAX_TRACKS + 1)
+    if (
+      current.length > MAX_TRACKS ||
+      args.songIds.length !== current.length ||
+      new Set(args.songIds).size !== args.songIds.length ||
+      current.some((track) => !args.songIds.includes(track.songId))
+    ) {
+      bad("INVALID_TRACKS", "La liste ordonnée des morceaux est invalide.")
+    }
+    const bySong = new Map(current.map((track) => [track.songId, track]))
+    const now = Date.now()
+    for (const [position, songId] of args.songIds.entries()) {
+      const track = bySong.get(songId)
+      if (!track) bad("INVALID_TRACKS", "Morceau d’album introuvable.")
+      await ctx.db.patch("albumTracks", track._id, { position, updatedAt: now })
+    }
+    await ctx.db.patch("albums", album._id, {
+      status: "draft",
+      rightsConfirmedAt: undefined,
+      updatedAt: now,
+    })
     return null
   },
 })
@@ -850,6 +1247,26 @@ export const publishAlbum = artistMutation({
   args: { albumId: v.id("albums"), rightsConfirmed: v.literal(true) },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const album = await ownedAlbum(ctx, ctx.member._id, args.albumId)
+    const tracks = await ctx.db
+      .query("albumTracks")
+      .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
+      .take(MAX_TRACKS + 1)
+    if (tracks.length > MAX_TRACKS)
+      bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+    let hasPublishedTrack = false
+    for (const track of tracks) {
+      const song = await ctx.db.get("songs", track.songId)
+      if (song?.status === "published") {
+        hasPublishedTrack = true
+        break
+      }
+    }
+    if (!hasPublishedTrack)
+      bad(
+        "ALBUM_NEEDS_PUBLISHED_TRACK",
+        "Publiez au moins un morceau avant de publier l’album."
+      )
     await setAlbumStatus(
       ctx,
       ctx.member._id,
@@ -865,6 +1282,47 @@ export const unpublishAlbum = artistMutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await setAlbumStatus(ctx, ctx.member._id, args.albumId, "draft")
+    return null
+  },
+})
+
+export const deleteAlbum = artistMutation({
+  args: { albumId: v.id("albums") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const album = await ownedAlbum(ctx, ctx.member._id, args.albumId)
+    const tracks = await ctx.db
+      .query("albumTracks")
+      .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
+      .take(MAX_TRACKS + 1)
+    if (tracks.length > MAX_TRACKS)
+      bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+
+    for (const track of tracks) {
+      const song = await ctx.db.get("songs", track.songId)
+      if (!song || song.ownerMemberId !== ctx.member._id)
+        bad("CATALOGUE_INVARIANT", "Morceau d’album introuvable.")
+      const inheritance = trackInheritance(track)
+      const patch: Partial<Doc<"songs">> = { updatedAt: Date.now() }
+      if (inheritance.inheritArtwork && album.artworkStorageId)
+        patch.artworkStorageId = album.artworkStorageId
+      if (inheritance.inheritPrimaryLanguage && album.primaryLanguage)
+        patch.primaryLanguage = album.primaryLanguage
+      if (inheritance.inheritGenre) {
+        patch.genre = album.genre
+        patch.otherGenre = album.otherGenre
+      }
+      if (inheritance.inheritLabel) patch.label = album.label
+      if (inheritance.inheritCredits)
+        patch.additionalCredits =
+          album.credits.length > 0 ? album.credits : undefined
+      await ctx.db.patch("songs", song._id, patch)
+      await ctx.db.delete("albumTracks", track._id)
+    }
+
+    await ctx.db.delete("albums", album._id)
+    if (album.artworkStorageId)
+      await deleteArtworkIfUnused(ctx, ctx.member._id, album.artworkStorageId)
     return null
   },
 })
@@ -981,7 +1439,7 @@ async function deleteArtworkIfUnused(
     .withIndex("by_artwork_storage_id", (q) =>
       q.eq("artworkStorageId", storageId)
     )
-    .unique()
+    .first()
   const album = await ctx.db
     .query("albums")
     .withIndex("by_artwork_storage_id", (q) =>
@@ -1045,20 +1503,33 @@ export const saveArtwork = artistMutation({
         createdAt: Date.now(),
       })
     const previous = resource.artworkStorageId
-    if (args.resource.kind === "song")
-      await ctx.db.patch("songs", args.resource.id, {
+    if (args.resource.kind === "song") {
+      const songId = args.resource.id
+      await ctx.db.patch("songs", songId, {
         artworkStorageId: args.storageId,
         status: "draft",
         rightsConfirmedAt: undefined,
         updatedAt: Date.now(),
       })
-    else
+      const track = await ctx.db
+        .query("albumTracks")
+        .withIndex("by_song_id", (q) => q.eq("songId", songId))
+        .unique()
+      if (track)
+        await ctx.db.patch("albumTracks", track._id, {
+          inheritArtwork: false,
+          updatedAt: Date.now(),
+        })
+    } else {
       await ctx.db.patch("albums", args.resource.id, {
         artworkStorageId: args.storageId,
         status: "draft",
         rightsConfirmedAt: undefined,
         updatedAt: Date.now(),
       })
+      const album = await ownedAlbum(ctx, ctx.member._id, args.resource.id)
+      await patchInheritedSongs(ctx, album)
+    }
     await ctx.db.delete("catalogueImageUploadIntents", intent._id)
     if (previous && previous !== args.storageId)
       await deleteArtworkIfUnused(ctx, ctx.member._id, previous)

@@ -31,6 +31,7 @@ type TextFieldProps = Omit<
   id?: string
   label: ReactNode
   labelExtra?: ReactNode
+  onValueChange?: (value: string) => void
 }
 
 function TextField({
@@ -38,6 +39,7 @@ function TextField({
   id,
   label,
   labelExtra,
+  onValueChange,
   ...inputProps
 }: TextFieldProps) {
   const field = useFieldContext<string>()
@@ -60,7 +62,10 @@ function TextField({
         name={field.name}
         value={field.state.value}
         onBlur={field.handleBlur}
-        onChange={(event) => field.handleChange(event.target.value)}
+        onChange={(event) => {
+          field.handleChange(event.target.value)
+          onValueChange?.(event.target.value)
+        }}
         aria-invalid={invalid || undefined}
       />
       {invalid ? (
@@ -80,6 +85,7 @@ type TextareaFieldProps = Omit<
   id?: string
   label: ReactNode
   labelExtra?: ReactNode
+  onValueChange?: (value: string) => void
 }
 
 function TextareaField({
@@ -87,6 +93,7 @@ function TextareaField({
   id,
   label,
   labelExtra,
+  onValueChange,
   ...textareaProps
 }: TextareaFieldProps) {
   const field = useFieldContext<string>()
@@ -109,7 +116,10 @@ function TextareaField({
         name={field.name}
         value={field.state.value}
         onBlur={field.handleBlur}
-        onChange={(event) => field.handleChange(event.target.value)}
+        onChange={(event) => {
+          field.handleChange(event.target.value)
+          onValueChange?.(event.target.value)
+        }}
         aria-invalid={invalid || undefined}
       />
       {invalid ? (
@@ -129,6 +139,7 @@ type SelectFieldProps = {
   options: Array<{ label: ReactNode; value: string }>
   placeholder?: string
   required?: boolean
+  onValueChange?: (value: string) => void
 }
 
 function SelectField({
@@ -139,6 +150,7 @@ function SelectField({
   options,
   placeholder,
   required,
+  onValueChange,
 }: SelectFieldProps) {
   const field = useFieldContext<string>()
   const inputId = id ?? field.name
@@ -158,7 +170,10 @@ function SelectField({
         name={field.name}
         value={field.state.value}
         required={required}
-        onValueChange={field.handleChange}
+        onValueChange={(value) => {
+          field.handleChange(value)
+          onValueChange?.(value)
+        }}
       >
         <SelectTrigger
           id={inputId}

@@ -65,7 +65,7 @@ export function CatalogueDashboard() {
         <TabsContent value="songs" className="space-y-4 pt-3">
           <div className="flex justify-end">
             <Button asChild>
-              <Link to="/studio/songs/new">
+              <Link to="/studio/songs/new" search={{ albumId: undefined }}>
                 <Plus /> {t("studio.newSong")}
               </Link>
             </Button>

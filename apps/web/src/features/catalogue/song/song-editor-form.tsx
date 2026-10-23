@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
 
-import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
@@ -20,15 +20,24 @@ import { useSongEditorController } from "./use-song-editor-controller"
 
 export function SongEditorForm({
   detail,
+  initialAlbum,
+  albums,
   primaryArtist,
   songId,
 }: {
   detail?: SongDetail
+  initialAlbum?: Doc<"albums">
+  albums: Array<Doc<"albums">>
   primaryArtist: string
   songId?: Id<"songs">
 }) {
   const { t } = useLocale()
-  const controller = useSongEditorController({ detail, primaryArtist, songId })
+  const controller = useSongEditorController({
+    detail,
+    initialAlbum,
+    primaryArtist,
+    songId,
+  })
   const { pending: uploadPending, uploadArtwork } = useCatalogueArtworkUpload(
     songId ? { kind: "song", id: songId } : undefined,
     controller.setError
@@ -98,7 +107,7 @@ export function SongEditorForm({
             <controller.form.AppForm>
               <FieldGroup>
                 {controller.step === 0 ? (
-                  <SongBasicsStep form={controller.form} />
+                  <SongBasicsStep form={controller.form} albums={albums} />
                 ) : null}
                 {controller.step === 1 ? (
                   <SongCreditsStep form={controller.form} />

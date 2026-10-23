@@ -5,7 +5,12 @@ import type {
 
 export type SongInformationId = "releaseDate" | "primaryLanguage" | "genre"
 export type SongCreditId =
-  "guestArtists" | "writers" | "composers" | "producers" | "label"
+  | "guestArtists"
+  | "writers"
+  | "composers"
+  | "producers"
+  | "label"
+  | "additionalCredits"
 
 export type SongDisplayItem<TId extends string> = {
   id: TId
@@ -13,6 +18,7 @@ export type SongDisplayItem<TId extends string> = {
 }
 
 type SongDisplaySource = {
+  additionalCredits?: Array<string>
   composers: Array<string>
   genre?: SongGenre
   guestArtists: Array<string>
@@ -65,6 +71,14 @@ export function collectSongCredits(
       ? [{ id: "producers" as const, value: song.producers }]
       : []),
     ...(song.label ? [{ id: "label" as const, value: song.label }] : []),
+    ...(song.additionalCredits && song.additionalCredits.length > 0
+      ? [
+          {
+            id: "additionalCredits" as const,
+            value: song.additionalCredits,
+          },
+        ]
+      : []),
   ]
 }
 

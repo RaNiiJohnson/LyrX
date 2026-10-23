@@ -3,6 +3,7 @@ import type { MessageKey } from "@lyrx/shared"
 type Translate = (key: MessageKey) => string
 
 const ERROR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
+  ALBUM_NEEDS_PUBLISHED_TRACK: "error.albumNeedsPublishedTrack",
   ACCOUNT_SUSPENDED: "error.accountSuspended",
   ARTIST_ROLE_REQUIRED: "error.artistRoleRequired",
   EMAIL_CAN_NOT_BE_SENT: "error.emailUnavailable",

@@ -3,7 +3,7 @@ import { useMutation } from "convex/react"
 import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
-import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useLocale } from "@/app/locale-provider"
@@ -18,10 +18,12 @@ import type { SongDetail } from "./song-types"
 
 export function useSongEditorController({
   detail,
+  initialAlbum,
   primaryArtist,
   songId,
 }: {
   detail?: SongDetail
+  initialAlbum?: Doc<"albums">
   primaryArtist: string
   songId?: Id<"songs">
 }) {
@@ -41,9 +43,14 @@ export function useSongEditorController({
   const form = useAppForm({
     defaultValues: detail
       ? songValuesFromDetail(detail)
-      : emptySongValues(primaryArtist),
+      : emptySongValues(primaryArtist, initialAlbum),
     onSubmit: async ({ value }) => {
       setError(null)
+      if (value.releaseType === "album" && !value.albumId) {
+        setError(t("studio.chooseAlbum"))
+        setStep(0)
+        return
+      }
       setSaving(true)
       try {
         const input = toSongMutationInput(value)
@@ -68,6 +75,14 @@ export function useSongEditorController({
   async function saveCurrentChanges() {
     if (!songId) return
     setError(null)
+    if (
+      form.state.values.releaseType === "album" &&
+      !form.state.values.albumId
+    ) {
+      setError(t("studio.chooseAlbum"))
+      setStep(0)
+      return
+    }
     setSaving(true)
     try {
       await updateSong({
@@ -86,6 +101,14 @@ export function useSongEditorController({
 
   async function nextStep() {
     if (step === 0) {
+      if (
+        form.state.values.releaseType === "album" &&
+        !form.state.values.albumId
+      ) {
+        await form.validateField("albumId", "blur")
+        document.getElementById("albumId")?.focus()
+        return
+      }
       for (const name of [
         "title",
         "primaryArtist",

@@ -353,6 +353,20 @@ describe("artist catalogue", () => {
     await expect(
       t.query(api.catalogue.getPublishedAlbum, { albumId })
     ).resolves.toBeNull()
+    await expect(
+      client.mutation(api.catalogue.publishAlbum, {
+        albumId,
+        rightsConfirmed: true,
+      })
+    ).rejects.toThrow("au moins un morceau")
+    await client.mutation(api.catalogue.publishSong, {
+      songId,
+      rightsConfirmed: true,
+    })
+    await client.mutation(api.catalogue.setAlbumTracks, {
+      albumId,
+      songIds: [songId],
+    })
     await client.mutation(api.catalogue.publishAlbum, {
       albumId,
       rightsConfirmed: true,
@@ -364,10 +378,6 @@ describe("artist catalogue", () => {
     await expect(
       t.query(api.catalogue.getPublishedAlbum, { albumId })
     ).resolves.toBeNull()
-    await client.mutation(api.catalogue.publishSong, {
-      songId,
-      rightsConfirmed: true,
-    })
     await client.mutation(api.catalogue.publishAlbum, {
       albumId,
       rightsConfirmed: true,
@@ -678,6 +688,18 @@ describe("artist catalogue", () => {
       secondSong,
       firstSong,
     ])
+    await firstArtist.client.mutation(api.catalogue.reorderAlbumTracks, {
+      albumId,
+      songIds: [firstSong, secondSong],
+    })
+    const reordered = await firstArtist.client.query(
+      api.catalogue.getMyAlbum,
+      { albumId }
+    )
+    expect(reordered.tracks.map(({ song }) => song._id)).toEqual([
+      firstSong,
+      secondSong,
+    ])
     await expect(
       firstArtist.client.mutation(api.catalogue.setAlbumTracks, {
         albumId: otherAlbumId,
@@ -690,5 +712,86 @@ describe("artist catalogue", () => {
         songIds: [outsiderSong],
       })
     ).rejects.toThrow("introuvable")
+  })
+
+  it("inherits album metadata and materializes it before album deletion", async () => {
+    const t = backend()
+    const owner = await artist(t, "album-inheritance")
+    const albumId = await owner.client.mutation(api.catalogue.createAlbum, {
+      title: "Héritage",
+      primaryLanguage: "mg",
+      genre: "rock",
+      label: "Label A",
+      credits: ["Pochette — Aina"],
+    })
+    const songId = await owner.client.mutation(api.catalogue.createSong, {
+      ...songInput("Piste héritée"),
+      primaryLanguage: "fr",
+      genre: "pop",
+      otherGenre: undefined,
+      albumContext: {
+        albumId,
+        inheritance: {
+          inheritArtwork: true,
+          inheritPrimaryLanguage: true,
+          inheritGenre: true,
+          inheritLabel: true,
+          inheritCredits: true,
+        },
+      },
+    })
+
+    await expect(
+      owner.client.query(api.catalogue.getMySong, { songId })
+    ).resolves.toMatchObject({
+      song: {
+        primaryLanguage: "mg",
+        genre: "rock",
+        label: "Label A",
+        additionalCredits: ["Pochette — Aina"],
+      },
+      album: { _id: albumId },
+      albumTrack: {
+        inheritPrimaryLanguage: true,
+        inheritGenre: true,
+      },
+    })
+
+    await owner.client.mutation(api.catalogue.updateAlbum, {
+      albumId,
+      songIds: [songId],
+      title: "Héritage modifié",
+      primaryLanguage: "en",
+      genre: "jazz",
+      label: "Label B",
+      credits: ["Mastering — Solo"],
+    })
+    await expect(
+      owner.client.query(api.catalogue.getMySong, { songId })
+    ).resolves.toMatchObject({
+      song: {
+        primaryLanguage: "en",
+        genre: "jazz",
+        label: "Label B",
+        additionalCredits: ["Mastering — Solo"],
+      },
+    })
+
+    await owner.client.mutation(api.catalogue.deleteAlbum, { albumId })
+    await expect(
+      owner.client.query(api.catalogue.getMyAlbum, { albumId })
+    ).rejects.toThrow("introuvable")
+    await expect(
+      owner.client.query(api.catalogue.getMySong, { songId })
+    ).resolves.toMatchObject({
+      song: {
+        primaryLanguage: "en",
+        genre: "jazz",
+        label: "Label B",
+        additionalCredits: ["Mastering — Solo"],
+      },
+      album: null,
+      albumTrack: null,
+    })
   })
 })
