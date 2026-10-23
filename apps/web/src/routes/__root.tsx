@@ -15,7 +15,7 @@ import appCss from "@lyrx/ui/globals.css?url"
 
 import { BackendProvider } from "@/app/backend-provider"
 import { LocaleProvider, useLocale } from "@/app/locale-provider"
-import { PageShell } from "@/app/page-shell"
+import { RouteBoundaryShell } from "@/app/route-boundary-shell"
 import type { RouterContext } from "@/router"
 
 const getInitialAuthToken = createServerFn({ method: "GET" }).handler(
@@ -101,13 +101,13 @@ function NotFoundPage() {
   const title = formatMessage(DEFAULT_LOCALE, "notFound.title")
   const description = formatMessage(DEFAULT_LOCALE, "notFound.description")
   return (
-    <PageShell>
+    <RouteBoundaryShell>
       <section className="flex min-h-[50svh] flex-col justify-center gap-3">
         <p className="font-mono text-sm text-primary">404</p>
         <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
         <p className="text-muted-foreground">{description}</p>
       </section>
-    </PageShell>
+    </RouteBoundaryShell>
   )
 }
 

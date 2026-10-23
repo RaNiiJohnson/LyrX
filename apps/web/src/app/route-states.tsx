@@ -7,7 +7,7 @@ import { DEFAULT_LOCALE, formatMessage } from "@lyrx/shared"
 import type { MessageKey } from "@lyrx/shared"
 
 import { getErrorMessage } from "@/lib/errors"
-import { PageShell } from "./page-shell"
+import { RouteBoundaryShell } from "./route-boundary-shell"
 
 // Route boundaries may render before RootApplication mounts its providers.
 // Keep them independent from LocaleProvider and use the documented default.
@@ -15,9 +15,9 @@ const t = (key: MessageKey) => formatMessage(DEFAULT_LOCALE, key)
 
 export function CatalogueRouteError({ error }: { error: unknown }) {
   return (
-    <PageShell width="wide">
+    <RouteBoundaryShell width="wide">
       <Alert variant="destructive">
-        <AlertTitle>{t("catalogue.saveError")}</AlertTitle>
+        <AlertTitle>{t("error.unexpected")}</AlertTitle>
         <AlertDescription className="space-y-3">
           <p>{getErrorMessage(error, t)}</p>
           <Button asChild variant="outline" size="sm">
@@ -25,25 +25,25 @@ export function CatalogueRouteError({ error }: { error: unknown }) {
           </Button>
         </AlertDescription>
       </Alert>
-    </PageShell>
+    </RouteBoundaryShell>
   )
 }
 
 export function CatalogueRoutePending() {
   return (
-    <PageShell width="wide">
+    <RouteBoundaryShell width="wide">
       <div aria-label={t("common.loadingCatalogue")} className="space-y-5">
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-10 w-72" />
         <Skeleton className="h-64 w-full" />
       </div>
-    </PageShell>
+    </RouteBoundaryShell>
   )
 }
 
 export function CatalogueRouteNotFound() {
   return (
-    <PageShell width="wide">
+    <RouteBoundaryShell width="wide">
       <Alert>
         <AlertTitle>{t("notFound.title")}</AlertTitle>
         <AlertDescription className="space-y-3">
@@ -53,40 +53,40 @@ export function CatalogueRouteNotFound() {
           </Button>
         </AlertDescription>
       </Alert>
-    </PageShell>
+    </RouteBoundaryShell>
   )
 }
 
 export function AppRouteError({ error }: { error: unknown }) {
   return (
-    <PageShell>
+    <RouteBoundaryShell>
       <Alert variant="destructive">
         <AlertTitle>{t("error.unexpected")}</AlertTitle>
         <AlertDescription>{getErrorMessage(error, t)}</AlertDescription>
       </Alert>
-    </PageShell>
+    </RouteBoundaryShell>
   )
 }
 
 export function AppRoutePending() {
   return (
-    <PageShell>
+    <RouteBoundaryShell>
       <div aria-label={t("common.loading")} className="space-y-4">
         <Skeleton className="h-10 w-56" />
         <Skeleton className="h-64 w-full" />
       </div>
-    </PageShell>
+    </RouteBoundaryShell>
   )
 }
 
 export function AppRouteNotFound() {
   return (
-    <PageShell>
+    <RouteBoundaryShell>
       <Alert>
         <AlertTitle>{t("notFound.title")}</AlertTitle>
         <AlertDescription>{t("notFound.description")}</AlertDescription>
       </Alert>
-    </PageShell>
+    </RouteBoundaryShell>
   )
 }
 

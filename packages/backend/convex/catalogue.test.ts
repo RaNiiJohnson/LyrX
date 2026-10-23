@@ -301,6 +301,7 @@ describe("artist catalogue", () => {
       songId,
     })
     expect(publishedSong).toMatchObject({ song: { status: "published" } })
+    expect(publishedSong?.lyricsText).toBe(songInput("Publication").lyricsText)
     expect(publishedSong?.song).not.toHaveProperty("ownerMemberId")
     expect(publishedSong?.song).not.toHaveProperty("rightsConfirmedAt")
     const ownedSong = await client.query(api.catalogue.getMySong, { songId })

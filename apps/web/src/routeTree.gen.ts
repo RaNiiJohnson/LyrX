@@ -19,6 +19,7 @@ import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
+import { Route as SongsSongIdRouteImport } from './routes/songs/$songId'
 import { Route as StudioIndexRouteImport } from './routes/studio/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as StudioAlbumsAlbumIdRouteImport } from './routes/studio/albums/$albumId'
@@ -78,6 +79,11 @@ const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
 const ProfilesHandleRoute = ProfilesHandleRouteImport.update({
   id: '/profiles/$handle',
   path: '/profiles/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SongsSongIdRoute = SongsSongIdRouteImport.update({
+  id: '/songs/$songId',
+  path: '/songs/$songId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudioIndexRoute = StudioIndexRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
+  '/songs/$songId': typeof SongsSongIdRoute
   '/studio/': typeof StudioIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdRouteWithChildren
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
+  '/songs/$songId': typeof SongsSongIdRoute
   '/studio': typeof StudioIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/studio/albums/new': typeof StudioAlbumsNewRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
+  '/songs/$songId': typeof SongsSongIdRoute
   '/studio/': typeof StudioIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdRouteWithChildren
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-email'
     | '/profiles/$handle'
+    | '/songs/$songId'
     | '/studio/'
     | '/api/auth/$'
     | '/studio/albums/$albumId'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-email'
     | '/profiles/$handle'
+    | '/songs/$songId'
     | '/studio'
     | '/api/auth/$'
     | '/studio/albums/new'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-email'
     | '/profiles/$handle'
+    | '/songs/$songId'
     | '/studio/'
     | '/api/auth/$'
     | '/studio/albums/$albumId'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   ProfilesHandleRoute: typeof ProfilesHandleRoute
+  SongsSongIdRoute: typeof SongsSongIdRoute
   StudioIndexRoute: typeof StudioIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   StudioAlbumsAlbumIdRoute: typeof StudioAlbumsAlbumIdRouteWithChildren
@@ -355,6 +368,13 @@ declare module '@tanstack/react-router' {
       path: '/profiles/$handle'
       fullPath: '/profiles/$handle'
       preLoaderRoute: typeof ProfilesHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/songs/$songId': {
+      id: '/songs/$songId'
+      path: '/songs/$songId'
+      fullPath: '/songs/$songId'
+      preLoaderRoute: typeof SongsSongIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio/': {
@@ -467,6 +487,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   ProfilesHandleRoute: ProfilesHandleRoute,
+  SongsSongIdRoute: SongsSongIdRoute,
   StudioIndexRoute: StudioIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   StudioAlbumsAlbumIdRoute: StudioAlbumsAlbumIdRouteWithChildren,

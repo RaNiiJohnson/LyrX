@@ -2,10 +2,11 @@ import { convexQuery } from "@convex-dev/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
+import { DEFAULT_LOCALE, formatMessage } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { BackendRequired } from "@/app/backend-required"
-import { useLocale } from "@/app/locale-provider"
 import { PageShell } from "@/app/page-shell"
+import { RouteBoundaryShell } from "@/app/route-boundary-shell"
 import {
   PublicProfile,
   PublicProfileSkeleton,
@@ -19,9 +20,10 @@ export const Route = createFileRoute("/profiles/$handle")({
     if (!context.convexQueryClient) return
     // This query is public. Protected Convex queries intentionally remain
     // client-only until the Better Auth token is wired to the SSR HTTP client.
-    await context.queryClient.ensureQueryData(
-      convexQuery(api.members.publicByHandle, { handle: params.handle })
-    )
+    await context.queryClient.query({
+      ...convexQuery(api.members.publicByHandle, { handle: params.handle }),
+      staleTime: "static",
+    })
   },
   notFoundComponent: PublicProfileNotFoundPage,
   pendingComponent: PublicProfilePendingPage,
@@ -39,35 +41,41 @@ function PublicProfilePage() {
 }
 
 function PublicProfileErrorPage({ error }: { error: unknown }) {
-  const { t } = useLocale()
+  const t = defaultTranslate
   return (
-    <PageShell width="wide">
+    <RouteBoundaryShell width="wide">
       <Alert variant="destructive">
         <AlertTitle>{t("profile.publicNotFoundTitle")}</AlertTitle>
         <AlertDescription>{getErrorMessage(error, t)}</AlertDescription>
       </Alert>
-    </PageShell>
+    </RouteBoundaryShell>
   )
 }
 
 function PublicProfilePendingPage() {
   return (
-    <PageShell width="wide">
-      <PublicProfileSkeleton />
-    </PageShell>
+    <RouteBoundaryShell width="wide">
+      <PublicProfileSkeleton
+        label={defaultTranslate("common.loadingPublicProfile")}
+      />
+    </RouteBoundaryShell>
   )
 }
 
 function PublicProfileNotFoundPage() {
-  const { t } = useLocale()
+  const t = defaultTranslate
   return (
-    <PageShell width="wide">
+    <RouteBoundaryShell width="wide">
       <Alert>
         <AlertTitle>{t("profile.publicNotFoundTitle")}</AlertTitle>
         <AlertDescription>
           {t("profile.publicNotFoundDescription")}
         </AlertDescription>
       </Alert>
-    </PageShell>
+    </RouteBoundaryShell>
   )
+}
+
+function defaultTranslate(key: Parameters<typeof formatMessage>[1]) {
+  return formatMessage(DEFAULT_LOCALE, key)
 }

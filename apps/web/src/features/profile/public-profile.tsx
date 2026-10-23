@@ -147,10 +147,9 @@ export function PublicProfile({ handle }: { handle: string }) {
   )
 }
 
-export function PublicProfileSkeleton() {
-  const { t } = useLocale()
+export function PublicProfileSkeleton({ label }: { label: string }) {
   return (
-    <Card aria-label={t("common.loadingPublicProfile")}>
+    <Card aria-label={label}>
       <Skeleton className="aspect-3/1 w-full rounded-b-none" />
       <CardHeader>
         <div className="flex items-center gap-4">

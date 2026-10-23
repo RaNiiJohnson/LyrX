@@ -591,7 +591,7 @@ export const backfillSongLyricsText = internalMutation({
   handler: async (ctx, args) => {
     const page = await ctx.db.query("songs").paginate({
       cursor: args.cursor,
-      // Legacy lyrics may require up to 1,000 bounded line reads per song.
+      // Legacy lyrics may require up to 4,000 bounded line reads per song.
       // Migrate one song per transaction to stay comfortably inside Convex
       // read limits while the continuation cursor advances the full table.
       numItems: 1,

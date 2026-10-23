@@ -9,7 +9,7 @@ import {
   CatalogueRouteNotFound,
   CatalogueRoutePending,
 } from "@/app/route-states"
-import { AlbumPreview } from "@/features/catalogue/catalogue-preview"
+import { AlbumPreview } from "@/features/catalogue/album/album-preview"
 
 export const Route = createFileRoute("/studio/albums/$albumId/preview")({
   component: AlbumPreviewPage,
