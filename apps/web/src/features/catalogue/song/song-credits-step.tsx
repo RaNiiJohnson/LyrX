@@ -78,7 +78,7 @@ export const SongCreditsStep = withForm({
                     linksField.pushValue({ provider: "spotify", url: "" })
                   }
                 >
-                  <Plus /> {t("catalogue.add")}
+                  <Plus data-icon="inline-start" /> {t("catalogue.add")}
                 </Button>
               )}
             </form.Field>
@@ -90,7 +90,7 @@ export const SongCreditsStep = withForm({
                   {t("studio.listeningLinks")}
                 </FieldDescription>
               ) : (
-                <div className="space-y-4">
+                <div className="flex flex-col gap-4">
                   {linksField.state.value.map((_, index) => (
                     <div
                       key={index}
@@ -130,6 +130,16 @@ export const SongCreditsStep = withForm({
                       </Button>
                     </div>
                   ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={linksField.state.value.length >= 12}
+                    onClick={() =>
+                      linksField.pushValue({ provider: "spotify", url: "" })
+                    }
+                  >
+                    <Plus data-icon="inline-start" /> {t("catalogue.add")}
+                  </Button>
                 </div>
               )
             }

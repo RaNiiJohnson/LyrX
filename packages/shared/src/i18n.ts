@@ -22,6 +22,10 @@ const frenchMessages = {
   "catalogue.artworkDescription": "JPEG, PNG ou WebP, 10 Mo maximum.",
   "catalogue.artworkUpdated": "Pochette mise à jour",
   "catalogue.created": "Brouillon créé",
+  "catalogue.deleted": "Morceau supprimé",
+  "catalogue.deleteSongDescription":
+    "Le morceau, ses paroles et sa pochette si elle n’est plus utilisée seront supprimés définitivement.",
+  "catalogue.deleteSongTitle": "Supprimer ce morceau ?",
   "catalogue.draft": "Brouillon",
   "catalogue.edit": "Modifier",
   "catalogue.moveDown": "Descendre",
@@ -402,6 +406,10 @@ const englishMessages = {
   "catalogue.artworkDescription": "JPEG, PNG, or WebP, up to 10 MB.",
   "catalogue.artworkUpdated": "Artwork updated",
   "catalogue.created": "Draft created",
+  "catalogue.deleted": "Song deleted",
+  "catalogue.deleteSongDescription":
+    "The song, its lyrics, and its artwork if it is no longer used will be permanently deleted.",
+  "catalogue.deleteSongTitle": "Delete this song?",
   "catalogue.draft": "Draft",
   "catalogue.edit": "Edit",
   "catalogue.moveDown": "Move down",

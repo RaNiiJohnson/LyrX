@@ -662,6 +662,39 @@ export const unpublishSong = artistMutation({
   },
 })
 
+export const deleteSong = artistMutation({
+  args: { songId: v.id("songs") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const song = await ownedSong(ctx, ctx.member._id, args.songId)
+    const lyrics = await readLyrics(ctx, song._id)
+    const track = await ctx.db
+      .query("albumTracks")
+      .withIndex("by_song_id", (q) => q.eq("songId", song._id))
+      .unique()
+
+    for (const { section, lines } of lyrics) {
+      for (const line of lines) await ctx.db.delete("lyricLines", line._id)
+      await ctx.db.delete("songSections", section._id)
+    }
+
+    if (track) {
+      await ownedAlbum(ctx, ctx.member._id, track.albumId)
+      await ctx.db.delete("albumTracks", track._id)
+      await ctx.db.patch("albums", track.albumId, {
+        status: "draft",
+        rightsConfirmedAt: undefined,
+        updatedAt: Date.now(),
+      })
+    }
+
+    await ctx.db.delete("songs", song._id)
+    if (song.artworkStorageId)
+      await deleteArtworkIfUnused(ctx, ctx.member._id, song.artworkStorageId)
+    return null
+  },
+})
+
 export const createAlbum = artistMutation({
   args: albumInput,
   returns: v.id("albums"),

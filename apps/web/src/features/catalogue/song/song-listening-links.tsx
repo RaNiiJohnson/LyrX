@@ -112,7 +112,11 @@ export function SongListeningLinks({
           >
             <TabsList className="w-full">
               {playableLinks.map((link) => (
-                <TabsTrigger key={link.embed.kind} value={link.embed.kind}>
+                <TabsTrigger
+                  key={link.embed.kind}
+                  value={link.embed.kind}
+                  className="aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:shadow-none"
+                >
                   {providerLabels[link.provider]}
                 </TabsTrigger>
               ))}
@@ -187,12 +191,13 @@ function ListeningPlayer({
         {!isLoaded ? (
           <Button
             type="button"
-            size="icon-lg"
+            size="lg"
             aria-label={t("studio.listeningLoadPlayer", { provider })}
-            className="z-1 m-auto size-12 rounded-full"
+            className="z-1 m-auto rounded-full"
             onClick={onLoad}
           >
             <Play data-icon="inline-start" className="fill-current" />
+            {t("studio.listeningStart", { provider })}
           </Button>
         ) : (
           <iframe

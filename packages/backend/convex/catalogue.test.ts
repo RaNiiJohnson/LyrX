@@ -146,6 +146,81 @@ describe("artist catalogue", () => {
     ).resolves.not.toBeNull()
   })
 
+  it("deletes an owned song and removes its album association", async () => {
+    const t = backend()
+    const owner = await artist(t, "delete-song-owner")
+    const attacker = await artist(t, "delete-song-attacker")
+    const songId = await owner.client.mutation(
+      api.catalogue.createSong,
+      songInput("À supprimer")
+    )
+    const albumId = await owner.client.mutation(api.catalogue.createAlbum, {
+      title: "Album lié",
+      credits: [],
+    })
+    await owner.client.mutation(api.catalogue.updateAlbum, {
+      albumId,
+      songIds: [songId],
+      title: "Album lié",
+      credits: [],
+    })
+    await t.run(async (ctx) => {
+      await ctx.db.patch("songs", songId, { lyricsText: undefined })
+      const now = Date.now()
+      const sectionId = await ctx.db.insert("songSections", {
+        songId,
+        kind: "verse",
+        position: 0,
+        createdAt: now,
+        updatedAt: now,
+      })
+      await ctx.db.insert("lyricLines", {
+        songId,
+        sectionId,
+        text: "Ancienne ligne",
+        position: 0,
+        createdAt: now,
+        updatedAt: now,
+      })
+    })
+
+    await expect(
+      attacker.client.mutation(api.catalogue.deleteSong, { songId })
+    ).rejects.toThrow("introuvable")
+    await owner.client.mutation(api.catalogue.deleteSong, { songId })
+
+    await expect(
+      owner.client.query(api.catalogue.getMySong, { songId })
+    ).rejects.toThrow("introuvable")
+    await expect(
+      t.run((ctx) =>
+        ctx.db
+          .query("albumTracks")
+          .withIndex("by_song_id", (q) => q.eq("songId", songId))
+          .unique()
+      )
+    ).resolves.toBeNull()
+    await expect(
+      t.run((ctx) =>
+        ctx.db
+          .query("songSections")
+          .withIndex("by_song_id_and_position", (q) => q.eq("songId", songId))
+          .take(1)
+      )
+    ).resolves.toEqual([])
+    await expect(
+      t.run((ctx) =>
+        ctx.db
+          .query("lyricLines")
+          .withIndex("by_song_id", (q) => q.eq("songId", songId))
+          .take(1)
+      )
+    ).resolves.toEqual([])
+    await expect(
+      owner.client.query(api.catalogue.getMyAlbum, { albumId })
+    ).resolves.toMatchObject({ album: { status: "draft" }, tracks: [] })
+  })
+
   it("preserves the canonical lyric text exactly across create and update", async () => {
     const t = backend()
     const { client } = await artist(t, "stable-lyrics")

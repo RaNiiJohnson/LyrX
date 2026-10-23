@@ -1,15 +1,29 @@
-import { Link } from "@tanstack/react-router"
-import { useQuery } from "convex/react"
-import { ArrowLeft } from "lucide-react"
+import { Link, useNavigate } from "@tanstack/react-router"
+import { useMutation, useQuery } from "convex/react"
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react"
+import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@lyrx/ui/components/alert-dialog"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
+import { toast } from "@lyrx/ui/lib/toast"
 
 import { useLocale } from "@/app/locale-provider"
 import { PreviewSkeleton } from "@/features/catalogue/shared/preview-skeleton"
+import { getErrorMessage } from "@/lib/errors"
 import { SongReadOnly } from "./song-read-only"
 
 export function SongPreview({ songId }: { songId: Id<"songs"> }) {
@@ -30,18 +44,75 @@ export function SongPreview({ songId }: { songId: Id<"songs"> }) {
 function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
   const detail = useQuery(api.catalogue.getMySong, { songId })
   const { t } = useLocale()
+  const navigate = useNavigate()
+  const deleteSong = useMutation(api.catalogue.deleteSong)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   if (detail === undefined) return <PreviewSkeleton />
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      await deleteSong({ songId })
+      toast.success(t("catalogue.deleted"))
+      await navigate({ to: "/studio" })
+    } catch (caught) {
+      toast.error(t("catalogue.saveError"), {
+        description: getErrorMessage(caught, t),
+      })
+      setDeleting(false)
+    }
+  }
 
   return (
     <SongReadOnly
       detail={detail}
       actions={
         <>
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/studio/songs/$songId" params={{ songId }}>
-              <ArrowLeft /> {t("catalogue.edit")}
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/studio">
+                <ArrowLeft data-icon="inline-start" /> {t("common.back")}
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/studio/songs/$songId" params={{ songId }}>
+                <Pencil data-icon="inline-start" /> {t("catalogue.edit")}
+              </Link>
+            </Button>
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 data-icon="inline-start" /> {t("common.remove")}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {t("catalogue.deleteSongTitle")}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("catalogue.deleteSongDescription")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deleting}>
+                    {t("common.cancel")}
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    disabled={deleting}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      void handleDelete()
+                    }}
+                  >
+                    {t("common.remove")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
           <Badge variant="outline">{t("catalogue.preview")}</Badge>
         </>
       }

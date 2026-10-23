@@ -116,18 +116,33 @@ export function SongEditorForm({
                 >
                   {t("studio.previousStep")}
                 </Button>
-                {controller.step < controller.steps.length - 1 ? (
-                  <Button
-                    type="button"
-                    onClick={() => void controller.nextStep()}
-                  >
-                    {t("studio.nextStep")}
-                  </Button>
-                ) : (
-                  <controller.form.SubmitButton disabled={uploadPending}>
-                    {t("common.save")}
-                  </controller.form.SubmitButton>
-                )}
+                <div className="flex items-center gap-2">
+                  {songId && controller.step < controller.steps.length - 1 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={uploadPending || controller.saving}
+                      onClick={() => void controller.saveCurrentChanges()}
+                    >
+                      {t("common.save")}
+                    </Button>
+                  ) : null}
+                  {controller.step < controller.steps.length - 1 ? (
+                    <Button
+                      type="button"
+                      disabled={controller.saving}
+                      onClick={() => void controller.nextStep()}
+                    >
+                      {t("studio.nextStep")}
+                    </Button>
+                  ) : (
+                    <controller.form.SubmitButton
+                      disabled={uploadPending || controller.saving}
+                    >
+                      {t("common.save")}
+                    </controller.form.SubmitButton>
+                  )}
+                </div>
               </div>
             </controller.form.AppForm>
           </form>

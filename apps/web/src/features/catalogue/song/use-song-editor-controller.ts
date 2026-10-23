@@ -30,6 +30,7 @@ export function useSongEditorController({
   const createSong = useMutation(api.catalogue.createSong)
   const updateSong = useMutation(api.catalogue.updateSong)
   const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [step, setStep] = useState(0)
   const steps = [
     t("studio.stepBasics"),
@@ -43,6 +44,7 @@ export function useSongEditorController({
       : emptySongValues(primaryArtist),
     onSubmit: async ({ value }) => {
       setError(null)
+      setSaving(true)
       try {
         const input = toSongMutationInput(value)
         const savedSongId = songId
@@ -57,9 +59,30 @@ export function useSongEditorController({
         const message = getErrorMessage(caught, t)
         setError(message)
         toast.error(t("catalogue.saveError"), { description: message })
+      } finally {
+        setSaving(false)
       }
     },
   })
+
+  async function saveCurrentChanges() {
+    if (!songId) return
+    setError(null)
+    setSaving(true)
+    try {
+      await updateSong({
+        songId,
+        ...toSongMutationInput(form.state.values),
+      })
+      toast.success(t("catalogue.saved"))
+    } catch (caught) {
+      const message = getErrorMessage(caught, t)
+      setError(message)
+      toast.error(t("catalogue.saveError"), { description: message })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   async function nextStep() {
     if (step === 0) {
@@ -83,6 +106,8 @@ export function useSongEditorController({
     form,
     nextStep,
     previousStep: () => setStep((current) => Math.max(0, current - 1)),
+    saveCurrentChanges,
+    saving,
     setError,
     step,
     steps,

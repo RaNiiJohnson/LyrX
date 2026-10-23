@@ -157,6 +157,26 @@ lot has started.
   27 tests backend et 23 tests web, ainsi que les builds client et SSR. La
   vérification visuelle desktop/mobile est laissée à l'utilisateur conformément
   à sa demande ; aucune preuve visuelle n'est revendiquée dans cette passe.
+- Correctif post-clôture du 2026-10-23 (retours d'usage) : l'éditeur propose
+  maintenant aussi « Ajouter » sous une liste de liens d'écoute déjà présente,
+  et l'édition d'un morceau existant peut être enregistrée depuis une étape
+  intermédiaire sans forcer le parcours jusqu'aux paroles. L'aperçu sépare
+  Retour, Modifier et Supprimer ; la suppression est confirmée, autorisée et
+  réalisée côté Convex, retire l'association d'album et remet cet album en
+  brouillon. Le test couvre le refus inter-compte et ce nettoyage.
+- L'aperçu n'affiche « Voir plus » que si la description est réellement
+  tronquée. Les lecteurs explicites « Écouter sur Spotify/YouTube » ont un état
+  d'onglet contrasté et un curseur pointeur ; la navigation des sections reste
+  desktop uniquement à la demande de l'utilisateur. La pochette desktop
+  s'aligne désormais en bas du bloc identité/description, sans modifier la
+  composition mobile retenue par l'utilisateur.
+- Revue locale du diff correctif : aucune violation Standards/Spec bloquante.
+  Revue Convex : 0 Critical et 0 Important ; `deleteSong` est une mutation
+  artiste avec validateurs, contrôle d'appartenance, accès indexé et lectures
+  bornées. Dans le navigateur intégré Codex à 1028 px, l'alignement desktop,
+  les onglets, les curseurs et la boîte de confirmation ont été vérifiés ; le
+  contenu n'a pas été supprimé pendant ce contrôle. `pnpm check` passe avec 28
+  tests shared, 28 backend et 23 web, ainsi que les builds client et SSR.
 
 ### Lot 4 — Catalogue artiste (complete)
 

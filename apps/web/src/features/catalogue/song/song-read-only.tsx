@@ -1,5 +1,5 @@
 import { Disc3, FileMusic, MonitorPlay } from "lucide-react"
-import { useMemo, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 
 import {
   parseLyrics,
@@ -53,7 +53,9 @@ export function SongReadOnly({
 }) {
   const { locale, t } = useLocale()
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+  const [descriptionOverflows, setDescriptionOverflows] = useState(false)
   const [playerRequest, setPlayerRequest] = useState<ListeningPlayerRequest>()
+  const descriptionRef = useRef<HTMLParagraphElement>(null)
   const sections = useMemo(
     () => parseLyrics(detail.lyricsText).sections,
     [detail.lyricsText]
@@ -80,6 +82,19 @@ export function SongReadOnly({
     setPlayerRequest({ provider, requestId: Date.now() })
   }
 
+  useEffect(() => {
+    const element = descriptionRef.current
+    if (!element || descriptionExpanded) return
+
+    const updateOverflow = () => {
+      setDescriptionOverflows(element.scrollHeight > element.clientHeight + 1)
+    }
+    updateOverflow()
+    const observer = new ResizeObserver(updateOverflow)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [descriptionExpanded, detail.song.description])
+
   return (
     <article className="flex flex-col gap-7">
       {actions ? (
@@ -88,7 +103,7 @@ export function SongReadOnly({
         </div>
       ) : null}
       <header className="flex gap-4 sm:gap-6">
-        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-muted text-muted-foreground lg:size-[8.25rem]">
+        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-muted text-muted-foreground lg:size-[8.25rem] lg:self-end">
           {detail.artworkUrl ? (
             <img
               src={detail.artworkUrl}
@@ -122,18 +137,27 @@ export function SongReadOnly({
           ) : null}
           {detail.song.description ? (
             <div className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              <p className={descriptionExpanded ? undefined : "line-clamp-2"}>
+              <p
+                ref={descriptionRef}
+                className={descriptionExpanded ? undefined : "line-clamp-2"}
+              >
                 {detail.song.description}
               </p>
-              <Button
-                type="button"
-                variant="link"
-                className="mt-1 h-auto min-h-11 p-0"
-                aria-expanded={descriptionExpanded}
-                onClick={() => setDescriptionExpanded((expanded) => !expanded)}
-              >
-                {t(descriptionExpanded ? "studio.showLess" : "studio.showMore")}
-              </Button>
+              {descriptionExpanded || descriptionOverflows ? (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="mt-1 h-auto min-h-11 p-0"
+                  aria-expanded={descriptionExpanded}
+                  onClick={() =>
+                    setDescriptionExpanded((expanded) => !expanded)
+                  }
+                >
+                  {t(
+                    descriptionExpanded ? "studio.showLess" : "studio.showMore"
+                  )}
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -145,6 +169,7 @@ export function SongReadOnly({
               size="icon-lg"
               className="size-12 rounded-full"
               aria-label={t("studio.listeningStart", { provider: "YouTube" })}
+              title={t("studio.listeningStart", { provider: "YouTube" })}
               onClick={() => launchPlayer("youtube")}
             >
               <MonitorPlay data-icon="inline-start" />
@@ -157,6 +182,7 @@ export function SongReadOnly({
               size="icon-lg"
               className="size-12 rounded-full"
               aria-label={t("studio.listeningStart", { provider: "Spotify" })}
+              title={t("studio.listeningStart", { provider: "Spotify" })}
               onClick={() => launchPlayer("spotify")}
             >
               <Disc3 data-icon="inline-start" />
@@ -171,9 +197,6 @@ export function SongReadOnly({
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,41.25rem)_18.75rem] lg:justify-between lg:gap-12">
         <main className="order-2 min-w-0 lg:order-1">
-          <div className="lg:hidden">
-            <SongSectionNavigation sections={sectionNavigation} />
-          </div>
           {detail.song.context ? (
             <blockquote className="mt-7 max-w-[41.25rem] text-base leading-7 text-muted-foreground italic">
               {detail.song.context}
