@@ -151,7 +151,7 @@ export function PublicProfileSkeleton() {
   const { t } = useLocale()
   return (
     <Card aria-label={t("common.loadingPublicProfile")}>
-      <Skeleton className="aspect-[3/1] w-full rounded-b-none" />
+      <Skeleton className="aspect-3/1 w-full rounded-b-none" />
       <CardHeader>
         <div className="flex items-center gap-4">
           <Skeleton className="size-12 rounded-full" />
