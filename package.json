@@ -10,7 +10,7 @@
   "scripts": {
     "build": "turbo build",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "dev": "turbo dev --filter=@lyrx/web",
+    "dev": "turbo dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "turbo lint",

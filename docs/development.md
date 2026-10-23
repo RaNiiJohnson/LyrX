@@ -17,8 +17,18 @@ pnpm install
 pnpm dev
 ```
 
-The root development command starts the web workspace. In a second terminal,
-start Convex after selecting a development deployment:
+The root development command starts both the web workspace and the backend
+Convex watcher in parallel. The backend watcher selects the configured Convex
+development deployment, prepares the functions, and keeps deploying changes as
+you edit them. You should therefore see `Preparing Convex functions...` and a
+`Convex functions ready!` message in the same terminal when running:
+
+```bash
+pnpm dev
+```
+
+If you only need to run Convex independently (for example, while diagnosing a
+startup issue), use:
 
 ```bash
 pnpm --filter @lyrx/backend dev
