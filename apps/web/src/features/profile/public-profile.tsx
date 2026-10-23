@@ -46,7 +46,7 @@ export function PublicProfile({ handle }: { handle: string }) {
         <img
           src={profile.artist.bannerUrl}
           alt=""
-          className="aspect-[3/1] w-full rounded-t-xl object-cover"
+          className="aspect-3/1 w-full rounded-t-xl object-cover"
         />
       ) : null}
       <CardHeader>
