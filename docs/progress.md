@@ -142,6 +142,21 @@ lot has started.
   `a164acd...a7f57f6` ne relève aucun défaut bloquant ; la revue Convex est non
   applicable, car aucun fichier Convex n'a changé. La vérification visuelle
   finale reste volontairement manuelle à la demande de l'utilisateur.
+- Refonte post-clôture du 2026-10-23 : la page partagée par l'aperçu artiste et
+  la lecture publique place désormais les paroles au premier plan. Elle possède
+  un en-tête compact, une navigation sticky dérivée des sections, une citation
+  discrète pour le contexte, une colonne de paroles sans carte et une sidebar
+  repliable pour l'écoute et les détails. YouTube et Spotify utilisent des
+  onglets shadcn et ne montent leur iframe qu'après une action explicite ; les
+  autres plateformes conservent leur lien source. La revue locale complète du
+  diff `175a1ad...fe69cc3` a corrigé la duplication possible d'un fournisseur,
+  le positionnement de la navigation sous le header et la sélection devenue
+  obsolète après une mise à jour temps réel. Il ne reste aucun défaut Standards
+  ou Spec bloquant. La revue Convex est non applicable : aucun fichier sous
+  `packages/backend/convex/` n'a changé. `pnpm check` passe avec 28 tests shared,
+  27 tests backend et 23 tests web, ainsi que les builds client et SSR. La
+  vérification visuelle desktop/mobile est laissée à l'utilisateur conformément
+  à sa demande ; aucune preuve visuelle n'est revendiquée dans cette passe.
 
 ### Lot 4 — Catalogue artiste (complete)
 
