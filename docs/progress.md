@@ -71,7 +71,7 @@ lot has started.
       final Standards re-review with 0 hard violations and 0 judgement calls and
       its final Spec re-review with 0 remaining or new findings and 0 scope
       creep. The final `pnpm check` remains clean with 37 tests.
-- [x] Lot 5 `pnpm check` passes formatting, lint, TypeScript, 73 tests, and the
+- [x] Lot 5 `pnpm check` passes formatting, lint, TypeScript, 76 tests, and the
       client/SSR production builds. The local standards/specification review and
       Convex review have no unresolved blocking finding.
 
@@ -130,6 +130,18 @@ lot has started.
   débordement à 390 px avant que l'utilisateur choisisse de reprendre lui-même
   les vérifications visuelles finales. Aucune publication n'a été provoquée
   pour fabriquer une preuve visuelle.
+- Correctif post-clôture du 2026-10-23 : l'aperçu du morceau affiche désormais
+  date de sortie, langue, genre, album public associé, artistes invités,
+  auteurs, compositeurs, producteurs, label et liens d'écoute. Chaque lien
+  conserve une action externe ; YouTube et Spotify proposent en plus un lecteur
+  officiel chargé uniquement après un clic, sans autoplay ni code d'embed fourni
+  par l'utilisateur. L'aperçu d'album affiche aussi sa date de sortie et ses
+  crédits. Le test de régression couvre tous les champs, les deux formats
+  d'embed et le refus des liens non pris en charge. `pnpm check` passe avec 76
+  tests et les builds client/SSR. La revue locale du diff
+  `a164acd...a7f57f6` ne relève aucun défaut bloquant ; la revue Convex est non
+  applicable, car aucun fichier Convex n'a changé. La vérification visuelle
+  finale reste volontairement manuelle à la demande de l'utilisateur.
 
 ### Lot 4 — Catalogue artiste (complete)
 
