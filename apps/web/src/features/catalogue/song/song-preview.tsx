@@ -89,16 +89,16 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
-                  variant="outline"
-                  size="icon-lg"
-                  className="size-11"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="border-0"
                   aria-label={t("catalogue.moreActions")}
                   title={t("catalogue.moreActions")}
                 >
                   <MoreHorizontal />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="center">
                 <DropdownMenuGroup>
                   <DropdownMenuItem asChild>
                     <Link to="/studio/songs/$songId" params={{ songId }}>

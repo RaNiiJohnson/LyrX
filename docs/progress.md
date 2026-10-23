@@ -235,6 +235,10 @@ lot has started.
   puis s’ouvre au clic ; l’onglet actif conserve un contraste explicite.
   Vérification manuelle dans le navigateur intégré Codex uniquement, à la
   demande de l’utilisateur ; aucun script de contrôle n’a été lancé.
+- Ajustement visuel complémentaire du 2026-10-23 : le déclencheur « Plus
+  d’options » est désormais un bouton ghost de 24 px sans bordure, et son menu
+  est centré sous le bouton. Vérifié dans le navigateur intégré uniquement ;
+  aucun script de contrôle n’a été lancé.
 
 #### Décision post-lot — éditeur de paroles du lot 5
 
