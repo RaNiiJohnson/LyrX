@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery } from "convex/react"
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react"
+import { ArrowLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
@@ -15,10 +15,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@lyrx/ui/components/alert-dialog"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@lyrx/ui/components/dropdown-menu"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useLocale } from "@/app/locale-provider"
@@ -75,17 +82,42 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
                 <ArrowLeft data-icon="inline-start" /> {t("common.back")}
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/studio/songs/$songId" params={{ songId }}>
-                <Pencil data-icon="inline-start" /> {t("catalogue.edit")}
-              </Link>
-            </Button>
-            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  <Trash2 data-icon="inline-start" /> {t("common.remove")}
+            <Badge variant="outline">{t("catalogue.preview")}</Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-lg"
+                  className="size-11"
+                  aria-label={t("catalogue.moreActions")}
+                  title={t("catalogue.moreActions")}
+                >
+                  <MoreHorizontal />
                 </Button>
-              </AlertDialogTrigger>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem asChild>
+                    <Link to="/studio/songs/$songId" params={{ songId }}>
+                      <Pencil /> {t("catalogue.edit")}
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => setDeleteOpen(true)}
+                  >
+                    <Trash2 /> {t("common.remove")}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
@@ -113,7 +145,6 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
               </AlertDialogContent>
             </AlertDialog>
           </div>
-          <Badge variant="outline">{t("catalogue.preview")}</Badge>
         </>
       }
     />

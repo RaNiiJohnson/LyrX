@@ -136,7 +136,7 @@ export function SongReadOnly({
             </div>
           ) : null}
           {detail.song.description ? (
-            <div className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            <div className="mt-3 hidden max-w-2xl text-sm leading-6 text-muted-foreground lg:block">
               <p
                 ref={descriptionRef}
                 className={descriptionExpanded ? undefined : "line-clamp-2"}
@@ -190,6 +190,12 @@ export function SongReadOnly({
           ) : null}
         </div>
       </header>
+
+      {detail.song.description ? (
+        <p className="text-sm leading-6 text-muted-foreground lg:hidden">
+          {detail.song.description}
+        </p>
+      ) : null}
 
       <div className="hidden lg:block">
         <SongSectionNavigation sections={sectionNavigation} />

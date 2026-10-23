@@ -228,6 +228,13 @@ lot has started.
   est non applicable car aucun fichier Convex n’a changé. La vérification
   visuelle finale avec un contenu appartenant à l’utilisateur lui est laissée,
   à sa demande. Commit du correctif : `cfd0f7d`.
+- Correctif visuel post-clôture du 2026-10-23 : dans l’aperçu d’un morceau,
+  la description mobile occupe toute la largeur sous l’en-tête, le badge
+  Aperçu rejoint Retour, et le menu shadcn « Plus d’options » à droite regroupe
+  Modifier et Supprimer. Sous 1024 px, la carte Écouter est repliée par défaut
+  puis s’ouvre au clic ; l’onglet actif conserve un contraste explicite.
+  Vérification manuelle dans le navigateur intégré Codex uniquement, à la
+  demande de l’utilisateur ; aucun script de contrôle n’a été lancé.
 
 #### Décision post-lot — éditeur de paroles du lot 5
 

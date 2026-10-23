@@ -1,4 +1,4 @@
-import { ExternalLink, Play } from "lucide-react"
+import { ChevronDown, ExternalLink, Play } from "lucide-react"
 import { useEffect, useId, useMemo, useState } from "react"
 
 import { Button } from "@lyrx/ui/components/button"
@@ -8,6 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@lyrx/ui/components/card"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@lyrx/ui/components/collapsible"
 import {
   Tabs,
   TabsContent,
@@ -58,6 +63,7 @@ export function SongListeningLinks({
   const [loadedProvider, setLoadedProvider] = useState<PlayerProvider | null>(
     null
   )
+  const [listeningOpen, setListeningOpen] = useState(false)
 
   useEffect(() => {
     if (
@@ -81,6 +87,14 @@ export function SongListeningLinks({
     setLoadedProvider(playerRequest.provider)
   }, [playableLinks, playerRequest])
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)")
+    const updateOpenState = () => setListeningOpen(mediaQuery.matches)
+    updateOpenState()
+    mediaQuery.addEventListener("change", updateOpenState)
+    return () => mediaQuery.removeEventListener("change", updateOpenState)
+  }, [])
+
   if (links.length === 0) return null
   const activeLink = playableLinks.find(
     (link) => link.embed.kind === activeProvider
@@ -96,63 +110,99 @@ export function SongListeningLinks({
     />
   ) : null
 
-  return (
-    <Card id="song-listening" className="scroll-mt-24">
-      <CardHeader>
-        <CardTitle>{t("studio.listen")}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {playableLinks.length > 1 ? (
-          <Tabs
-            value={activeProvider ?? undefined}
-            onValueChange={(value) => {
-              setActiveProvider(value as PlayerProvider)
-              setLoadedProvider(null)
-            }}
-          >
-            <TabsList className="w-full">
-              {playableLinks.map((link) => (
-                <TabsTrigger
-                  key={link.embed.kind}
-                  value={link.embed.kind}
-                  className="aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:shadow-none"
-                >
-                  {providerLabels[link.provider]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+  const listeningContent = (
+    <CardContent className="flex flex-col gap-4 pt-0 lg:pt-0">
+      {playableLinks.length > 1 ? (
+        <Tabs
+          value={activeProvider ?? undefined}
+          onValueChange={(value) => {
+            setActiveProvider(value as PlayerProvider)
+            setLoadedProvider(null)
+          }}
+        >
+          <TabsList className="w-full">
             {playableLinks.map((link) => (
-              <TabsContent key={link.embed.kind} value={link.embed.kind}>
-                {link.embed.kind === activeProvider ? player : null}
-              </TabsContent>
-            ))}
-          </Tabs>
-        ) : (
-          player
-        )}
-        {links
-          .filter((link) => !activeLink || link.url !== activeLink.url)
-          .map((link, index) => (
-            <Button
-              key={`${link.provider}-${index}`}
-              asChild
-              variant="link"
-              className="h-auto justify-start p-0 text-sm"
-            >
-              <a
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
+              <TabsTrigger
+                key={link.embed.kind}
+                value={link.embed.kind}
+                className="data-[state=active]:shadow-none"
+                style={
+                  activeProvider === link.embed.kind
+                    ? {
+                        backgroundColor: "var(--foreground)",
+                        color: "var(--background)",
+                      }
+                    : undefined
+                }
               >
-                {t("studio.listeningOpen", {
-                  provider: providerLabels[link.provider],
-                })}
-                <ExternalLink data-icon="inline-end" />
-              </a>
-            </Button>
+                {providerLabels[link.provider]}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {playableLinks.map((link) => (
+            <TabsContent key={link.embed.kind} value={link.embed.kind}>
+              {link.embed.kind === activeProvider ? player : null}
+            </TabsContent>
           ))}
-      </CardContent>
-    </Card>
+        </Tabs>
+      ) : (
+        player
+      )}
+      {links
+        .filter((link) => !activeLink || link.url !== activeLink.url)
+        .map((link, index) => (
+          <Button
+            key={`${link.provider}-${index}`}
+            asChild
+            variant="link"
+            className="h-auto justify-start p-0 text-sm"
+          >
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+            >
+              {t("studio.listeningOpen", {
+                provider: providerLabels[link.provider],
+              })}
+              <ExternalLink data-icon="inline-end" />
+            </a>
+          </Button>
+        ))}
+    </CardContent>
+  )
+
+  return (
+    <Collapsible
+      open={listeningOpen}
+      onOpenChange={setListeningOpen}
+      className="group/listening"
+    >
+      <Card id="song-listening" className="scroll-mt-24">
+        <CardHeader className="p-0 lg:p-6">
+          <CollapsibleTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-11 w-full justify-between px-4 py-3 text-left lg:justify-start lg:px-0 lg:py-0"
+            >
+              <span className="flex items-center gap-2">
+                <Play
+                  data-icon="inline-start"
+                  className="fill-current lg:hidden"
+                />
+                <CardTitle>{t("studio.listen")}</CardTitle>
+              </span>
+              <ChevronDown
+                data-icon="inline-end"
+                className="transition-transform group-data-[state=open]/listening:rotate-180 lg:hidden"
+              />
+            </Button>
+          </CollapsibleTrigger>
+        </CardHeader>
+        <CollapsibleContent>{listeningContent}</CollapsibleContent>
+      </Card>
+    </Collapsible>
   )
 }
 
