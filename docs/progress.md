@@ -239,6 +239,10 @@ lot has started.
   d’options » est désormais un bouton ghost de 24 px sans bordure, et son menu
   est centré sous le bouton. Vérifié dans le navigateur intégré uniquement ;
   aucun script de contrôle n’a été lancé.
+- Ajustement de placement du 2026-10-23 : le menu « Plus d’options » est aligné
+  sur le bord droit de son déclencheur et se déploie vers la gauche. La taille
+  `icon-lg` choisie par l’utilisateur est préservée. Vérifié dans le navigateur
+  intégré uniquement ; aucun script de contrôle n’a été lancé.
 
 #### Décision post-lot — éditeur de paroles du lot 5
 
