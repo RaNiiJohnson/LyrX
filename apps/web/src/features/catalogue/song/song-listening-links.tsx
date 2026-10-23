@@ -60,6 +60,17 @@ export function SongListeningLinks({
   )
 
   useEffect(() => {
+    if (
+      activeProvider &&
+      playableLinks.some((link) => link.embed.kind === activeProvider)
+    ) {
+      return
+    }
+    setActiveProvider(playableLinks[0]?.embed.kind ?? null)
+    setLoadedProvider(null)
+  }, [activeProvider, playableLinks])
+
+  useEffect(() => {
     if (!playerRequest) return
     if (
       !playableLinks.some((link) => link.embed.kind === playerRequest.provider)
