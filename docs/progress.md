@@ -2,17 +2,17 @@
 
 ## Active lot
 
-**Lot 5 — Web structure and lyric entry is in progress.** Its approved scope
-and implementation guidance are recorded in
+**Lot 5 — Web structure and lyric entry is complete locally.** Its approved
+scope and implementation guidance are recorded in
 [web-structure-and-convex-guidance.md](research/web-structure-and-convex-guidance.md).
 
-The current work introduces the Convex React Query integration for public SSR,
+The lot introduces the Convex React Query integration for public SSR,
 reorganizes the web application around route-, application-, and domain-owned
 modules, and replaces the historical line editor with one canonical multiline
-lyrics field. The lot is not complete until the large catalogue screens are
-factorized by responsibility, the legacy-data migration has a documented
-trigger, obsolete editor residue is removed, and the required checks and local
-reviews are clean.
+lyrics field. The large catalogue screens are now factorized by responsibility,
+the legacy-data migration has a documented trigger, obsolete editor residue is
+removed, and the required checks and local reviews are clean. No later roadmap
+lot has started.
 
 ## Evidence checklist
 
@@ -71,8 +71,65 @@ reviews are clean.
       final Standards re-review with 0 hard violations and 0 judgement calls and
       its final Spec re-review with 0 remaining or new findings and 0 scope
       creep. The final `pnpm check` remains clean with 37 tests.
+- [x] Lot 5 `pnpm check` passes formatting, lint, TypeScript, 73 tests, and the
+      client/SSR production builds. The local standards/specification review and
+      Convex review have no unresolved blocking finding.
 
 ## Lot history
+
+### Lot 5 — Web structure and lyric entry (complete)
+
+- La base de revue obligatoire est `481d69c`; le diff du lot jusqu'au commit
+  d'implémentation final `ad020b8` est non vide. La revue a porté sur l'ensemble
+  de ce diff, et pas seulement sur les derniers correctifs.
+- `routes/` possède désormais la composition, les paramètres et les boundaries.
+  Les providers et le shell globaux résident dans `app/`; les écrans métier
+  résident dans `features/`. Le répertoire historique
+  `apps/web/src/components/` n'existe plus. `SongEditor`, `AlbumEditor` et
+  `ArtistStudio` sont séparés en contrôleurs, formulaires, étapes, cartes et
+  contrôles de publication au lieu de réunir toutes les responsabilités dans
+  un seul fichier.
+- Le routeur installe `ConvexQueryClient`, `QueryClient` et
+  `setupRouterSsrQueryIntegration`. Les pages publiques profil et chanson
+  préchargent leur `convexQuery(...)` avec `queryClient.query` et
+  `staleTime: "static"`, puis lisent la même requête avec
+  `useSuspenseQuery`. Cette forme remplace l'API `ensureQueryData` dépréciée.
+  Les requêtes catalogue protégées par Better Auth restent client-only : aucun
+  loader serveur protégé n'a été ajouté sans preuve du transfert du jeton au
+  client HTTP Convex.
+- La page publique `/songs/$songId` rend uniquement les données publiées et les
+  paroles en lecture seule. Les projections publiques excluent les identifiants
+  de propriétaire et l'attestation de droits. Un brouillon ou le contenu d'un
+  membre suspendu reste invisible publiquement.
+- Le seul éditeur normal est `lyricsText`, un `textarea` TanStack Form. Le texte
+  brut, ses retours à la ligne et ses balises restent la source canonique. Le
+  parseur sert seulement à l'aperçu et au rendu. Les tests couvrent CRLF,
+  balises françaises/anglaises, balises inconnues, texte sans balise, lignes
+  vides, en-têtes consécutifs, limite serveur, conservation exacte, lecture
+  publique et compatibilité des anciennes lignes.
+- La migration `internal.catalogue.backfillSongLyricsText` traite un morceau par
+  transaction, poursuit par curseur planifié et conserve les anciennes tables
+  pendant la phase de compatibilité. Le déclencheur reproductible
+  `pnpm --filter @lyrx/backend migrate:lyrics` est documenté dans
+  `docs/development.md`. Il n'a pas été exécuté automatiquement sur une
+  production. Une synchronisation locale `convex dev --once` a uniquement mis
+  à jour le déploiement de développement afin de remplacer l'ancien contrat
+  `sections` par `lyricsText`.
+- Revue locale Standards/Spec : les écarts trouvés (boundaries dépendantes de
+  providers pas encore montés, absence de page publique de chanson et message
+  d'erreur catalogue trop spécifique) ont été corrigés puis revus. Il ne reste
+  aucune violation dure ni défaut de spécification bloquant.
+- Revue Convex : 0 finding Critical et 0 Important. Suggestion acceptée : la
+  lecture de compatibilité d'un ancien morceau peut lire jusqu'à 4 000 lignes,
+  mais elle reste bornée, temporaire et couverte par un backfill paginé et
+  relançable ; supprimer les anciennes tables fera l'objet d'une migration
+  séparée après vérification de chaque déploiement.
+- `pnpm check` passe avec 28 tests shared, 27 tests backend et 18 tests web,
+  soit 73 tests, ainsi que les builds client et SSR. La route profil publique a
+  été observée en SSR et le brouillon public a renvoyé l'état introuvable sans
+  débordement à 390 px avant que l'utilisateur choisisse de reprendre lui-même
+  les vérifications visuelles finales. Aucune publication n'a été provoquée
+  pour fabriquer une preuve visuelle.
 
 ### Lot 4 — Catalogue artiste (complete)
 
