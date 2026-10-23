@@ -15,6 +15,7 @@ import {
 } from "@lyrx/ui/components/card"
 
 import { useLocale } from "@/app/locale-provider"
+import { MetadataCard } from "@/features/catalogue/shared/metadata-card"
 import { PreviewSkeleton } from "@/features/catalogue/shared/preview-skeleton"
 
 export function AlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
@@ -34,8 +35,32 @@ export function AlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
 
 function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
   const detail = useQuery(api.catalogue.getMyAlbum, { albumId })
-  const { t } = useLocale()
+  const { locale, t } = useLocale()
   if (detail === undefined) return <PreviewSkeleton />
+
+  const metadata = [
+    ...(detail.album.releaseDate === undefined
+      ? []
+      : [
+          {
+            id: "releaseDate",
+            label: t("studio.releaseDate"),
+            value: new Intl.DateTimeFormat(locale, {
+              dateStyle: "long",
+              timeZone: "UTC",
+            }).format(detail.album.releaseDate),
+          },
+        ]),
+    ...(detail.album.credits.length === 0
+      ? []
+      : [
+          {
+            id: "credits",
+            label: t("studio.albumCredits"),
+            value: detail.album.credits.join(", "),
+          },
+        ]),
+  ]
 
   return (
     <article className="flex flex-col gap-6">
@@ -75,6 +100,7 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
           ) : null}
         </div>
       </header>
+      <MetadataCard title={t("studio.albumDetails")} items={metadata} />
       <Card>
         <CardHeader>
           <CardTitle>{t("studio.albumTracks")}</CardTitle>

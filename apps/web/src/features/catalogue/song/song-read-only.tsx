@@ -10,15 +10,35 @@ import {
 } from "@lyrx/ui/components/card"
 
 import { useLocale } from "@/app/locale-provider"
+import type {
+  ListeningProvider,
+  SongGenre,
+} from "@/features/catalogue/lib/catalogue-form"
+import { SongListeningLinks } from "./song-listening-links"
+import { SongMetadata } from "./song-metadata"
 
 type ReadOnlySong = {
+  album?: { title: string } | null
   artworkUrl: string | null
   lyricsText: string
   song: {
+    composers: Array<string>
     context?: string
     description?: string
+    genre?: SongGenre
+    guestArtists: Array<string>
+    label?: string
+    listeningLinks: Array<{
+      provider: ListeningProvider
+      url: string
+    }>
+    otherGenre?: string
     primaryArtist: string
+    primaryLanguage: string
+    producers: Array<string>
+    releaseDate?: number
     title: string
+    writers: Array<string>
   }
 }
 
@@ -77,11 +97,13 @@ export function SongReadOnly({
           </CardContent>
         </Card>
       ) : null}
-      <section className="mx-auto w-full max-w-3xl space-y-8 py-4">
+      <SongMetadata song={detail.song} albumTitle={detail.album?.title} />
+      <SongListeningLinks links={detail.song.listeningLinks} />
+      <section className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-4">
         {sections.map((section, index) => (
           <div
             key={`${section.heading ?? "unheaded"}-${index}`}
-            className="space-y-3"
+            className="flex flex-col gap-3"
           >
             {section.heading ? (
               <h2 className="font-mono text-xs font-medium tracking-[0.2em] text-primary uppercase">
