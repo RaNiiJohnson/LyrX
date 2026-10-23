@@ -2,20 +2,17 @@
 
 ## Active lot
 
-**Lot 4 was completed on 2026-10-22 following explicit user approval. It
-delivers the owned artist catalogue: song and album drafts, preview, publishing,
-unpublishing, editing, stable lyric lines, artwork, and ordered album tracks.**
-
-## Next proposed lot (not started)
-
-**Lot 5 — Web structure and lyric entry** was added to the roadmap on
-2026-10-22. The user approved its scope on the same date, but no product code
-has started in this research session. Its instructions and research are in
+**Lot 5 — Web structure and lyric entry is in progress.** Its approved scope
+and implementation guidance are recorded in
 [web-structure-and-convex-guidance.md](research/web-structure-and-convex-guidance.md).
 
-The same decision removed lyric-line explanations, explanation requests, and
-sharing-card dedications from Lyr'X's product scope. No product code was changed
-as part of this documentation update.
+The current work introduces the Convex React Query integration for public SSR,
+reorganizes the web application around route-, application-, and domain-owned
+modules, and replaces the historical line editor with one canonical multiline
+lyrics field. The lot is not complete until the large catalogue screens are
+factorized by responsibility, the legacy-data migration has a documented
+trigger, obsolete editor residue is removed, and the required checks and local
+reviews are clean.
 
 ## Evidence checklist
 

@@ -53,6 +53,31 @@ The first command regenerates the repository-owned Better Auth schema. The
 second requires a configured Convex deployment and replaces the documented
 bootstrap generated types.
 
+## Legacy lyrics migration
+
+Lot 5 keeps `songs.lyricsText` optional while deployments may still contain the
+lot 4 `songSections` and `lyricLines` rows. After the lot 5 Convex functions are
+pushed to the intended deployment, start the bounded backfill from the
+repository root:
+
+```bash
+pnpm --filter @lyrx/backend migrate:lyrics
+```
+
+The command invokes the internal
+`internal.catalogue.backfillSongLyricsText` mutation
+with a null cursor. It processes one song per transaction and schedules the next
+cursor until the table is exhausted. Its result reports whether the first row
+was migrated and whether a continuation was scheduled. Running it again is
+safe: songs that already contain `lyricsText` are skipped. The legacy tables are
+retained during this compatibility phase; tighten the schema and remove them
+only in a later, separately verified migration after every target deployment
+has been checked.
+
+Use `--prod` only as an explicit manual addition to the underlying Convex
+command after the development deployment has been migrated and verified. The
+repository command intentionally targets the selected development deployment.
+
 ## Environment policy
 
 Copy a package's `.env.example` only when that package documents the values it

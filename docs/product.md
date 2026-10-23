@@ -6,7 +6,7 @@ and the technical identifier is `lyrx`.
 
 ## V1 audiences and platforms
 
-- Artists publish songs, structured lyrics, albums, artwork, credits, and
+- Artists publish songs, raw multiline lyrics, albums, artwork, credits, and
   listening links.
 - Fans discover public music, contribute private proposals for moderation,
   interact with songs, and keep private lyric excerpts.

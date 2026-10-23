@@ -8,7 +8,7 @@ import { createServerFn } from "@tanstack/react-start"
 import { useEffect } from "react"
 import type { ReactNode } from "react"
 
-import { UI_MESSAGES } from "@lyrx/shared"
+import { DEFAULT_LOCALE, formatMessage, UI_MESSAGES } from "@lyrx/shared"
 import { Toaster } from "@lyrx/ui/components/sonner"
 import { ThemeProvider } from "@lyrx/ui/components/theme-provider"
 import appCss from "@lyrx/ui/globals.css?url"
@@ -96,15 +96,16 @@ function LocalizedDocumentMetadata() {
 }
 
 function NotFoundPage() {
-  const { t } = useLocale()
+  // Root not-found rendering can happen before RootApplication mounts the
+  // locale provider, so this boundary must use the documented default locale.
+  const title = formatMessage(DEFAULT_LOCALE, "notFound.title")
+  const description = formatMessage(DEFAULT_LOCALE, "notFound.description")
   return (
     <PageShell>
       <section className="flex min-h-[50svh] flex-col justify-center gap-3">
         <p className="font-mono text-sm text-primary">404</p>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {t("notFound.title")}
-        </h1>
-        <p className="text-muted-foreground">{t("notFound.description")}</p>
+        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+        <p className="text-muted-foreground">{description}</p>
       </section>
     </PageShell>
   )

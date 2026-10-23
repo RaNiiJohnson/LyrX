@@ -211,9 +211,11 @@ describe("artist catalogue", () => {
       client.query(api.catalogue.getMySong, { songId })
     ).resolves.toMatchObject({ lyricsText: "[Refrain]\nAncien refrain" })
 
-    await t.mutation(internal.catalogue.backfillSongLyricsText, {
-      cursor: null,
-    })
+    await expect(
+      t.mutation(internal.catalogue.backfillSongLyricsText, {
+        cursor: null,
+      })
+    ).resolves.toEqual({ migrated: 1, scheduledContinuation: false })
     const stored = await t.run((ctx) => ctx.db.get("songs", songId))
     expect(stored?.lyricsText).toBe("[Refrain]\nAncien refrain")
     await expect(
@@ -222,6 +224,40 @@ describe("artist catalogue", () => {
     await expect(
       t.run((ctx) => ctx.db.get("lyricLines", legacyIds.lineId))
     ).resolves.not.toBeNull()
+  })
+
+  it("continues the lyrics backfill until every legacy song is migrated", async () => {
+    const t = backend()
+    const { client } = await artist(t, "legacy-lyrics-pages")
+    const firstId = await client.mutation(
+      api.catalogue.createSong,
+      songInput("Premier héritage")
+    )
+    const secondId = await client.mutation(
+      api.catalogue.createSong,
+      songInput("Second héritage")
+    )
+    await t.run(async (ctx) => {
+      await ctx.db.patch("songs", firstId, { lyricsText: undefined })
+      await ctx.db.patch("songs", secondId, { lyricsText: undefined })
+    })
+
+    vi.useFakeTimers()
+    try {
+      await expect(
+        t.mutation(internal.catalogue.backfillSongLyricsText, { cursor: null })
+      ).resolves.toEqual({ migrated: 1, scheduledContinuation: true })
+      await t.finishAllScheduledFunctions(() => vi.runAllTimers())
+    } finally {
+      vi.useRealTimers()
+    }
+
+    const stored = await t.run(async (ctx) => ({
+      first: await ctx.db.get("songs", firstId),
+      second: await ctx.db.get("songs", secondId),
+    }))
+    expect(stored.first?.lyricsText).toBe("")
+    expect(stored.second?.lyricsText).toBe("")
   })
 
   it("hides drafts publicly and follows publish/unpublish transitions", async () => {

@@ -4,12 +4,18 @@ import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 
 import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
-import { CatalogueRouteError } from "@/features/catalogue/catalogue-error-boundary"
+import {
+  CatalogueRouteError,
+  CatalogueRouteNotFound,
+  CatalogueRoutePending,
+} from "@/app/route-states"
 import { SongPreview } from "@/features/catalogue/catalogue-preview"
 
 export const Route = createFileRoute("/studio/songs/$songId/preview")({
   component: SongPreviewPage,
   errorComponent: CatalogueRouteError,
+  notFoundComponent: CatalogueRouteNotFound,
+  pendingComponent: CatalogueRoutePending,
 })
 
 function SongPreviewPage() {

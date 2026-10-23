@@ -223,7 +223,7 @@ function toFieldErrors(errors: Array<unknown>) {
   }))
 }
 
-export const { useAppForm } = createFormHook({
+export const { useAppForm, withForm } = createFormHook({
   fieldComponents: {
     SelectField,
     TextField,

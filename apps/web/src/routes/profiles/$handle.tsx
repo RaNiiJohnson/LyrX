@@ -23,6 +23,7 @@ export const Route = createFileRoute("/profiles/$handle")({
       convexQuery(api.members.publicByHandle, { handle: params.handle })
     )
   },
+  notFoundComponent: PublicProfileNotFoundPage,
   pendingComponent: PublicProfilePendingPage,
 })
 
@@ -53,6 +54,20 @@ function PublicProfilePendingPage() {
   return (
     <PageShell width="wide">
       <PublicProfileSkeleton />
+    </PageShell>
+  )
+}
+
+function PublicProfileNotFoundPage() {
+  const { t } = useLocale()
+  return (
+    <PageShell width="wide">
+      <Alert>
+        <AlertTitle>{t("profile.publicNotFoundTitle")}</AlertTitle>
+        <AlertDescription>
+          {t("profile.publicNotFoundDescription")}
+        </AlertDescription>
+      </Alert>
     </PageShell>
   )
 }

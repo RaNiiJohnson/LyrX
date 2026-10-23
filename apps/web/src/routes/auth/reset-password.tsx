@@ -2,9 +2,11 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
+import { appRouteBoundaries } from "@/app/route-states"
 import { ResetPasswordForm } from "@/features/auth/reset-password-form"
 
 export const Route = createFileRoute("/auth/reset-password")({
+  ...appRouteBoundaries,
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search.token === "string" ? search.token : undefined,
   }),
