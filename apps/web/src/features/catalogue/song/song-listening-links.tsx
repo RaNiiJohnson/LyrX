@@ -1,7 +1,6 @@
 import { ExternalLink, Play } from "lucide-react"
-import { useId, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 
-import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
 import {
   Card,
@@ -9,11 +8,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@lyrx/ui/components/card"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@lyrx/ui/components/tabs"
 import { cn } from "@lyrx/ui/lib/utils"
 
 import { useLocale } from "@/app/locale-provider"
 import type { ListeningProvider } from "@/features/catalogue/lib/catalogue-form"
-import { getListeningEmbed } from "./song-display"
+import { collectPlayableListeningLinks } from "./song-display"
 
 const providerLabels: Record<ListeningProvider, string> = {
   "apple-music": "Apple Music",
@@ -25,86 +30,185 @@ const providerLabels: Record<ListeningProvider, string> = {
   youtube: "YouTube",
 }
 
+type PlayerProvider = "spotify" | "youtube"
+
+export type ListeningPlayerRequest = {
+  provider: PlayerProvider
+  requestId: number
+}
+
 export function SongListeningLinks({
+  artworkUrl,
   links,
+  playerRequest,
 }: {
+  artworkUrl: string | null
   links: Array<{ provider: ListeningProvider; url: string }>
+  playerRequest?: ListeningPlayerRequest
 }) {
   const { t } = useLocale()
   const playerIdPrefix = useId()
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const playableLinks = useMemo(
+    () => collectPlayableListeningLinks(links),
+    [links]
+  )
+  const [activeProvider, setActiveProvider] = useState<PlayerProvider | null>(
+    playableLinks[0]?.embed.kind ?? null
+  )
+  const [loadedProvider, setLoadedProvider] = useState<PlayerProvider | null>(
+    null
+  )
+
+  useEffect(() => {
+    if (!playerRequest) return
+    if (
+      !playableLinks.some((link) => link.embed.kind === playerRequest.provider)
+    ) {
+      return
+    }
+    setActiveProvider(playerRequest.provider)
+    setLoadedProvider(playerRequest.provider)
+  }, [playableLinks, playerRequest])
+
   if (links.length === 0) return null
+  const activeLink = playableLinks.find(
+    (link) => link.embed.kind === activeProvider
+  )
+
+  const player = activeLink ? (
+    <ListeningPlayer
+      artworkUrl={artworkUrl}
+      id={`${playerIdPrefix}-${activeLink.embed.kind}`}
+      isLoaded={loadedProvider === activeLink.embed.kind}
+      link={activeLink}
+      onLoad={() => setLoadedProvider(activeLink.embed.kind)}
+    />
+  ) : null
 
   return (
-    <Card>
+    <Card id="song-listening" className="scroll-mt-24">
       <CardHeader>
-        <CardTitle>{t("studio.listeningLinks")}</CardTitle>
+        <CardTitle>{t("studio.listen")}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {links.map((link, index) => {
-          const provider = providerLabels[link.provider]
-          const embed = getListeningEmbed(link)
-          const isActive = activeIndex === index
-          const playerId = `${playerIdPrefix}-player-${index}`
-          return (
-            <div
+        {playableLinks.length > 1 ? (
+          <Tabs
+            value={activeProvider ?? undefined}
+            onValueChange={(value) => {
+              setActiveProvider(value as PlayerProvider)
+              setLoadedProvider(null)
+            }}
+          >
+            <TabsList className="w-full">
+              {playableLinks.map((link) => (
+                <TabsTrigger key={link.embed.kind} value={link.embed.kind}>
+                  {providerLabels[link.provider]}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {playableLinks.map((link) => (
+              <TabsContent key={link.embed.kind} value={link.embed.kind}>
+                {link.embed.kind === activeProvider ? player : null}
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : (
+          player
+        )}
+        {links
+          .filter((link) => !activeLink || link.url !== activeLink.url)
+          .map((link, index) => (
+            <Button
               key={`${link.provider}-${index}`}
-              className="flex flex-col gap-3"
+              asChild
+              variant="link"
+              className="h-auto justify-start p-0 text-sm"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <Badge variant="secondary">{provider}</Badge>
-                <div className="flex flex-wrap gap-2">
-                  {embed ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      aria-expanded={isActive}
-                      aria-controls={playerId}
-                      onClick={() => setActiveIndex(isActive ? null : index)}
-                    >
-                      <Play data-icon="inline-start" />
-                      {t(
-                        isActive
-                          ? "studio.listeningHidePlayer"
-                          : "studio.listeningShowPlayer"
-                      )}
-                    </Button>
-                  ) : null}
-                  <Button asChild variant="outline" size="sm">
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer nofollow"
-                    >
-                      {t("studio.listeningOpen", { provider })}
-                      <ExternalLink data-icon="inline-end" />
-                    </a>
-                  </Button>
-                </div>
-              </div>
-              {embed && isActive ? (
-                <iframe
-                  id={playerId}
-                  src={embed.url}
-                  title={t("studio.listeningPlayerTitle", { provider })}
-                  loading="lazy"
-                  allow={
-                    embed.kind === "youtube"
-                      ? "accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      : "encrypted-media; fullscreen; picture-in-picture"
-                  }
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  className={cn(
-                    "w-full",
-                    embed.kind === "youtube" ? "aspect-video" : "h-40"
-                  )}
-                />
-              ) : null}
-            </div>
-          )
-        })}
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {t("studio.listeningOpen", {
+                  provider: providerLabels[link.provider],
+                })}
+                <ExternalLink data-icon="inline-end" />
+              </a>
+            </Button>
+          ))}
       </CardContent>
     </Card>
+  )
+}
+
+function ListeningPlayer({
+  artworkUrl,
+  id,
+  isLoaded,
+  link,
+  onLoad,
+}: {
+  artworkUrl: string | null
+  id: string
+  isLoaded: boolean
+  link: ReturnType<typeof collectPlayableListeningLinks>[number]
+  onLoad: () => void
+}) {
+  const { t } = useLocale()
+  const provider = providerLabels[link.provider]
+  const isYoutube = link.embed.kind === "youtube"
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div
+        className={cn(
+          "relative grid overflow-hidden rounded-xl bg-muted",
+          isYoutube ? "aspect-video" : "h-[152px]"
+        )}
+      >
+        {!isLoaded && artworkUrl ? (
+          <img
+            src={artworkUrl}
+            alt=""
+            className="absolute inset-0 size-full object-cover opacity-40"
+          />
+        ) : null}
+        {!isLoaded ? (
+          <Button
+            type="button"
+            size="icon-lg"
+            aria-label={t("studio.listeningLoadPlayer", { provider })}
+            className="z-1 m-auto size-12 rounded-full"
+            onClick={onLoad}
+          >
+            <Play data-icon="inline-start" className="fill-current" />
+          </Button>
+        ) : (
+          <iframe
+            id={id}
+            src={link.embed.url}
+            title={t("studio.listeningPlayerTitle", { provider })}
+            loading="lazy"
+            allow={
+              isYoutube
+                ? "accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                : "encrypted-media; fullscreen; picture-in-picture"
+            }
+            referrerPolicy="strict-origin-when-cross-origin"
+            className="size-full border-0"
+          />
+        )}
+      </div>
+      <Button
+        asChild
+        variant="link"
+        className="h-auto justify-start p-0 text-sm"
+      >
+        <a href={link.url} target="_blank" rel="noopener noreferrer nofollow">
+          {t("studio.listeningOpen", { provider })}
+          <ExternalLink data-icon="inline-end" />
+        </a>
+      </Button>
+    </div>
   )
 }

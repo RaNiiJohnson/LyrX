@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   collectSongCredits,
   collectSongInformation,
+  collectPlayableListeningLinks,
   getListeningEmbed,
 } from "./song-display"
 
@@ -69,5 +70,40 @@ describe("song preview display", () => {
         url: "https://example.com/watch?v=dQw4w9WgXcQ",
       })
     ).toBeNull()
+  })
+
+  it("keeps source links separate from the only providers that can render a player", () => {
+    expect(
+      collectPlayableListeningLinks([
+        {
+          provider: "youtube",
+          url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        },
+        {
+          provider: "apple-music",
+          url: "https://music.apple.com/fr/album/example/1",
+        },
+      ])
+    ).toMatchObject([
+      {
+        provider: "youtube",
+        embed: { kind: "youtube" },
+      },
+    ])
+  })
+
+  it("creates at most one player tab per provider", () => {
+    expect(
+      collectPlayableListeningLinks([
+        {
+          provider: "youtube",
+          url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        },
+        {
+          provider: "youtube",
+          url: "https://youtu.be/abcdefghijk",
+        },
+      ])
+    ).toHaveLength(1)
   })
 })

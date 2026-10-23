@@ -78,6 +78,22 @@ export type ListeningEmbed = {
   url: string
 }
 
+export type PlayableListeningLink = ListeningLink & {
+  embed: ListeningEmbed
+}
+
+export function collectPlayableListeningLinks(
+  links: Array<ListeningLink>
+): Array<PlayableListeningLink> {
+  const providers = new Set<ListeningEmbed["kind"]>()
+  return links.flatMap((link) => {
+    const embed = getListeningEmbed(link)
+    if (!embed || providers.has(embed.kind)) return []
+    providers.add(embed.kind)
+    return [{ ...link, embed }]
+  })
+}
+
 export function getListeningEmbed(link: ListeningLink): ListeningEmbed | null {
   let url: URL
   try {
