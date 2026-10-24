@@ -15,9 +15,20 @@ import {
   type QueryCtx,
 } from "./_generated/server"
 import schema from "./schema"
-import { listeningLinkValidator, songGenreValidator } from "./model"
+import {
+  catalogueStatusValidator,
+  listeningLinkValidator,
+  songGenreValidator,
+} from "./model"
 import { artistMutation, artistQuery } from "./lib/functions"
 import { isValidCatalogueImageMetadata } from "./lib/catalogueImages"
+import {
+  albumsByOwner,
+  albumsByOwnerAndStatus,
+  albumTracksByAlbum,
+  songsByOwner,
+  songsByOwnerAndStatus,
+} from "./catalogueAggregates"
 
 const MAX_SECTIONS = 40
 const MAX_LINES_PER_SECTION = 100
@@ -99,7 +110,21 @@ const albumTrackDetail = v.object({
 const albumDetail = v.object({
   album: schema.doc("albums"),
   tracks: v.array(albumTrackDetail),
+  trackCount: v.number(),
   artworkUrl: v.union(v.string(), v.null()),
+})
+
+const catalogueCounts = v.object({
+  songs: v.object({
+    all: v.number(),
+    draft: v.number(),
+    published: v.number(),
+  }),
+  albums: v.object({
+    all: v.number(),
+    draft: v.number(),
+    published: v.number(),
+  }),
 })
 
 const songSummary = v.object({
@@ -486,20 +511,38 @@ async function lyricsTextForSong(
 }
 
 export const listMySongs = artistQuery({
-  args: { paginationOpts: paginationOptsValidator },
+  args: {
+    paginationOpts: paginationOptsValidator,
+    status: v.optional(catalogueStatusValidator),
+  },
   returns: paginationResultValidator(songSummary),
   handler: async (ctx, args) => {
-    const page = await ctx.db
-      .query("songs")
-      .withIndex("by_owner_member_id", (q) =>
-        q.eq("ownerMemberId", ctx.member._id)
-      )
-      .order("desc")
-      .paginate(args.paginationOpts)
+    const page = args.status
+      ? await songsByOwnerAndStatus.paginate(ctx, {
+          namespace: [ctx.member._id, args.status],
+          cursor: args.paginationOpts.cursor ?? undefined,
+          order: "desc",
+          pageSize: args.paginationOpts.numItems,
+        })
+      : await songsByOwner.paginate(ctx, {
+          namespace: ctx.member._id,
+          cursor: args.paginationOpts.cursor ?? undefined,
+          order: "desc",
+          pageSize: args.paginationOpts.numItems,
+        })
+    const songs = await Promise.all(
+      page.page.map(async ({ id }) => {
+        const song = await ctx.db.get("songs", id)
+        if (!song)
+          return bad("CATALOGUE_INVARIANT", "Morceau indexé introuvable.")
+        return song
+      })
+    )
     return {
-      ...page,
+      continueCursor: page.cursor,
+      isDone: page.isDone,
       page: await Promise.all(
-        page.page.map(async (song) => {
+        songs.map(async (song) => {
           const track = await ctx.db
             .query("albumTracks")
             .withIndex("by_song_id", (q) => q.eq("songId", song._id))
@@ -512,16 +555,70 @@ export const listMySongs = artistQuery({
 })
 
 export const listMyAlbums = artistQuery({
-  args: { paginationOpts: paginationOptsValidator },
+  args: {
+    paginationOpts: paginationOptsValidator,
+    status: v.optional(catalogueStatusValidator),
+  },
   returns: paginationResultValidator(schema.doc("albums")),
-  handler: async (ctx, args) =>
-    ctx.db
-      .query("albums")
-      .withIndex("by_owner_member_id", (q) =>
-        q.eq("ownerMemberId", ctx.member._id)
-      )
-      .order("desc")
-      .paginate(args.paginationOpts),
+  handler: async (ctx, args) => {
+    const page = args.status
+      ? await albumsByOwnerAndStatus.paginate(ctx, {
+          namespace: [ctx.member._id, args.status],
+          cursor: args.paginationOpts.cursor ?? undefined,
+          order: "desc",
+          pageSize: args.paginationOpts.numItems,
+        })
+      : await albumsByOwner.paginate(ctx, {
+          namespace: ctx.member._id,
+          cursor: args.paginationOpts.cursor ?? undefined,
+          order: "desc",
+          pageSize: args.paginationOpts.numItems,
+        })
+    return {
+      continueCursor: page.cursor,
+      isDone: page.isDone,
+      page: await Promise.all(
+        page.page.map(async ({ id }) => {
+          const album = await ctx.db.get("albums", id)
+          if (!album)
+            return bad("CATALOGUE_INVARIANT", "Album indexé introuvable.")
+          return album
+        })
+      ),
+    }
+  },
+})
+
+export const getMyCatalogueCounts = artistQuery({
+  args: {},
+  returns: catalogueCounts,
+  handler: async (ctx) => {
+    const [songTotal, songStatuses, albumTotal, albumStatuses] =
+      await Promise.all([
+        songsByOwner.count(ctx, { namespace: ctx.member._id }),
+        songsByOwnerAndStatus.countBatch(ctx, [
+          { namespace: [ctx.member._id, "draft"] },
+          { namespace: [ctx.member._id, "published"] },
+        ]),
+        albumsByOwner.count(ctx, { namespace: ctx.member._id }),
+        albumsByOwnerAndStatus.countBatch(ctx, [
+          { namespace: [ctx.member._id, "draft"] },
+          { namespace: [ctx.member._id, "published"] },
+        ]),
+      ])
+    return {
+      songs: {
+        all: songTotal,
+        draft: songStatuses[0] ?? 0,
+        published: songStatuses[1] ?? 0,
+      },
+      albums: {
+        all: albumTotal,
+        draft: albumStatuses[0] ?? 0,
+        published: albumStatuses[1] ?? 0,
+      },
+    }
+  },
 })
 
 export const getMySong = artistQuery({
@@ -556,10 +653,19 @@ export const getMyAlbum = artistQuery({
   returns: albumDetail,
   handler: async (ctx, args) => {
     const album = await ownedAlbum(ctx, ctx.member._id, args.albumId)
-    const rows = await ctx.db
-      .query("albumTracks")
-      .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
-      .take(MAX_TRACKS + 1)
+    const trackPage = await albumTracksByAlbum.paginate(ctx, {
+      namespace: album._id,
+      order: "asc",
+      pageSize: MAX_TRACKS + 1,
+    })
+    const rows = await Promise.all(
+      trackPage.page.map(async ({ id }) => {
+        const track = await ctx.db.get("albumTracks", id)
+        if (!track)
+          return bad("CATALOGUE_INVARIANT", "Piste indexée introuvable.")
+        return track
+      })
+    )
     if (rows.length > MAX_TRACKS)
       bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
     const tracks = await Promise.all(
@@ -573,6 +679,9 @@ export const getMyAlbum = artistQuery({
     return {
       album,
       tracks,
+      trackCount: await albumTracksByAlbum.count(ctx, {
+        namespace: album._id,
+      }),
       artworkUrl: album.artworkStorageId
         ? await ctx.storage.getUrl(album.artworkStorageId)
         : null,
@@ -941,8 +1050,7 @@ async function setSongStatus(
   ctx: MutationCtx,
   memberId: Id<"members">,
   songId: Id<"songs">,
-  status: "draft" | "published",
-  rightsConfirmed = false
+  status: "draft" | "published"
 ) {
   const song = await ownedSong(ctx, memberId, songId)
   const now = Date.now()
@@ -952,23 +1060,15 @@ async function setSongStatus(
     ...(status === "published" && song.firstPublishedAt === undefined
       ? { firstPublishedAt: now }
       : {}),
-    ...(status === "published" && rightsConfirmed
-      ? { rightsConfirmedAt: now }
-      : {}),
+    rightsConfirmedAt: undefined,
   })
 }
 
 export const publishSong = artistMutation({
-  args: { songId: v.id("songs"), rightsConfirmed: v.literal(true) },
+  args: { songId: v.id("songs") },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await setSongStatus(
-      ctx,
-      ctx.member._id,
-      args.songId,
-      "published",
-      args.rightsConfirmed
-    )
+    await setSongStatus(ctx, ctx.member._id, args.songId, "published")
     return null
   },
 })
@@ -1235,8 +1335,7 @@ async function setAlbumStatus(
   ctx: MutationCtx,
   memberId: Id<"members">,
   albumId: Id<"albums">,
-  status: "draft" | "published",
-  rightsConfirmed = false
+  status: "draft" | "published"
 ) {
   const album = await ownedAlbum(ctx, memberId, albumId)
   const now = Date.now()
@@ -1246,14 +1345,12 @@ async function setAlbumStatus(
     ...(status === "published" && album.firstPublishedAt === undefined
       ? { firstPublishedAt: now }
       : {}),
-    ...(status === "published" && rightsConfirmed
-      ? { rightsConfirmedAt: now }
-      : {}),
+    rightsConfirmedAt: undefined,
   })
 }
 
 export const publishAlbum = artistMutation({
-  args: { albumId: v.id("albums"), rightsConfirmed: v.literal(true) },
+  args: { albumId: v.id("albums") },
   returns: v.null(),
   handler: async (ctx, args) => {
     const album = await ownedAlbum(ctx, ctx.member._id, args.albumId)
@@ -1279,13 +1376,7 @@ export const publishAlbum = artistMutation({
         "ALBUM_NEEDS_PUBLISHED_TRACK",
         "Publiez au moins un morceau avant de publier l’album."
       )
-    await setAlbumStatus(
-      ctx,
-      ctx.member._id,
-      args.albumId,
-      "published",
-      args.rightsConfirmed
-    )
+    await setAlbumStatus(ctx, ctx.member._id, args.albumId, "published")
     return null
   },
 })

@@ -22,21 +22,22 @@ export function usePublicationControl(
   const unpublishAlbum = useMutation(api.catalogue.unpublishAlbum)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [rightsConfirmed, setRightsConfirmed] = useState(false)
 
   async function changeStatus() {
-    if (status === "draft" && !rightsConfirmed) return
     setPending(true)
     setError(null)
     try {
       if (resource.kind === "song") {
         if (status === "draft")
-          await publishSong({ songId: resource.id, rightsConfirmed: true })
+          await publishSong({ songId: resource.id } as Parameters<
+            typeof publishSong
+          >[0])
         else await unpublishSong({ songId: resource.id })
       } else if (status === "draft")
-        await publishAlbum({ albumId: resource.id, rightsConfirmed: true })
+        await publishAlbum({ albumId: resource.id } as Parameters<
+          typeof publishAlbum
+        >[0])
       else await unpublishAlbum({ albumId: resource.id })
-      setRightsConfirmed(false)
       toast.success(
         status === "draft"
           ? t("catalogue.publishedNotice")
@@ -51,5 +52,5 @@ export function usePublicationControl(
     }
   }
 
-  return { changeStatus, error, pending, rightsConfirmed, setRightsConfirmed }
+  return { changeStatus, error, pending }
 }

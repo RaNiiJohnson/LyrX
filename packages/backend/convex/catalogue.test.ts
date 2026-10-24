@@ -2,6 +2,7 @@
 
 import { convexTest } from "convex-test"
 import { describe, expect, it, vi } from "vitest"
+import aggregateTest from "@convex-dev/aggregate/test"
 import rateLimiterTest from "@convex-dev/rate-limiter/test"
 import { MAX_LYRICS_TEXT_LENGTH } from "@lyrx/shared"
 
@@ -24,6 +25,15 @@ const identity = (name: string) => ({
 
 function backend() {
   const t = convexTest(schema, modules)
+  for (const name of [
+    "catalogueSongs",
+    "catalogueSongsByStatus",
+    "catalogueAlbums",
+    "catalogueAlbumsByStatus",
+    "catalogueAlbumTracks",
+  ]) {
+    aggregateTest.register(t, name)
+  }
   rateLimiterTest.register(t)
   return t
 }
@@ -118,7 +128,6 @@ describe("artist catalogue", () => {
     await expect(
       attacker.client.mutation(api.catalogue.publishSong, {
         songId,
-        rightsConfirmed: true,
       })
     ).rejects.toThrow("introuvable")
     await expect(
@@ -356,12 +365,10 @@ describe("artist catalogue", () => {
     await expect(
       client.mutation(api.catalogue.publishAlbum, {
         albumId,
-        rightsConfirmed: true,
       })
     ).rejects.toThrow("au moins un morceau")
     await client.mutation(api.catalogue.publishSong, {
       songId,
-      rightsConfirmed: true,
     })
     await client.mutation(api.catalogue.setAlbumTracks, {
       albumId,
@@ -369,7 +376,6 @@ describe("artist catalogue", () => {
     })
     await client.mutation(api.catalogue.publishAlbum, {
       albumId,
-      rightsConfirmed: true,
     })
     await expect(
       t.query(api.catalogue.getPublishedAlbum, { albumId })
@@ -380,7 +386,6 @@ describe("artist catalogue", () => {
     ).resolves.toBeNull()
     await client.mutation(api.catalogue.publishAlbum, {
       albumId,
-      rightsConfirmed: true,
     })
     const publishedSong = await t.query(api.catalogue.getPublishedSong, {
       songId,
@@ -391,8 +396,8 @@ describe("artist catalogue", () => {
     expect(publishedSong?.song).not.toHaveProperty("rightsConfirmedAt")
     const ownedSong = await client.query(api.catalogue.getMySong, { songId })
     const ownedAlbum = await client.query(api.catalogue.getMyAlbum, { albumId })
-    expect(ownedSong.song.rightsConfirmedAt).toEqual(expect.any(Number))
-    expect(ownedAlbum.album.rightsConfirmedAt).toEqual(expect.any(Number))
+    expect(ownedSong.song.rightsConfirmedAt).toBeUndefined()
+    expect(ownedAlbum.album.rightsConfirmedAt).toBeUndefined()
     const member = await client.query(api.members.current, {})
     if (member.state !== "ready") throw new Error("Expected a ready member")
     await t.mutation(internal.admin.setAccountSuspension, {
@@ -435,7 +440,6 @@ describe("artist catalogue", () => {
     ).resolves.toBeNull()
     await client.mutation(api.catalogue.publishSong, {
       songId,
-      rightsConfirmed: true,
     })
     await client.mutation(api.catalogue.unpublishSong, { songId })
     await expect(
@@ -466,7 +470,6 @@ describe("artist catalogue", () => {
     )
     await client.mutation(api.catalogue.publishSong, {
       songId,
-      rightsConfirmed: true,
     })
     await client.mutation(api.catalogue.saveArtwork, {
       resource: { kind: "song", id: songId },
@@ -639,6 +642,16 @@ describe("artist catalogue", () => {
           updatedAt: index,
         })
     })
+    vi.useFakeTimers()
+    try {
+      await t.mutation(internal.catalogueAggregates.backfill, {
+        phase: "songs",
+        cursor: null,
+      })
+      await t.finishAllScheduledFunctions(() => vi.runAllTimers())
+    } finally {
+      vi.useRealTimers()
+    }
     const first = await client.query(api.catalogue.listMySongs, {
       paginationOpts: { numItems: 100, cursor: null },
     })
@@ -650,6 +663,53 @@ describe("artist catalogue", () => {
     expect(second.isDone).toBe(true)
     expect(first.page[0]).not.toHaveProperty("lyricsText")
     expect(first.page[0]).not.toHaveProperty("ownerMemberId")
+  })
+
+  it("keeps aggregate counts and status pagination in sync", async () => {
+    const t = backend()
+    const { client } = await artist(t, "catalogue-aggregate-counts")
+    const draftSongId = await client.mutation(
+      api.catalogue.createSong,
+      songInput("Brouillon agrégé")
+    )
+    const publishedSongId = await client.mutation(
+      api.catalogue.createSong,
+      songInput("Publié agrégé")
+    )
+    await client.mutation(api.catalogue.publishSong, {
+      songId: publishedSongId,
+    })
+    const albumId = await client.mutation(api.catalogue.createAlbum, {
+      title: "Album agrégé",
+      credits: [],
+    })
+
+    await expect(
+      client.query(api.catalogue.getMyCatalogueCounts, {})
+    ).resolves.toEqual({
+      songs: { all: 2, draft: 1, published: 1 },
+      albums: { all: 1, draft: 1, published: 0 },
+    })
+
+    const drafts = await client.query(api.catalogue.listMySongs, {
+      paginationOpts: { numItems: 10, cursor: null },
+      status: "draft",
+    })
+    const published = await client.query(api.catalogue.listMySongs, {
+      paginationOpts: { numItems: 10, cursor: null },
+      status: "published",
+    })
+    expect(drafts.page.map(({ _id }) => _id)).toEqual([draftSongId])
+    expect(published.page.map(({ _id }) => _id)).toEqual([publishedSongId])
+
+    await client.mutation(api.catalogue.deleteSong, { songId: draftSongId })
+    await client.mutation(api.catalogue.deleteAlbum, { albumId })
+    await expect(
+      client.query(api.catalogue.getMyCatalogueCounts, {})
+    ).resolves.toEqual({
+      songs: { all: 1, draft: 0, published: 1 },
+      albums: { all: 0, draft: 0, published: 0 },
+    })
   })
 
   it("orders album tracks atomically and enforces a single owned album", async () => {

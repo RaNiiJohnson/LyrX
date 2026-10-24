@@ -114,6 +114,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@convex-dev/aggregate':
+        specifier: 0.3.4
+        version: 0.3.4(@standard-schema/spec@1.1.0)(convex@1.47.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)(zod@4.6.7)
       '@convex-dev/better-auth':
         specifier: 0.12.5
         version: 0.12.5(@standard-schema/spec@1.1.0)(better-auth@1.6.33(@tanstack/react-start@1.168.61(esbuild@0.27.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.14)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.27.0)(jiti@2.7.0)))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.5(@edge-runtime/vm@5.0.0)(@types/node@22.20.5)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.27.0)(jiti@2.7.0))))(convex@1.47.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
@@ -373,10 +376,21 @@ packages:
   '@cacheable/utils@2.5.0':
     resolution: {integrity: sha512-buipgOVDkkPXNR5+xBpDw7Zk2n1EvU7qBJCNUcL7rhQ//kfpOXPAvQ511Os0vpLYJ1pZnvudNytkQt2hst3wqA==}
 
+  '@convex-dev/aggregate@0.3.4':
+    resolution: {integrity: sha512-w60E4fLuysza8sBIQsLlYFxnzMB7ed8yqYpu/JfDhkUYvnnvW3CzLEf74zCwb/RfLrR6u5a/0pfvVtIp4XNIoA==}
+    peerDependencies:
+      convex: ^1.43.0
+
   '@convex-dev/batch-worker@0.2.2':
     resolution: {integrity: sha512-3knigElzTVhWw1sN28EYkGBTdrJZ03vMj2PJPuFq3V0Tg41i7tcv/EWDBFQWcUaKzBWWVw693hcJtxCF3CRtEw==}
     peerDependencies:
       convex: ^1.36.1
+      react: ^18.3.1 || ^19.0.0
+
+  '@convex-dev/batch-worker@0.3.3':
+    resolution: {integrity: sha512-A9mOhSqITtdF6TR9bVZjTy+eES6/r/8ZvMWnNdKsATg8EOn5JMzDplibjaHCjQ57FjVeizbuKJ8GlnMs1RWF0g==}
+    peerDependencies:
+      convex: ^1.43.0
       react: ^18.3.1 || ^19.0.0
 
   '@convex-dev/better-auth@0.12.5':
@@ -3611,10 +3625,33 @@ snapshots:
       hashery: 1.5.1
       keyv: 5.6.0
 
+  '@convex-dev/aggregate@0.3.4(@standard-schema/spec@1.1.0)(convex@1.47.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)(zod@4.6.7)':
+    dependencies:
+      '@convex-dev/batch-worker': 0.3.3(@standard-schema/spec@1.1.0)(convex@1.47.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)(zod@4.6.7)
+      convex: 1.47.0(react@19.3.0)
+      convex-helpers: 0.1.128(@standard-schema/spec@1.1.0)(convex@1.47.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)(zod@4.6.7)
+    transitivePeerDependencies:
+      - '@standard-schema/spec'
+      - hono
+      - react
+      - typescript
+      - zod
+
   '@convex-dev/batch-worker@0.2.2(convex@1.47.0(react@19.3.0))(react@19.3.0)':
     dependencies:
       convex: 1.47.0(react@19.3.0)
       react: 19.3.0
+
+  '@convex-dev/batch-worker@0.3.3(@standard-schema/spec@1.1.0)(convex@1.47.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)(zod@4.6.7)':
+    dependencies:
+      convex: 1.47.0(react@19.3.0)
+      convex-helpers: 0.1.128(@standard-schema/spec@1.1.0)(convex@1.47.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)(zod@4.6.7)
+      react: 19.3.0
+    transitivePeerDependencies:
+      - '@standard-schema/spec'
+      - hono
+      - typescript
+      - zod
 
   '@convex-dev/better-auth@0.12.5(@standard-schema/spec@1.1.0)(better-auth@1.6.33(@tanstack/react-start@1.168.61(esbuild@0.27.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.14)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.27.0)(jiti@2.7.0)))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.5(@edge-runtime/vm@5.0.0)(@types/node@22.20.5)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.27.0)(jiti@2.7.0))))(convex@1.47.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)':
     dependencies:

@@ -11,6 +11,7 @@
 import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
 import type * as catalogue from "../catalogue.js";
+import type * as catalogueAggregates from "../catalogueAggregates.js";
 import type * as configuration from "../configuration.js";
 import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   auth: typeof auth;
   catalogue: typeof catalogue;
+  catalogueAggregates: typeof catalogueAggregates;
   configuration: typeof configuration;
   crons: typeof crons;
   emails: typeof emails;
@@ -74,6 +76,11 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   betterAuth: import("../betterAuth/_generated/component.js").ComponentApi<"betterAuth">;
+  catalogueSongs: import("@convex-dev/aggregate/_generated/component.js").ComponentApi<"catalogueSongs">;
+  catalogueSongsByStatus: import("@convex-dev/aggregate/_generated/component.js").ComponentApi<"catalogueSongsByStatus">;
+  catalogueAlbums: import("@convex-dev/aggregate/_generated/component.js").ComponentApi<"catalogueAlbums">;
+  catalogueAlbumsByStatus: import("@convex-dev/aggregate/_generated/component.js").ComponentApi<"catalogueAlbumsByStatus">;
+  catalogueAlbumTracks: import("@convex-dev/aggregate/_generated/component.js").ComponentApi<"catalogueAlbumTracks">;
   rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
   resend: import("@convex-dev/resend/_generated/component.js").ComponentApi<"resend">;
 };
