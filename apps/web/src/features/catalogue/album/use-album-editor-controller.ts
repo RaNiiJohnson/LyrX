@@ -45,7 +45,6 @@ export function useAlbumEditorController({
         title: detail.album.title,
         releaseDate: dateInputFromTimestamp(detail.album.releaseDate),
         description: detail.album.description ?? "",
-        primaryLanguage: detail.album.primaryLanguage ?? "",
         genre: detail.album.genre ?? "",
         otherGenre: detail.album.otherGenre ?? "",
         label: detail.album.label ?? "",
@@ -61,7 +60,6 @@ export function useAlbumEditorController({
         title: value.title,
         releaseDate: timestampFromDateInput(value.releaseDate),
         description: value.description || undefined,
-        primaryLanguage: value.primaryLanguage || undefined,
         genre: value.genre || undefined,
         otherGenre:
           value.genre === "other" ? value.otherGenre || undefined : undefined,

@@ -9,7 +9,7 @@ export async function ownedSong(
 ) {
   const song = await ctx.db.get("songs", songId)
   if (!song || song.ownerMemberId !== memberId)
-    bad("NOT_FOUND", "Morceau introuvable.")
+    bad("NOT_FOUND", "Song not found.")
   return song
 }
 
@@ -20,6 +20,6 @@ export async function ownedAlbum(
 ) {
   const album = await ctx.db.get("albums", albumId)
   if (!album || album.ownerMemberId !== memberId)
-    bad("NOT_FOUND", "Album introuvable.")
+    bad("NOT_FOUND", "Album not found.")
   return album
 }

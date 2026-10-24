@@ -13,7 +13,6 @@ const songInputValidator = v.object({
   releaseDate: v.optional(v.number()),
   description: v.optional(v.string()),
   context: v.optional(v.string()),
-  primaryLanguage: v.optional(v.string()),
   genre: v.optional(songGenreValidator),
   otherGenre: v.optional(v.string()),
   writers: v.array(v.string()),
@@ -29,7 +28,6 @@ export const songInput = songInputValidator.fields
 
 export const albumInheritanceValidator = v.object({
   inheritArtwork: v.boolean(),
-  inheritPrimaryLanguage: v.boolean(),
   inheritGenre: v.boolean(),
   inheritLabel: v.boolean(),
   inheritCredits: v.boolean(),
@@ -47,7 +45,6 @@ const albumInputValidator = v.object({
   title: v.string(),
   releaseDate: v.optional(v.number()),
   description: v.optional(v.string()),
-  primaryLanguage: v.optional(v.string()),
   genre: v.optional(songGenreValidator),
   otherGenre: v.optional(v.string()),
   label: v.optional(v.string()),
@@ -110,7 +107,6 @@ const publicSong = v.object({
   releaseDate: v.optional(v.number()),
   description: v.optional(v.string()),
   context: v.optional(v.string()),
-  primaryLanguage: v.optional(v.string()),
   genre: v.optional(songGenreValidator),
   otherGenre: v.optional(v.string()),
   writers: v.array(v.string()),
@@ -131,7 +127,6 @@ const publicAlbum = v.object({
   title: v.string(),
   releaseDate: v.optional(v.number()),
   description: v.optional(v.string()),
-  primaryLanguage: v.optional(v.string()),
   genre: v.optional(songGenreValidator),
   otherGenre: v.optional(v.string()),
   label: v.optional(v.string()),
@@ -168,7 +163,10 @@ export function bad(code: string, message: string): never {
 function text(value: string, max: number, label: string) {
   const normalized = value.trim()
   if (!normalized || normalized.length > max) {
-    bad("INVALID_INPUT", `${label} doit contenir entre 1 et ${max} caractères.`)
+    bad(
+      "INVALID_INPUT",
+      `${label} must contain between 1 and ${max} characters.`
+    )
   }
   return normalized
 }
@@ -177,13 +175,13 @@ function optionalText(value: string | undefined, max: number, label: string) {
   if (value === undefined) return undefined
   const normalized = value.trim()
   if (!normalized) return undefined
-  if (normalized.length > max) bad("INVALID_INPUT", `${label} est trop long.`)
+  if (normalized.length > max) bad("INVALID_INPUT", `${label} is too long.`)
   return normalized
 }
 
 function textList(values: Array<string>, maxItems: number, label: string) {
   if (values.length > maxItems)
-    bad("INVALID_INPUT", `${label}: trop d’éléments.`)
+    bad("INVALID_INPUT", `${label}: too many entries.`)
   return values.map((value) => text(value, 100, label))
 }
 
@@ -192,10 +190,10 @@ function validateUrl(provider: string, value: string) {
   try {
     url = new URL(value)
   } catch {
-    return bad("INVALID_URL", "Le lien d’écoute est invalide.")
+    return bad("INVALID_URL", "The listening link is invalid.")
   }
   if (url.protocol !== "https:") {
-    bad("INVALID_URL", "Les liens d’écoute doivent utiliser HTTPS.")
+    bad("INVALID_URL", "Listening links must use HTTPS.")
   }
   const allowedHosts: Partial<Record<string, Array<string>>> = {
     spotify: ["open.spotify.com"],
@@ -212,7 +210,7 @@ function validateUrl(provider: string, value: string) {
       (host) => url.hostname === host || url.hostname.endsWith(`.${host}`)
     )
   ) {
-    bad("INVALID_URL", "Le domaine ne correspond pas au service d’écoute.")
+    bad("INVALID_URL", "The domain does not match the listening service.")
   }
   return url.toString()
 }
@@ -220,57 +218,49 @@ function validateUrl(provider: string, value: string) {
 function optionalDate(value: number | undefined) {
   if (value === undefined) return undefined
   if (!Number.isSafeInteger(value)) {
-    bad("INVALID_INPUT", "La date de sortie est invalide.")
+    bad("INVALID_INPUT", "The release date is invalid.")
   }
   return value
 }
 
 export function validatedSong(args: Infer<typeof songInputValidator>) {
   if (args.listeningLinks.length > 12)
-    bad("INVALID_INPUT", "Trop de liens d’écoute.")
-  if (
-    args.genre === "other" &&
-    !optionalText(args.otherGenre, 60, "Le genre")
-  ) {
-    bad("INVALID_INPUT", "Précisez le genre personnalisé.")
+    bad("INVALID_INPUT", "Too many listening links.")
+  if (args.genre === "other" && !optionalText(args.otherGenre, 60, "Genre")) {
+    bad("INVALID_INPUT", "Specify the custom genre.")
   }
   if (args.genre !== "other" && args.otherGenre !== undefined) {
-    bad("INVALID_INPUT", "Le genre personnalisé exige le choix « autre ».")
+    bad("INVALID_INPUT", "A custom genre requires the other option.")
   }
   return {
-    title: text(args.title, 160, "Le titre"),
-    primaryArtist: text(args.primaryArtist, 120, "L’artiste principal"),
-    guestArtists: textList(args.guestArtists, 20, "Les artistes invités"),
+    title: text(args.title, 160, "Title"),
+    primaryArtist: text(args.primaryArtist, 120, "Primary artist"),
+    guestArtists: textList(args.guestArtists, 20, "Guest artists"),
     ...(optionalDate(args.releaseDate) === undefined
       ? {}
       : { releaseDate: optionalDate(args.releaseDate) }),
-    ...(optionalText(args.description, 2_000, "La description")
-      ? { description: optionalText(args.description, 2_000, "La description") }
+    ...(optionalText(args.description, 2_000, "Description")
+      ? { description: optionalText(args.description, 2_000, "Description") }
       : {}),
-    ...(optionalText(args.context, 5_000, "Le contexte")
-      ? { context: optionalText(args.context, 5_000, "Le contexte") }
-      : {}),
-    ...(optionalText(args.primaryLanguage, 50, "La langue")
-      ? {
-          primaryLanguage: optionalText(args.primaryLanguage, 50, "La langue"),
-        }
+    ...(optionalText(args.context, 5_000, "Context")
+      ? { context: optionalText(args.context, 5_000, "Context") }
       : {}),
     ...(args.genre === undefined ? {} : { genre: args.genre }),
     ...(args.genre === "other"
-      ? { otherGenre: text(args.otherGenre ?? "", 60, "Le genre") }
+      ? { otherGenre: text(args.otherGenre ?? "", 60, "Genre") }
       : {}),
-    writers: textList(args.writers, 30, "Les auteurs"),
-    composers: textList(args.composers, 30, "Les compositeurs"),
-    producers: textList(args.producers, 30, "Les producteurs"),
-    ...(optionalText(args.label, 120, "Le label")
-      ? { label: optionalText(args.label, 120, "Le label") }
+    writers: textList(args.writers, 30, "Writers"),
+    composers: textList(args.composers, 30, "Composers"),
+    producers: textList(args.producers, 30, "Producers"),
+    ...(optionalText(args.label, 120, "Label")
+      ? { label: optionalText(args.label, 120, "Label") }
       : {}),
     ...(args.additionalCredits && args.additionalCredits.length > 0
       ? {
           additionalCredits: textList(
             args.additionalCredits,
             50,
-            "Les crédits complémentaires"
+            "Additional credits"
           ),
         }
       : {}),
@@ -283,49 +273,41 @@ export function validatedSong(args: Infer<typeof songInputValidator>) {
 }
 
 export function validatedAlbum(args: Infer<typeof albumInputValidator>) {
-  if (
-    args.genre === "other" &&
-    !optionalText(args.otherGenre, 60, "Le genre")
-  ) {
-    bad("INVALID_INPUT", "Précisez le genre personnalisé.")
+  if (args.genre === "other" && !optionalText(args.otherGenre, 60, "Genre")) {
+    bad("INVALID_INPUT", "Specify the custom genre.")
   }
   if (args.genre !== "other" && args.otherGenre !== undefined) {
-    bad("INVALID_INPUT", "Le genre personnalisé exige le choix « autre ».")
+    bad("INVALID_INPUT", "A custom genre requires the other option.")
   }
   return {
-    title: text(args.title, 160, "Le titre"),
+    title: text(args.title, 160, "Title"),
     ...(optionalDate(args.releaseDate) === undefined
       ? {}
       : { releaseDate: optionalDate(args.releaseDate) }),
-    ...(optionalText(args.description, 5_000, "La description")
+    ...(optionalText(args.description, 5_000, "Description")
       ? {
-          description: optionalText(args.description, 5_000, "La description"),
-        }
-      : {}),
-    ...(optionalText(args.primaryLanguage, 50, "La langue")
-      ? {
-          primaryLanguage: optionalText(args.primaryLanguage, 50, "La langue"),
+          description: optionalText(args.description, 5_000, "Description"),
         }
       : {}),
     ...(args.genre === undefined ? {} : { genre: args.genre }),
     ...(args.genre === "other"
-      ? { otherGenre: text(args.otherGenre ?? "", 60, "Le genre") }
+      ? { otherGenre: text(args.otherGenre ?? "", 60, "Genre") }
       : {}),
-    ...(optionalText(args.label, 120, "Le label")
-      ? { label: optionalText(args.label, 120, "Le label") }
+    ...(optionalText(args.label, 120, "Label")
+      ? { label: optionalText(args.label, 120, "Label") }
       : {}),
-    credits: textList(args.credits, 50, "Les crédits généraux"),
+    credits: textList(args.credits, 50, "General credits"),
   }
 }
 
 export function validateLyricsText(value: string) {
   if (!value.trim()) {
-    bad("INVALID_LYRICS", "Le texte des paroles est obligatoire.")
+    bad("INVALID_LYRICS", "Lyrics are required.")
   }
   if (value.length > MAX_LYRICS_TEXT_LENGTH) {
     bad(
       "INVALID_LYRICS",
-      `Les paroles ne peuvent pas dépasser ${MAX_LYRICS_TEXT_LENGTH} caractères.`
+      `Lyrics cannot exceed ${MAX_LYRICS_TEXT_LENGTH} characters.`
     )
   }
   return value
@@ -346,9 +328,6 @@ export function projectPublicSong(song: Doc<"songs">) {
       ? {}
       : { description: song.description }),
     ...(song.context === undefined ? {} : { context: song.context }),
-    ...(song.primaryLanguage === undefined
-      ? {}
-      : { primaryLanguage: song.primaryLanguage }),
     ...(song.genre === undefined ? {} : { genre: song.genre }),
     ...(song.otherGenre === undefined ? {} : { otherGenre: song.otherGenre }),
     writers: song.writers,
@@ -379,9 +358,6 @@ export function projectPublicAlbum(album: Doc<"albums">) {
     ...(album.description === undefined
       ? {}
       : { description: album.description }),
-    ...(album.primaryLanguage === undefined
-      ? {}
-      : { primaryLanguage: album.primaryLanguage }),
     ...(album.genre === undefined ? {} : { genre: album.genre }),
     ...(album.otherGenre === undefined ? {} : { otherGenre: album.otherGenre }),
     ...(album.label === undefined ? {} : { label: album.label }),

@@ -40,7 +40,6 @@ type ReadOnlySong = {
     listeningLinks: Array<{ provider: ListeningProvider; url: string }>
     otherGenre?: string
     primaryArtist: string
-    primaryLanguage?: string
     producers: Array<string>
     releaseDate?: number
     title: string
@@ -79,9 +78,6 @@ export function SongReadOnly({
   )
   const metadata = [
     genreLabel(detail.song, t),
-    detail.song.primaryLanguage
-      ? languageLabel(detail.song.primaryLanguage, locale)
-      : undefined,
     shortDate(detail.song.releaseDate, locale),
   ].filter((value): value is string => Boolean(value))
 
@@ -265,14 +261,6 @@ function genreLabel(
   if (!song.genre) return undefined
   if (song.genre === "other") return song.otherGenre
   return t(genreMessageKeys[song.genre])
-}
-
-function languageLabel(language: string, locale: SupportedLocale) {
-  try {
-    return new Intl.DisplayNames([locale], { type: "language" }).of(language)
-  } catch {
-    return language
-  }
 }
 
 function shortDate(date: number | undefined, locale: SupportedLocale) {

@@ -47,7 +47,7 @@ describe("member onboarding and authorization", () => {
         handle: "fan.test",
         displayName: "Fan Test",
       })
-    ).rejects.toThrow("L’adresse email doit être vérifiée")
+    ).rejects.toThrow("EMAIL_NOT_VERIFIED")
   })
 
   it("creates an artist identity atomically and exposes only its public profile", async () => {
@@ -105,7 +105,7 @@ describe("member onboarding and authorization", () => {
         handle: "another-handle",
         displayName: "Premier Fan",
       })
-    ).rejects.toThrow("déjà terminé")
+    ).rejects.toThrow("ONBOARDING_ALREADY_COMPLETED")
 
     const second = t.withIdentity({
       ...verifiedFan,
@@ -119,7 +119,7 @@ describe("member onboarding and authorization", () => {
         handle: "UNIQUE-FAN",
         displayName: "Deuxième Fan",
       })
-    ).rejects.toThrow("déjà utilisé")
+    ).rejects.toThrow("HANDLE_TAKEN")
   })
 
   it("blocks suspended accounts at the function layer and hides their profile", async () => {
@@ -141,7 +141,7 @@ describe("member onboarding and authorization", () => {
         handle: "suspended-fan",
         displayName: "Nouveau nom",
       })
-    ).rejects.toThrow("suspendu")
+    ).rejects.toThrow("ACCOUNT_SUSPENDED")
     await expect(
       t.query(api.members.publicByHandle, { handle: "suspended-fan" })
     ).resolves.toBeNull()
@@ -190,7 +190,7 @@ describe("member onboarding and authorization", () => {
         storageId: preexistingStorageId,
         uploadIntentId: laterUpload.uploadIntentId,
       })
-    ).rejects.toThrow("ne correspond pas")
+    ).rejects.toThrow("UPLOAD_INTENT_MISMATCH")
     await expect(
       t.run((ctx) => ctx.db.system.get("_storage", preexistingStorageId))
     ).resolves.not.toBeNull()
@@ -199,7 +199,7 @@ describe("member onboarding and authorization", () => {
       fan.mutation(api.members.generateProfileImageUploadUrl, {
         kind: "banner",
       })
-    ).rejects.toThrow("Seul un compte artiste")
+    ).rejects.toThrow("ARTIST_ROLE_REQUIRED")
   })
 
   it("never attaches or deletes another member's public profile image", async () => {
@@ -270,7 +270,7 @@ describe("member onboarding and authorization", () => {
         storageId: victimStorageId,
         uploadIntentId: attackerUpload.uploadIntentId,
       })
-    ).rejects.toThrow("appartient à un autre compte")
+    ).rejects.toThrow("PROFILE_IMAGE_FORBIDDEN")
     await expect(
       t.run((ctx) => ctx.db.system.get("_storage", victimStorageId))
     ).resolves.not.toBeNull()
@@ -392,7 +392,7 @@ describe("member onboarding and authorization", () => {
       t.mutation(internal.admin.bootstrapFirstAdmin, {
         email: "fan@example.com",
       })
-    ).rejects.toThrow("existe déjà")
+    ).rejects.toThrow("ADMIN_ALREADY_EXISTS")
 
     const current = await fan.query(api.members.current, {})
     expect(current.state).toBe("ready")

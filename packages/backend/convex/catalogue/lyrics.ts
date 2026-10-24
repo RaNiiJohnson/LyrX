@@ -15,7 +15,7 @@ export async function readLyrics(
     .withIndex("by_song_id_and_position", (q) => q.eq("songId", songId))
     .take(MAX_SECTIONS + 1)
   if (sections.length > MAX_SECTIONS)
-    bad("CATALOGUE_INVARIANT", "Trop de sections enregistrées.")
+    bad("CATALOGUE_INVARIANT", "Too many stored lyric sections.")
   return Promise.all(
     sections.map(async (section: Doc<"songSections">) => {
       const lines = await ctx.db
@@ -25,12 +25,13 @@ export async function readLyrics(
         )
         .take(MAX_LINES_PER_SECTION + 1)
       if (lines.length > MAX_LINES_PER_SECTION)
-        bad("CATALOGUE_INVARIANT", "Trop de lignes enregistrées.")
+        bad("CATALOGUE_INVARIANT", "Too many stored lyric lines.")
       return { section, lines }
     })
   )
 }
 
+// Historical lyric content is not a diagnostic message. Keep its headings intact.
 const LEGACY_SECTION_HEADINGS: Record<Doc<"songSections">["kind"], string> = {
   intro: "Intro",
   verse: "Couplet",

@@ -15,7 +15,6 @@ export type AlbumFormValues = {
   title: string
   releaseDate: string
   description: string
-  primaryLanguage: string
   genre: "" | SongGenre
   otherGenre: string
   label: string

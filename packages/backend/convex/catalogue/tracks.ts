@@ -15,7 +15,6 @@ type AlbumInheritance = Infer<typeof albumInheritanceValidator>
 export function trackInheritance(track: Doc<"albumTracks">): AlbumInheritance {
   return {
     inheritArtwork: track.inheritArtwork ?? false,
-    inheritPrimaryLanguage: track.inheritPrimaryLanguage ?? false,
     inheritGenre: track.inheritGenre ?? false,
     inheritLabel: track.inheritLabel ?? false,
     inheritCredits: track.inheritCredits ?? false,
@@ -34,9 +33,6 @@ export function materializeAlbumMetadata(
     if (album.artworkStorageId)
       materialized.artworkStorageId = album.artworkStorageId
     else delete materialized.artworkStorageId
-  }
-  if (inheritance.inheritPrimaryLanguage && album.primaryLanguage) {
-    materialized.primaryLanguage = album.primaryLanguage
   }
   if (inheritance.inheritGenre) {
     delete materialized.genre
@@ -64,7 +60,7 @@ export async function patchInheritedSongs(
     .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
     .take(MAX_TRACKS + 1)
   if (tracks.length > MAX_TRACKS)
-    bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+    bad("CATALOGUE_INVARIANT", "Too many tracks in the album.")
   const now = Date.now()
   for (const track of tracks) {
     const inheritance = trackInheritance(track)
@@ -76,10 +72,6 @@ export async function patchInheritedSongs(
     let changed = false
     if (inheritance.inheritArtwork) {
       patch.artworkStorageId = album.artworkStorageId
-      changed = true
-    }
-    if (inheritance.inheritPrimaryLanguage && album.primaryLanguage) {
-      patch.primaryLanguage = album.primaryLanguage
       changed = true
     }
     if (inheritance.inheritGenre) {
@@ -109,7 +101,7 @@ export async function compactAlbumTrackPositions(
     .withIndex("by_album_id_and_position", (q) => q.eq("albumId", albumId))
     .take(MAX_TRACKS + 1)
   if (tracks.length > MAX_TRACKS)
-    bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+    bad("CATALOGUE_INVARIANT", "Too many tracks in the album.")
   const now = Date.now()
   for (const [position, track] of tracks.entries()) {
     if (track.position !== position)
@@ -165,7 +157,7 @@ export async function setSongAlbumContext(
       )
       .take(MAX_TRACKS + 1)
     if (rows.length >= MAX_TRACKS)
-      bad("INVALID_TRACKS", "Cet album contient déjà trop de morceaux.")
+      bad("INVALID_TRACKS", "This album already contains too many tracks.")
     await ctx.db.insert("albumTracks", {
       albumId: context.albumId,
       songId,

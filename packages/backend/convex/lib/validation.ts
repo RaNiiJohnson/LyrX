@@ -9,8 +9,8 @@ const ALLOWED_SOCIAL_HOSTS = {
   youtubeUrl: ["youtube.com", "www.youtube.com", "youtu.be"],
 } as const
 const IMAGE_RULES = {
-  avatar: { maxBytes: 5 * 1024 * 1024, label: "L’avatar" },
-  banner: { maxBytes: 10 * 1024 * 1024, label: "La bannière" },
+  avatar: { maxBytes: 5 * 1024 * 1024, label: "Avatar" },
+  banner: { maxBytes: 10 * 1024 * 1024, label: "Banner" },
 } as const
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
@@ -28,7 +28,7 @@ export function validateHandle(handle: string) {
     throw new ConvexError({
       code: "INVALID_HANDLE",
       message:
-        "Le pseudo doit contenir 3 à 30 caractères : lettres minuscules, chiffres, point, tiret ou underscore.",
+        "The handle must contain 3 to 30 characters: lowercase letters, numbers, dots, hyphens or underscores.",
     })
   }
   return normalized
@@ -39,7 +39,7 @@ export function validateDisplayName(displayName: string) {
   if (value.length < 2 || value.length > 80) {
     throw new ConvexError({
       code: "INVALID_DISPLAY_NAME",
-      message: "Le nom affiché doit contenir entre 2 et 80 caractères.",
+      message: "The display name must contain between 2 and 80 characters.",
     })
   }
   return value
@@ -55,7 +55,7 @@ export function validateOptionalText(
   if (normalized.length > maximumLength) {
     throw new ConvexError({
       code: "TEXT_TOO_LONG",
-      message: `${field} dépasse ${maximumLength} caractères.`,
+      message: `${field} exceeds ${maximumLength} characters.`,
     })
   }
   return normalized
@@ -74,7 +74,7 @@ export function validateSocialUrl(
   } catch {
     throw new ConvexError({
       code: "INVALID_URL",
-      message: "Le lien social n’est pas une URL valide.",
+      message: "The social link is not a valid URL.",
     })
   }
 
@@ -82,7 +82,7 @@ export function validateSocialUrl(
   if (url.protocol !== "https:" || !allowedHosts.includes(url.hostname)) {
     throw new ConvexError({
       code: "INVALID_SOCIAL_URL",
-      message: "Le lien ne correspond pas au service attendu.",
+      message: "The link does not match the expected service.",
     })
   }
 
@@ -95,7 +95,7 @@ export function validateCustomLinks(
   if (links.length > 8) {
     throw new ConvexError({
       code: "TOO_MANY_CUSTOM_LINKS",
-      message: "Un profil peut contenir au maximum 8 liens personnalisés.",
+      message: "A profile can contain at most 8 custom links.",
     })
   }
 
@@ -104,7 +104,7 @@ export function validateCustomLinks(
     if (label.length < 1 || label.length > 40) {
       throw new ConvexError({
         code: "INVALID_LINK_LABEL",
-        message: "Le libellé d’un lien doit contenir entre 1 et 40 caractères.",
+        message: "A link label must contain between 1 and 40 characters.",
       })
     }
 
@@ -114,13 +114,13 @@ export function validateCustomLinks(
     } catch {
       throw new ConvexError({
         code: "INVALID_URL",
-        message: "Un lien personnalisé n’est pas une URL valide.",
+        message: "A custom link is not a valid URL.",
       })
     }
     if (url.protocol !== "https:") {
       throw new ConvexError({
         code: "INVALID_URL_PROTOCOL",
-        message: "Les liens personnalisés doivent utiliser HTTPS.",
+        message: "Custom links must use HTTPS.",
       })
     }
 
@@ -138,7 +138,7 @@ export function validateProfileImageMetadata(
     !ALLOWED_IMAGE_TYPES.has(metadata.contentType) ||
     metadata.size > rule.maxBytes
   ) {
-    return `${rule.label} doit être une image JPEG, PNG ou WebP de ${rule.maxBytes / 1024 / 1024} Mo maximum.`
+    return `${rule.label} must be a JPEG, PNG or WebP image no larger than ${rule.maxBytes / 1024 / 1024} MB.`
   }
   return null
 }

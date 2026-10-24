@@ -354,7 +354,6 @@ const frenchMessages = {
     "Commencez par l’identité du morceau et ses paroles. Le reste peut être complété ensuite.",
   "studio.guestArtists": "Artistes invités",
   "studio.label": "Label",
-  "studio.language": "Langue principale",
   "studio.inheritedMetadata": "Informations héritées de l’album",
   "studio.inheritedMetadataDescription":
     "Décochez un champ pour le personnaliser uniquement sur ce morceau.",
@@ -376,7 +375,9 @@ const frenchMessages = {
   "studio.lyricsSections": "Sections des paroles",
   "studio.lyricsEditor": "Texte des paroles",
   "studio.lyricsEditorDescription":
-    "Écrivez ou collez tout le texte ici. Placez les titres de section seuls sur une ligne, par exemple [Couplet 1], [Refrain], [Verse] ou [Chorus]. Les titres personnalisés sont acceptés et les lignes vides sont conservées.",
+    "Vous pouvez écrire librement. Les repères comme [Couplet] ou [Refrain] sont facultatifs.",
+  "studio.lyricsEditorPlaceholder":
+    "Vos paroles, telles que vous souhaitez les écrire…",
   "studio.lyricsRequired": "Le texte des paroles est obligatoire.",
   "studio.nextStep": "Continuer",
   "studio.newAlbum": "Créer un album",
@@ -794,7 +795,6 @@ const englishMessages = {
     "Start with the song identity and its lyrics. Everything else can be completed later.",
   "studio.guestArtists": "Guest artists",
   "studio.label": "Label",
-  "studio.language": "Primary language",
   "studio.inheritedMetadata": "Inherited album information",
   "studio.inheritedMetadataDescription":
     "Uncheck a field to customize it only for this song.",
@@ -816,7 +816,9 @@ const englishMessages = {
   "studio.lyricsSections": "Lyrics sections",
   "studio.lyricsEditor": "Lyrics text",
   "studio.lyricsEditorDescription":
-    "Write or paste the complete text here. Put section headings on their own line, for example [Verse 1], [Chorus], [Couplet] or [Refrain]. Custom headings are accepted and blank lines are preserved.",
+    "Write freely. Section markers such as [Verse] or [Chorus] are optional.",
+  "studio.lyricsEditorPlaceholder":
+    "Your lyrics, however you want to write them…",
   "studio.lyricsRequired": "Lyrics are required.",
   "studio.nextStep": "Continue",
   "studio.newAlbum": "Create an album",

@@ -44,7 +44,7 @@ async function replaceAlbumTracks(
 ) {
   await ownedAlbum(ctx, memberId, albumId)
   if (songIds.length > MAX_TRACKS || new Set(songIds).size !== songIds.length)
-    bad("INVALID_TRACKS", "La liste des morceaux est invalide.")
+    bad("INVALID_TRACKS", "The track list is invalid.")
   for (const songId of songIds) {
     await ownedSong(ctx, memberId, songId)
     const association = await ctx.db
@@ -52,10 +52,7 @@ async function replaceAlbumTracks(
       .withIndex("by_song_id", (q) => q.eq("songId", songId))
       .unique()
     if (association && association.albumId !== albumId)
-      bad(
-        "SONG_ALREADY_IN_ALBUM",
-        "Un morceau ne peut appartenir qu’à un album."
-      )
+      bad("SONG_ALREADY_IN_ALBUM", "A song can belong to only one album.")
   }
   const previous = await ctx.db
     .query("albumTracks")
@@ -144,7 +141,7 @@ export const attachSongToAlbum = artistMutation({
     if (current && current.albumId !== album._id)
       bad(
         "SONG_ALREADY_IN_ALBUM",
-        "Ce morceau appartient déjà à un autre album."
+        "This song already belongs to another album."
       )
     const materialized = materializeAlbumMetadata(
       validatedSong({
@@ -186,7 +183,7 @@ export const detachSongFromAlbum = artistMutation({
       .withIndex("by_song_id", (q) => q.eq("songId", song._id))
       .unique()
     if (!track || track.albumId !== args.albumId)
-      bad("NOT_FOUND", "Ce morceau ne fait pas partie de cet album.")
+      bad("NOT_FOUND", "This song does not belong to this album.")
     await ctx.db.delete("albumTracks", track._id)
     await compactAlbumTrackPositions(ctx, args.albumId)
     const now = Date.now()
@@ -219,13 +216,13 @@ export const reorderAlbumTracks = artistMutation({
       new Set(args.songIds).size !== args.songIds.length ||
       current.some((track) => !args.songIds.includes(track.songId))
     ) {
-      bad("INVALID_TRACKS", "La liste ordonnée des morceaux est invalide.")
+      bad("INVALID_TRACKS", "The ordered track list is invalid.")
     }
     const bySong = new Map(current.map((track) => [track.songId, track]))
     const now = Date.now()
     for (const [position, songId] of args.songIds.entries()) {
       const track = bySong.get(songId)
-      if (!track) bad("INVALID_TRACKS", "Morceau d’album introuvable.")
+      if (!track) bad("INVALID_TRACKS", "Album track not found.")
       await ctx.db.patch("albumTracks", track._id, { position, updatedAt: now })
     }
     await ctx.db.patch("albums", album._id, {
@@ -265,7 +262,7 @@ export const publishAlbum = artistMutation({
       .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
       .take(MAX_TRACKS + 1)
     if (tracks.length > MAX_TRACKS)
-      bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+      bad("CATALOGUE_INVARIANT", "Too many tracks in the album.")
     let hasPublishedTrack = false
     for (const track of tracks) {
       const song = await ctx.db.get("songs", track.songId)
@@ -280,7 +277,7 @@ export const publishAlbum = artistMutation({
     if (!hasPublishedTrack)
       bad(
         "ALBUM_NEEDS_PUBLISHED_TRACK",
-        "Publiez au moins un morceau avant de publier l’album."
+        "Publish at least one track before publishing the album."
       )
     await setAlbumStatus(ctx, ctx.member._id, args.albumId, "published")
     return null
@@ -306,18 +303,16 @@ export const deleteAlbum = artistMutation({
       .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
       .take(MAX_TRACKS + 1)
     if (tracks.length > MAX_TRACKS)
-      bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+      bad("CATALOGUE_INVARIANT", "Too many tracks in the album.")
 
     for (const track of tracks) {
       const song = await ctx.db.get("songs", track.songId)
       if (!song || song.ownerMemberId !== ctx.member._id)
-        bad("CATALOGUE_INVARIANT", "Morceau d’album introuvable.")
+        bad("CATALOGUE_INVARIANT", "Album track not found.")
       const inheritance = trackInheritance(track)
       const patch: Partial<Doc<"songs">> = { updatedAt: Date.now() }
       if (inheritance.inheritArtwork && album.artworkStorageId)
         patch.artworkStorageId = album.artworkStorageId
-      if (inheritance.inheritPrimaryLanguage && album.primaryLanguage)
-        patch.primaryLanguage = album.primaryLanguage
       if (inheritance.inheritGenre) {
         patch.genre = album.genre
         patch.otherGenre = album.otherGenre

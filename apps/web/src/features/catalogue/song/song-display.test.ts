@@ -9,7 +9,6 @@ import {
 
 const completeSong = {
   releaseDate: Date.UTC(2026, 9, 23),
-  primaryLanguage: "fr",
   genre: "other" as const,
   otherGenre: "Salegy moderne",
   guestArtists: ["Aina", "Fara"],
@@ -22,7 +21,7 @@ const completeSong = {
 describe("song preview display", () => {
   it("exposes every saved information and credit field to the preview", () => {
     expect(collectSongInformation(completeSong).map((item) => item.id)).toEqual(
-      ["releaseDate", "primaryLanguage", "genre"]
+      ["releaseDate", "genre"]
     )
     expect(collectSongCredits(completeSong).map((item) => item.id)).toEqual([
       "guestArtists",

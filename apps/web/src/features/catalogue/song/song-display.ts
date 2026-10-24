@@ -3,7 +3,7 @@ import type {
   SongGenre,
 } from "@/features/catalogue/lib/catalogue-form"
 
-export type SongInformationId = "releaseDate" | "primaryLanguage" | "genre"
+export type SongInformationId = "releaseDate" | "genre"
 export type SongCreditId =
   | "guestArtists"
   | "writers"
@@ -24,7 +24,6 @@ type SongDisplaySource = {
   guestArtists: Array<string>
   label?: string
   otherGenre?: string
-  primaryLanguage?: string
   producers: Array<string>
   releaseDate?: number
   writers: Array<string>
@@ -37,9 +36,6 @@ export function collectSongInformation(
     ...(song.releaseDate === undefined
       ? []
       : [{ id: "releaseDate" as const, value: song.releaseDate }]),
-    ...(song.primaryLanguage
-      ? [{ id: "primaryLanguage" as const, value: song.primaryLanguage }]
-      : []),
     ...(song.genre
       ? [
           {

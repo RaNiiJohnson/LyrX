@@ -65,7 +65,6 @@ export function AlbumEditorForm({
         <h1 className="text-3xl font-semibold tracking-tight">
           {albumId ? t("studio.albumEditTitle") : t("studio.albumNewTitle")}
         </h1>
-        <p className="text-muted-foreground">{t("studio.description")}</p>
       </div>
       <controller.form.Subscribe selector={(state) => state.isSubmitting}>
         {(submitting) => (

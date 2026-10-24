@@ -35,8 +35,8 @@ export function CatalogueArtworkCard({
       <CardHeader>
         <CardTitle>{t("catalogue.artwork")}</CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-[10rem_1fr] sm:items-center">
-        <div className="aspect-square overflow-hidden rounded-xl bg-muted">
+      <CardContent className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[10rem_minmax(0,1fr)]">
+        <div className="size-24 overflow-hidden rounded-xl bg-muted sm:size-40">
           {artworkUrl ? (
             <img src={artworkUrl} alt="" className="size-full object-cover" />
           ) : (
@@ -45,7 +45,7 @@ export function CatalogueArtworkCard({
             </div>
           )}
         </div>
-        <Field data-disabled={pending}>
+        <Field className="min-w-0" data-disabled={pending}>
           <div className="flex items-center justify-between gap-3">
             <FieldLabel htmlFor={inputId}>{t("catalogue.artwork")}</FieldLabel>
             <OptionalLabel />

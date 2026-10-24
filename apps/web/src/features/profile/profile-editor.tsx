@@ -161,7 +161,7 @@ function ReadyProfileEditor({
         storageId: payload.storageId as Id<"_storage">,
         uploadIntentId,
       })
-      if (!result.ok) throw new Error(result.message)
+      if (!result.ok) throw localizedUiError(t("error.invalidImage"))
       toast.success(
         kind === "avatar"
           ? t("profile.avatarUpdated")

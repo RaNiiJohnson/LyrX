@@ -53,8 +53,7 @@ export const listMySongs = artistQuery({
     const songs = await Promise.all(
       page.page.map(async ({ id }) => {
         const song = await ctx.db.get("songs", id)
-        if (!song)
-          return bad("CATALOGUE_INVARIANT", "Morceau indexé introuvable.")
+        if (!song) return bad("CATALOGUE_INVARIANT", "Indexed song not found.")
         return song
       })
     )
@@ -101,7 +100,7 @@ export const listMyAlbums = artistQuery({
         page.page.map(async ({ id }) => {
           const album = await ctx.db.get("albums", id)
           if (!album)
-            return bad("CATALOGUE_INVARIANT", "Album indexé introuvable.")
+            return bad("CATALOGUE_INVARIANT", "Indexed album not found.")
           return album
         })
       ),
@@ -182,17 +181,16 @@ export const getMyAlbum = artistQuery({
       trackPage.page.map(async ({ id }) => {
         const track = await ctx.db.get("albumTracks", id)
         if (!track)
-          return bad("CATALOGUE_INVARIANT", "Piste indexée introuvable.")
+          return bad("CATALOGUE_INVARIANT", "Indexed track not found.")
         return track
       })
     )
     if (rows.length > MAX_TRACKS)
-      bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+      bad("CATALOGUE_INVARIANT", "Too many tracks in the album.")
     const tracks = await Promise.all(
       rows.map(async (track) => {
         const song = await ctx.db.get("songs", track.songId)
-        if (!song)
-          return bad("CATALOGUE_INVARIANT", "Morceau d’album introuvable.")
+        if (!song) return bad("CATALOGUE_INVARIANT", "Album track not found.")
         return { track, song }
       })
     )
@@ -258,7 +256,7 @@ export const getPublishedAlbum = query({
       .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
       .take(MAX_TRACKS + 1)
     if (rows.length > MAX_TRACKS)
-      bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+      bad("CATALOGUE_INVARIANT", "Too many tracks in the album.")
     const tracks = (
       await Promise.all(
         rows.map(async (track) => ({

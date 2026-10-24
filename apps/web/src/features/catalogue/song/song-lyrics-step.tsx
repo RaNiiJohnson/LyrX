@@ -23,6 +23,7 @@ export const SongLyricsStep = withForm({
             <field.TextareaField
               label={t("studio.lyricsEditor")}
               description={t("studio.lyricsEditorDescription")}
+              placeholder={t("studio.lyricsEditorPlaceholder")}
               maxLength={MAX_LYRICS_TEXT_LENGTH}
               required
               rows={18}

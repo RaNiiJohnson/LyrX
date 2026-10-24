@@ -86,7 +86,6 @@ export function SongEditorForm({
         <h1 className="text-3xl font-semibold tracking-tight">
           {songId ? t("studio.songEditTitle") : t("studio.songNewTitle")}
         </h1>
-        <p className="text-muted-foreground">{t("studio.description")}</p>
       </div>
       <CatalogueArtworkCard
         artworkUrl={controller.artworkPreviewUrl}

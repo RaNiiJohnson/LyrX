@@ -24,6 +24,15 @@ controls to song/album preview artwork, and offer artwork selection on both
 creation and editing forms. This is not a reopening of lot 5 or the start of
 lot 6. Implementation and verification are in progress for this follow-up.
 
+Resumed on 24 October with further user-authorized changes: compact artwork
+thumbnails below the desktop breakpoint, remove generic editor introductions,
+make section-heading guidance explicitly optional with a lyrics placeholder,
+and use English for authored Convex messages. The user explicitly confirmed
+permanent removal of `primaryLanguage` values and schema fields, including the
+album-track inheritance flag. Stage one stops all new language writes while
+retaining optional legacy schema fields for the bounded cleanup. Only after
+cleanup and a zero-removal verification pass will the schema be tightened.
+
 #### Quota checkpoint — 24 October 2026
 
 The user reported their quota running out; save locally and stop here. This
@@ -71,8 +80,8 @@ Still required before completion:
 3. Check existing edit-form upload behavior, mobile layout/keyboard access,
    console and no overflow; verify no duplicate after the failed-image retry.
 4. Confirm useful error/retry states and public read-only controls remain absent.
-   No Convex source changed in this follow-up, so its extra Convex review is N/A;
-   the earlier T1 backend review remains recorded below.
+   The resumed scope now changes Convex messages and includes a data cleanup;
+   repeat the Convex review and verify a development push before handoff.
 5. Update completion evidence and save a final local commit. Do not create a PR.
 
 ### T1 implementation and verification

@@ -93,7 +93,6 @@ type AlbumTrack = NonNullable<
 
 const preserveExistingSong = {
   inheritArtwork: false,
-  inheritPrimaryLanguage: false,
   inheritGenre: false,
   inheritLabel: false,
   inheritCredits: false,
@@ -189,13 +188,6 @@ function ReadyAlbumPreview({
             timeZone: "UTC",
           }).format(detail.album.releaseDate),
         },
-    detail.album.primaryLanguage
-      ? {
-          id: "language",
-          label: t("studio.language"),
-          value: detail.album.primaryLanguage,
-        }
-      : undefined,
     detail.album.genre
       ? {
           id: "genre",

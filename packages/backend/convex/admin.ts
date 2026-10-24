@@ -14,7 +14,7 @@ export const bootstrapFirstAdmin = internalMutation({
     if (existingAdmin) {
       throw new ConvexError({
         code: "ADMIN_ALREADY_EXISTS",
-        message: "Un administrateur existe déjà.",
+        message: "An administrator already exists.",
       })
     }
 
@@ -25,7 +25,7 @@ export const bootstrapFirstAdmin = internalMutation({
     if (!member || !member.emailVerified || member.status !== "active") {
       throw new ConvexError({
         code: "ELIGIBLE_MEMBER_NOT_FOUND",
-        message: "Aucun membre actif et vérifié ne correspond à cet email.",
+        message: "No active, verified member matches this email.",
       })
     }
 

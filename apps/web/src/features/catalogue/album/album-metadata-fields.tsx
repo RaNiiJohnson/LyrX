@@ -52,15 +52,6 @@ export const AlbumMetadataFields = withForm({
               />
             )}
           </form.AppField>
-          <form.AppField name="primaryLanguage">
-            {(field) => (
-              <field.TextField
-                label={t("studio.language")}
-                labelExtra={<OptionalLabel />}
-                maxLength={50}
-              />
-            )}
-          </form.AppField>
           <form.AppField name="genre">
             {(field) => (
               <field.SelectField

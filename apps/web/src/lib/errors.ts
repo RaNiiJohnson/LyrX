@@ -6,6 +6,7 @@ const ERROR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   ALBUM_NEEDS_PUBLISHED_TRACK: "error.albumNeedsPublishedTrack",
   ACCOUNT_SUSPENDED: "error.accountSuspended",
   ARTIST_ROLE_REQUIRED: "error.artistRoleRequired",
+  ARTIST_REQUIRED: "error.artistRoleRequired",
   EMAIL_CAN_NOT_BE_SENT: "error.emailUnavailable",
   EMAIL_NOT_VERIFIED: "error.emailNotVerified",
   FORBIDDEN: "error.forbidden",

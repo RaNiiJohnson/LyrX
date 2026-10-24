@@ -10,8 +10,9 @@ import {
 describe("profile validation", () => {
   it("normalizes handles and rejects ambiguous ones", () => {
     expect(validateHandle(" Rija.Music ")).toBe("rija.music")
-    expect(() => validateHandle("ab")).toThrow("3 à 30 caractères")
-    expect(() => validateHandle("rija musique")).toThrow("3 à 30 caractères")
+    expect(() => validateHandle("ab")).toThrow("INVALID_HANDLE")
+    expect(() => validateHandle("ab")).toThrow("The handle must contain")
+    expect(() => validateHandle("rija musique")).toThrow("INVALID_HANDLE")
   })
 
   it("restricts social links to their expected HTTPS service", () => {
@@ -20,10 +21,10 @@ describe("profile validation", () => {
     )
     expect(() =>
       validateSocialUrl("youtubeUrl", "https://malicious.example/video")
-    ).toThrow("service attendu")
+    ).toThrow("INVALID_SOCIAL_URL")
     expect(() =>
       validateSocialUrl("instagramUrl", "http://instagram.com/example")
-    ).toThrow("service attendu")
+    ).toThrow("INVALID_SOCIAL_URL")
   })
 
   it("bounds custom links and requires HTTPS", () => {
@@ -47,12 +48,12 @@ describe("profile validation", () => {
         contentType: "image/svg+xml",
         size: 100,
       })
-    ).toContain("JPEG, PNG ou WebP")
+    ).toContain("JPEG, PNG or WebP")
     expect(
       validateProfileImageMetadata("banner", {
         contentType: "image/webp",
         size: 10 * 1024 * 1024 + 1,
       })
-    ).toContain("10 Mo maximum")
+    ).toContain("10 MB")
   })
 })

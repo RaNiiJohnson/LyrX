@@ -95,7 +95,7 @@ export const registerArtworkUpload = artistMutation({
     )
       bad(
         "INVALID_UPLOAD_INTENT",
-        "Cette autorisation d’envoi est invalide ou expirée."
+        "This upload authorization is invalid or expired."
       )
     const reservedIntent = await ctx.db
       .query("catalogueImageUploadIntents")
@@ -106,12 +106,12 @@ export const registerArtworkUpload = artistMutation({
       .withIndex("by_storage_id", (q) => q.eq("storageId", args.storageId))
       .first()
     if (reservedIntent || claimedImage)
-      bad("IMAGE_ALREADY_ATTACHED", "Cette image est déjà réservée.")
+      bad("IMAGE_ALREADY_ATTACHED", "This image is already reserved.")
     const metadata = await ctx.db.system.get("_storage", args.storageId)
     if (!metadata || !isValidCatalogueImageMetadata(metadata, intent.createdAt))
       bad(
         "INVALID_IMAGE",
-        "L’image doit être JPEG, PNG ou WebP et ne pas dépasser 10 Mo."
+        "The image must be JPEG, PNG or WebP and no larger than 10 MB."
       )
     await ctx.db.patch("catalogueImageUploadIntents", intent._id, {
       storageId: args.storageId,
@@ -175,7 +175,7 @@ export const saveArtwork = artistMutation({
     )
       bad(
         "INVALID_UPLOAD_INTENT",
-        "Cette autorisation d’envoi est invalide ou expirée."
+        "This upload authorization is invalid or expired."
       )
     const existingOwner = await ctx.db
       .query("catalogueImages")
@@ -186,10 +186,10 @@ export const saveArtwork = artistMutation({
       (existingOwner.ownerMemberId !== ctx.member._id ||
         existingOwner.kind !== args.resource.kind)
     ) {
-      bad("FORBIDDEN", "Cette image appartient à une autre ressource.")
+      bad("FORBIDDEN", "This image belongs to another resource.")
     }
     if (existingOwner && resource.artworkStorageId !== args.storageId) {
-      bad("IMAGE_ALREADY_ATTACHED", "Cette image est déjà attachée.")
+      bad("IMAGE_ALREADY_ATTACHED", "This image is already attached.")
     }
     if (!existingOwner)
       await ctx.db.insert("catalogueImages", {

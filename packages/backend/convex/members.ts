@@ -106,7 +106,7 @@ export const current = query({
     if (!profile) {
       throw new ConvexError({
         code: "PROFILE_INVARIANT_BROKEN",
-        message: "Le profil associé au compte est introuvable.",
+        message: "The account profile could not be found.",
       })
     }
     const artistProfile =
@@ -150,7 +150,7 @@ export const completeOnboarding = verifiedMutation({
     if (existingMember) {
       throw new ConvexError({
         code: "ONBOARDING_ALREADY_COMPLETED",
-        message: "L’onboarding de ce compte est déjà terminé.",
+        message: "Onboarding is already complete for this account.",
       })
     }
 
@@ -164,7 +164,7 @@ export const completeOnboarding = verifiedMutation({
     if (handleTaken) {
       throw new ConvexError({
         code: "HANDLE_TAKEN",
-        message: "Ce pseudo est déjà utilisé.",
+        message: "This handle is already in use.",
       })
     }
 
@@ -179,7 +179,7 @@ export const completeOnboarding = verifiedMutation({
       createdAt: now,
       updatedAt: now,
     })
-    const bio = validateOptionalText(args.bio, 500, "La bio")
+    const bio = validateOptionalText(args.bio, 500, "Bio")
     await ctx.db.insert("profiles", {
       memberId,
       handle: handleNormalized,
@@ -219,7 +219,7 @@ export const updateMyProfile = memberMutation({
     if (!profile) {
       throw new ConvexError({
         code: "PROFILE_INVARIANT_BROKEN",
-        message: "Le profil associé au compte est introuvable.",
+        message: "The account profile could not be found.",
       })
     }
 
@@ -233,12 +233,12 @@ export const updateMyProfile = memberMutation({
     if (handleOwner && handleOwner._id !== profile._id) {
       throw new ConvexError({
         code: "HANDLE_TAKEN",
-        message: "Ce pseudo est déjà utilisé.",
+        message: "This handle is already in use.",
       })
     }
 
     const now = Date.now()
-    const bio = validateOptionalText(args.bio, 500, "La bio")
+    const bio = validateOptionalText(args.bio, 500, "Bio")
     await ctx.db.replace("profiles", profile._id, {
       memberId: profile.memberId,
       handle: handleNormalized,
@@ -292,7 +292,7 @@ export const generateProfileImageUploadUrl = memberMutation({
     if (args.kind === "banner" && ctx.member.role !== "artist") {
       throw new ConvexError({
         code: "ARTIST_ROLE_REQUIRED",
-        message: "Seul un compte artiste peut ajouter une bannière.",
+        message: "Only an artist account can add a banner.",
       })
     }
     await profileImageRateLimiter.limit(ctx, "profileImageUpload", {
@@ -357,7 +357,7 @@ export const saveProfileImage = memberMutation({
     ) {
       throw new ConvexError({
         code: "INVALID_UPLOAD_INTENT",
-        message: "Cette autorisation de transfert n’est pas valide.",
+        message: "This upload authorization is invalid.",
       })
     }
 
@@ -365,7 +365,7 @@ export const saveProfileImage = memberMutation({
     if (!metadata) {
       throw new ConvexError({
         code: "UPLOAD_NOT_FOUND",
-        message: "Le fichier envoyé est introuvable.",
+        message: "The uploaded file could not be found.",
       })
     }
     const ownership = await ctx.db
@@ -396,7 +396,7 @@ export const saveProfileImage = memberMutation({
     ) {
       throw new ConvexError({
         code: "PROFILE_IMAGE_FORBIDDEN",
-        message: "Cette image appartient à un autre compte.",
+        message: "This image belongs to another account.",
       })
     }
     if (
@@ -405,8 +405,7 @@ export const saveProfileImage = memberMutation({
     ) {
       throw new ConvexError({
         code: "UPLOAD_INTENT_MISMATCH",
-        message:
-          "Ce fichier ne correspond pas à cette autorisation de transfert.",
+        message: "This file does not match the upload authorization.",
       })
     }
 
@@ -414,7 +413,7 @@ export const saveProfileImage = memberMutation({
       await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
       return {
         ok: false as const,
-        message: "Seul un compte artiste peut ajouter une bannière.",
+        message: "Only an artist account can add a banner.",
       }
     }
     const validationError = validateProfileImageMetadata(args.kind, metadata)
@@ -435,7 +434,7 @@ export const saveProfileImage = memberMutation({
         await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
         return {
           ok: false as const,
-          message: "Le profil associé au compte est introuvable.",
+          message: "The account profile could not be found.",
         }
       }
       const previousStorageId = profile.avatarStorageId
@@ -470,7 +469,8 @@ export const saveProfileImage = memberMutation({
       await ctx.db.delete("profileImageUploadIntents", uploadIntent._id)
       return {
         ok: false as const,
-        message: "Le profil artiste associé au compte est introuvable.",
+        message:
+          "The artist profile associated with this account could not be found.",
       }
     }
     const previousStorageId = artistProfile.bannerStorageId
@@ -576,7 +576,7 @@ function validatedArtistInput(
   const presentation = validateOptionalText(
     input?.presentation,
     2_000,
-    "La présentation"
+    "Presentation"
   )
   const instagramUrl = validateSocialUrl("instagramUrl", input?.instagramUrl)
   const facebookUrl = validateSocialUrl("facebookUrl", input?.facebookUrl)
