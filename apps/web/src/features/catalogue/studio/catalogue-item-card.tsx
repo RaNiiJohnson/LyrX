@@ -1,6 +1,13 @@
 import { Link } from "@tanstack/react-router"
 import type { FunctionReturnType } from "convex/server"
-import { Disc3, FileMusic, MoreHorizontal, Pencil } from "lucide-react"
+import {
+  Disc3,
+  EyeOff,
+  FileMusic,
+  MoreHorizontal,
+  Pencil,
+  Send,
+} from "lucide-react"
 
 import type { api } from "@lyrx/backend/convex/_generated/api"
 import type { Doc } from "@lyrx/backend/convex/_generated/dataModel"
@@ -88,6 +95,11 @@ function CatalogueItemRow({
             disabled={publication.pending}
             onClick={() => void publication.changeStatus()}
           >
+            {item.status === "draft" ? (
+              <Send data-icon="inline-start" />
+            ) : (
+              <EyeOff data-icon="inline-start" />
+            )}
             {item.status === "draft"
               ? t("catalogue.publish")
               : t("catalogue.unpublish")}
@@ -118,6 +130,7 @@ function CatalogueItemRow({
                   disabled={publication.pending}
                   onSelect={() => void publication.changeStatus()}
                 >
+                  {item.status === "draft" ? <Send /> : <EyeOff />}
                   {item.status === "draft"
                     ? t("catalogue.publish")
                     : t("catalogue.unpublish")}

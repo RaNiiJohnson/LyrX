@@ -253,6 +253,9 @@ lot has started.
   l’action Aperçu a été retirée des vues desktop et mobile. Les clics directs
   morceau et album ont été vérifiés dans le navigateur intégré, puis `pnpm
   check` a repassé avec 81 tests et les builds client/SSR.
+- Les actions de publication sont maintenant différenciées visuellement par
+  leurs icônes : envoi pour Publier et masquage pour Dépublier, dans le bouton
+  desktop comme dans le menu mobile.
 
 ### Lot 4 — Catalogue artiste (complete)
 
