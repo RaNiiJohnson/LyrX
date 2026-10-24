@@ -23,7 +23,6 @@ import {
   ArrowUp,
   ChevronDown,
   ChevronRight,
-  Disc3,
   FileMusic,
   GripVertical,
   Link2,
@@ -84,15 +83,16 @@ import { toast } from "@lyrx/ui/lib/toast"
 import { useLocale } from "@/app/locale-provider"
 import { PreviewSkeleton } from "@/features/catalogue/shared/preview-skeleton"
 import { getErrorMessage } from "@/lib/errors"
+import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
+import { CatalogueArtwork } from "@/features/catalogue/shared/catalogue-artwork"
 import { usePublicationControl } from "@/features/catalogue/studio/use-publication-control"
 
 type AlbumTrack = NonNullable<
-  FunctionReturnType<typeof api.catalogue.getMyAlbum>
+  FunctionReturnType<typeof api.catalogue.read.getMyAlbum>
 >["tracks"][number]
 
 const preserveExistingSong = {
   inheritArtwork: false,
-  inheritPrimaryLanguage: false,
   inheritGenre: false,
   inheritLabel: false,
   inheritCredits: false,
@@ -125,15 +125,15 @@ function ReadyAlbumPreview({
   albumId: Id<"albums">
   artistName: string
 }) {
-  const detail = useQuery(api.catalogue.getMyAlbum, { albumId })
+  const detail = useQuery(api.catalogue.read.getMyAlbum, { albumId })
   const songs = usePaginatedQuery(
-    api.catalogue.listMySongs,
+    api.catalogue.read.listMySongs,
     {},
     { initialNumItems: 50 }
   )
-  const deleteAlbum = useMutation(api.catalogue.deleteAlbum)
-  const attachSong = useMutation(api.catalogue.attachSongToAlbum)
-  const reorderTracks = useMutation(api.catalogue.reorderAlbumTracks)
+  const deleteAlbum = useMutation(api.catalogue.albums.deleteAlbum)
+  const attachSong = useMutation(api.catalogue.albums.attachSongToAlbum)
+  const reorderTracks = useMutation(api.catalogue.albums.reorderAlbumTracks)
   const navigate = useNavigate()
   const { locale, t } = useLocale()
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -144,6 +144,11 @@ function ReadyAlbumPreview({
   const [attachingSongId, setAttachingSongId] = useState<Id<"songs">>()
   const [orderedTracks, setOrderedTracks] = useState<Array<AlbumTrack>>([])
   const [savingOrder, setSavingOrder] = useState(false)
+  const [artworkError, setArtworkError] = useState<string | null>(null)
+  const artwork = useCatalogueArtworkUpload(
+    { kind: "album", id: albumId },
+    setArtworkError
+  )
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -183,13 +188,6 @@ function ReadyAlbumPreview({
             timeZone: "UTC",
           }).format(detail.album.releaseDate),
         },
-    detail.album.primaryLanguage
-      ? {
-          id: "language",
-          label: t("studio.language"),
-          value: detail.album.primaryLanguage,
-        }
-      : undefined,
     detail.album.genre
       ? {
           id: "genre",
@@ -354,17 +352,15 @@ function ReadyAlbumPreview({
       ) : null}
 
       <header className="grid min-w-0 grid-cols-[6rem_minmax(0,1fr)] items-end gap-4 sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:gap-6">
-        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-muted text-muted-foreground sm:size-[8.25rem]">
-          {detail.artworkUrl ? (
-            <img
-              src={detail.artworkUrl}
-              alt=""
-              className="size-full object-cover"
-            />
-          ) : (
-            <Disc3 className="size-9" />
-          )}
-        </div>
+        <CatalogueArtwork
+          artworkUrl={detail.artworkUrl}
+          kind="album"
+          className="size-24 sm:size-[8.25rem]"
+          action={{
+            pending: artwork.pending,
+            onSelect: (file) => void artwork.uploadArtwork(file),
+          }}
+        />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-mono text-xs font-medium tracking-[0.18em] text-primary uppercase">
@@ -403,6 +399,12 @@ function ReadyAlbumPreview({
           </p>
         ) : null}
       </header>
+      {artworkError ? (
+        <Alert variant="destructive">
+          <AlertTitle>{t("catalogue.uploadError")}</AlertTitle>
+          <AlertDescription>{artworkError}</AlertDescription>
+        </Alert>
+      ) : null}
 
       <section className="flex flex-col gap-4" aria-labelledby="album-tracks">
         <div className="flex flex-wrap items-end justify-between gap-3">

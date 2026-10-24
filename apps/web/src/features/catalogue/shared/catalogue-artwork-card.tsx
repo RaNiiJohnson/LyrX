@@ -1,9 +1,10 @@
 import { ImagePlus } from "lucide-react"
+import { useRef } from "react"
+import { Button } from "@lyrx/ui/components/button"
 
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@lyrx/ui/components/card"
@@ -18,22 +19,24 @@ export function CatalogueArtworkCard({
   inputId,
   pending,
   onSelect,
+  selectedFile,
 }: {
   artworkUrl?: string | null
   inputId: string
   pending: boolean
   onSelect: (file: File | undefined) => void
+  selectedFile?: File
 }) {
   const { t } = useLocale()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t("catalogue.artwork")}</CardTitle>
-        <CardDescription>{t("catalogue.artworkDescription")}</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-[10rem_1fr] sm:items-center">
-        <div className="aspect-square overflow-hidden rounded-xl bg-muted">
+      <CardContent className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[10rem_minmax(0,1fr)]">
+        <div className="size-24 overflow-hidden rounded-xl bg-muted sm:size-40">
           {artworkUrl ? (
             <img src={artworkUrl} alt="" className="size-full object-cover" />
           ) : (
@@ -42,12 +45,13 @@ export function CatalogueArtworkCard({
             </div>
           )}
         </div>
-        <Field>
+        <Field className="min-w-0" data-disabled={pending}>
           <div className="flex items-center justify-between gap-3">
             <FieldLabel htmlFor={inputId}>{t("catalogue.artwork")}</FieldLabel>
             <OptionalLabel />
           </div>
           <Input
+            ref={inputRef}
             id={inputId}
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -59,6 +63,21 @@ export function CatalogueArtworkCard({
               ? t("catalogue.uploading")
               : t("catalogue.artworkDescription")}
           </FieldDescription>
+          {selectedFile ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="self-start"
+              disabled={pending}
+              onClick={() => {
+                if (inputRef.current) inputRef.current.value = ""
+                onSelect(undefined)
+              }}
+            >
+              {t("catalogue.clearArtworkSelection")}
+            </Button>
+          ) : null}
         </Field>
       </CardContent>
     </Card>

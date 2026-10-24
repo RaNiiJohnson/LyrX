@@ -16,10 +16,10 @@ export function usePublicationControl(
   status: "draft" | "published"
 ) {
   const { t } = useLocale()
-  const publishSong = useMutation(api.catalogue.publishSong)
-  const unpublishSong = useMutation(api.catalogue.unpublishSong)
-  const publishAlbum = useMutation(api.catalogue.publishAlbum)
-  const unpublishAlbum = useMutation(api.catalogue.unpublishAlbum)
+  const publishSong = useMutation(api.catalogue.songs.publishSong)
+  const unpublishSong = useMutation(api.catalogue.songs.unpublishSong)
+  const publishAlbum = useMutation(api.catalogue.albums.publishAlbum)
+  const unpublishAlbum = useMutation(api.catalogue.albums.unpublishAlbum)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

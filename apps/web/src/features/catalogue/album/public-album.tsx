@@ -14,7 +14,7 @@ import { useLocale } from "@/app/locale-provider"
 export function PublicAlbum({ albumId }: { albumId: Id<"albums"> }) {
   const { locale, t } = useLocale()
   const { data: detail } = useSuspenseQuery(
-    convexQuery(api.catalogue.getPublishedAlbum, { albumId })
+    convexQuery(api.catalogue.read.getPublishedAlbum, { albumId })
   )
 
   if (!detail) {
@@ -49,9 +49,6 @@ export function PublicAlbum({ albumId }: { albumId: Id<"albums"> }) {
           </h1>
           <div className="flex flex-wrap gap-2">
             {genre ? <Badge variant="secondary">{genre}</Badge> : null}
-            {album.primaryLanguage ? (
-              <Badge variant="secondary">{album.primaryLanguage}</Badge>
-            ) : null}
             {album.releaseDate ? (
               <Badge variant="secondary">
                 {new Intl.DateTimeFormat(locale, {

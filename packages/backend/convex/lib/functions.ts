@@ -5,7 +5,7 @@ import {
 } from "convex-helpers/server/customFunctions"
 
 import { mutation, query } from "../_generated/server"
-import { catalogueAggregateTriggers } from "../catalogueAggregates"
+import { catalogueAggregateTriggers } from "../catalogue/aggregates"
 import {
   requireActiveArtist,
   requireActiveMember,

@@ -27,7 +27,6 @@ const genreMessageKeys: Record<Exclude<SongGenre, "other">, MessageKey> = {
 
 const informationLabels = {
   genre: "studio.genre",
-  primaryLanguage: "studio.language",
   releaseDate: "studio.releaseDate",
 } as const satisfies Record<string, MessageKey>
 
@@ -113,7 +112,7 @@ export function SongMetadata({
 }
 
 function formatInformationValue(
-  id: "genre" | "primaryLanguage" | "releaseDate",
+  id: "genre" | "releaseDate",
   value: number | string | Array<string>,
   locale: SupportedLocale,
   t: (key: MessageKey) => string
@@ -123,15 +122,6 @@ function formatInformationValue(
       dateStyle: "long",
       timeZone: "UTC",
     }).format(value)
-  }
-  if (id === "primaryLanguage" && typeof value === "string") {
-    try {
-      return (
-        new Intl.DisplayNames([locale], { type: "language" }).of(value) ?? value
-      )
-    } catch {
-      return value
-    }
   }
   if (
     id === "genre" &&

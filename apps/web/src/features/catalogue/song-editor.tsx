@@ -50,13 +50,16 @@ function SongEditorData({
   returnAlbumId?: Id<"albums">
   songId?: Id<"songs">
 }) {
-  const detail = useQuery(api.catalogue.getMySong, songId ? { songId } : "skip")
+  const detail = useQuery(
+    api.catalogue.read.getMySong,
+    songId ? { songId } : "skip"
+  )
   const initialAlbum = useQuery(
-    api.catalogue.getMyAlbum,
+    api.catalogue.read.getMyAlbum,
     !songId && initialAlbumId ? { albumId: initialAlbumId } : "skip"
   )
   const albums = usePaginatedQuery(
-    api.catalogue.listMyAlbums,
+    api.catalogue.read.listMyAlbums,
     {},
     { initialNumItems: 50 }
   )

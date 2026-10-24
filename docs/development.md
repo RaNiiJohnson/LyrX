@@ -92,7 +92,7 @@ pnpm --filter @lyrx/backend migrate:lyrics
 ```
 
 The command invokes the internal
-`internal.catalogue.backfillSongLyricsText` mutation
+`internal.catalogue.lyricsMigration.backfillSongLyricsText` mutation
 with a null cursor. It processes one song per transaction and schedules the next
 cursor until the table is exhausted. Its result reports whether the first row
 was migrated and whether a continuation was scheduled. Running it again is
@@ -120,6 +120,44 @@ is safe. Deploy the trigger-wrapped mutations before starting the backfill so
 concurrent catalogue writes remain synchronized. The repository command targets
 the selected development deployment unless `--prod` is deliberately supplied
 to the underlying Convex command.
+
+## Image preparation verification
+
+`apps/web/src/lib/image-upload.ts` is the only client image preparation policy
+for avatar, banner and catalogue artwork. Targets and fallback behavior are
+documented in [architecture.md](architecture.md). Its tests cover each policy,
+bundled worker URL, actual encoder MIME/extension, invalid inputs and failures.
+The existing server image validators and ownership tests remain independent.
+
+For live development checks, use a dedicated unpublished test song, not an
+existing profile image. Upload a synthetic JPEG/PNG, check the rendered image's
+natural dimensions, and inspect `_storage` with
+`pnpm --filter @lyrx/backend exec convex data _storage --limit 1 --format json`.
+Confirm that a corrupt image produces a localized error and no new upload
+intent. Do not publish a test draft, overwrite the member's avatar/banner, or
+run a production deployment solely to manufacture evidence.
+
+## Removing the legacy primary language
+
+This removal was explicitly approved by the user on 24 October 2026. A target
+with old rows must first deploy preparatory revision `c39cd1b`, which keeps the
+three legacy schema fields optional but no longer writes them. Do not deploy
+the final tightened schema over uncleared rows.
+
+Invoke the internal maintenance mutation for `songs`, `albums`, then
+`albumTracks` (25 documents maximum per transaction):
+
+```bash
+pnpm --filter @lyrx/backend exec convex run catalogue/languageMigration:removePrimaryLanguage '{"table":"songs","cursor":null}'
+```
+
+For each table, pass the returned `continueCursor` as `cursor` until `isDone`
+is true. Repeat the full traversal and verify that `removed` is zero on every
+page before deploying the final schema. The migration only deletes
+`primaryLanguage` from songs/albums and `inheritPrimaryLanguage` from tracks;
+it does not delete documents, lyrics, artwork, track positions or Aggregate
+projection keys. It is internal, bounded and safe to rerun. Do not add `--prod`
+without a separately authorized production migration.
 
 ## Environment policy
 

@@ -2,17 +2,193 @@
 
 ## Active lot
 
-**Lot 5 — Web structure and lyric entry is complete locally.** Its approved
-scope and implementation guidance are recorded in
-[web-structure-and-convex-guidance.md](research/web-structure-and-convex-guidance.md).
+**Technical lot T1 — Catalogue backend modules and image upload optimization**
+was authorized on 24 October 2026 and is complete locally. Work is isolated on
+`codex/catalogue-refactor-image-uploads`, based on merged `main` at `b9b5c4d`.
+The scope is catalogue-only Convex refactoring, atomic caller/path migration,
+and client-side preprocessing of avatar, banner and artwork uploads while
+preserving server validation, ownership, cleanup and Aggregate invariants.
+The implementation reference is
+[Hallohallo patterns](research/hallohallo-patterns-for-lyrx.md).
 
-The lot introduces the Convex React Query integration for public SSR,
-reorganizes the web application around route-, application-, and domain-owned
-modules, and replaces the historical line editor with one canonical multiline
-lyrics field. The large catalogue screens are now factorized by responsibility,
-the legacy-data migration has a documented trigger, obsolete editor residue is
-removed, and the required checks and local reviews are clean. No later roadmap
-lot has started.
+**Lot 5 is merged and closed.** PR #1 was merged into `main` at `b9b5c4d` and
+its remote branch was deleted by the user. Its history below is retained as
+completed evidence; T1 neither reopens lot 5 nor starts the fan-proposals lot.
+No PR is authorized for T1; request explicit authorization before creating one.
+
+### Authorized T1 artwork UX follow-up
+
+The user's next annotations authorize a same-branch refinement, reviewed from
+`17bcefa`: hide the optimization explanation, add direct owner-only pencil
+controls to song/album preview artwork, and offer artwork selection on both
+creation and editing forms. This is not a reopening of lot 5 or the start of
+lot 6. This follow-up is now complete locally; the earlier quota checkpoint
+below is retained only as history.
+
+Resumed on 24 October with further user-authorized changes: compact artwork
+thumbnails below the desktop breakpoint, remove generic editor introductions,
+make section-heading guidance explicitly optional with a lyrics placeholder,
+and use English for authored Convex messages. The user explicitly confirmed
+permanent removal of `primaryLanguage` values and schema fields, including the
+album-track inheritance flag. Preparatory revision `c39cd1b` stopped new language
+writes while keeping the legacy schema optional. The development cleanup and
+zero-removal verification are complete, and the tightened schema is deployed.
+
+#### Follow-up completion — 24 October 2026
+
+- The primary agent reviewed the whole follow-up against fixed point `17bcefa`,
+  including the new helpers, migration, generated API, callers and tests. The
+  original T1 review against `b9b5c4d` remains recorded below. No review was
+  delegated. Convex security, performance and type/quality passes found no
+  unresolved Critical or Important findings: maintenance is internal, paginated
+  at 25 rows, and deletes only the three approved keys. Artist ownership,
+  storage claims and Aggregate keys are unchanged.
+- Ran the development-only cleanup before tightening the schema. The observed
+  verification traversed **7 songs, 2 albums and 5 album-track rows** and
+  removed **zero remaining values** in all three tables. The earlier cleanup
+  process's totals were not retained across the interrupted session; no total
+  deletion count is claimed. The final `convex dev --once` succeeded with all
+  three fields absent from the schema. No production migration was run.
+  Legacy language values are permanently removed in development, without a
+  normal UI undo; documents, lyrics, artwork and track positions were retained.
+- Authored Convex diagnostics and auth-email text are English; existing stable
+  error codes select French/English client feedback. Historical lyric headings
+  remain untouched source content. Real email delivery was not exercised.
+- Generic editor introductions are removed. Lyrics remain required, while
+  section markers are explicitly optional and the textarea has a free-writing
+  placeholder. The mobile cover bug was reproduced at 600 px (521 px square)
+  and corrected to 96 px. Browser checks at 390, 600 and 1280 px show compact
+  thumbnails (96/160 px) without horizontal overflow.
+- The private song's pencil handles a corrupt image with a durable localized
+  error, then successfully retries from Enter-key activation. The Studio shows
+  exactly one `[TEST T1 UX] Pochette création` row after the creation retry.
+  A dedicated `[TEST T1 UX] Pochette album` draft was created with a selected
+  cover at `/studio/albums/jx7cekd4kncgxrj8rmb91878258gwbmq/preview`; direct
+  pencil replacement and immediate edit-form upload both succeeded. Pending
+  controls disable while uploading. New-song UI has no language field, generic
+  introduction or read-only lyrics preview. The dashboard subtitle remains.
+- Public artwork has no edit control, and empty-cover/pending controls are
+  covered by SSR tests; empty-cover upload was not separately exercised live.
+  No draft was published or deleted, no avatar/banner or unrelated user content
+  was modified. Temporary browser sizing was reset. No new warning/error was
+  captured during the final browser checks; older HMR/provider errors remain
+  in the historical browser log and are not claimed to have been fixed here.
+- `pnpm check` passes formatting, lint, TypeScript, **113 tests** (28 shared,
+  35 backend, 50 web), and production client/SSR builds. The gate caught and
+  corrected a constant-loop lint issue and a stale positional display assertion
+  after language removal; both corrected files were reviewed again.
+  `git diff --check` passes. Browser proof is saved locally at
+  `/tmp/lyrx-t1-form-proof.png` (temporary evidence, not a repository asset).
+
+The user accepted the result. Save a final local commit only; no push, PR,
+merge, production deployment or next lot is authorized.
+
+#### Quota checkpoint — 24 October 2026
+
+Historical checkpoint, superseded by the completion evidence above. At this
+point the user reported their quota running out and requested a local stop.
+The follow-up was not yet declared complete. Work stayed on
+`codex/catalogue-refactor-image-uploads`; no push, PR, merge or lot 6.
+
+Implemented since `17bcefa`:
+
+- Removed optimization explanations from artwork/avatar/banner helper text;
+  catalogue forms show format/size help once instead of twice.
+- Added shared `CatalogueArtwork` with an accessible pencil/add button, pending
+  spinner and file chooser. Only the artist song/album previews pass its edit
+  action; public/read-only views get no upload control. Navbar unchanged.
+- Both creation forms now offer artwork selection with local preview/removal;
+  existing editor uploads remain immediate. `useArtworkSelection` revokes blob
+  URLs on replacement/unmount. Compression and server ownership remain intact.
+- `saveCatalogueDraft` remembers the created id before uploading. An image
+  failure leaves the form and values in place with a partial-success message;
+  retry updates the same draft. Custom song artwork overrides album-artwork
+  inheritance; successful existing-song uploads also clear that form flag.
+- Five save/retry tests and five SSR artwork-control tests were added.
+  `pnpm check` completed with **109 passing tests**, typechecks and production
+  builds. It reported 11 `require-await` warnings in new test mocks; those
+  mocks were corrected to explicit Promise returns afterward. The final gate
+  has **not** been rerun on that correction yet.
+
+Browser evidence so far (authenticated in-app account, development only):
+
+- New-song form shows the picker and no optimization explanation. A corrupt
+  JPEG at `/tmp/lyrx-t1-invalid.jpg` produced the partial-success error without
+  clearing the typed title/lyrics or leaving the form.
+- Selecting `/tmp/lyrx-artwork-ux-fixture.png` and saving again succeeded and
+  opened the private `[TEST T1 UX] Pochette création` preview at
+  `/studio/songs/kd7c9mkyedta9az1x74m8znbn98gwf4z/preview`. The preview exposes
+  `Modifier la pochette`. The fixture is a generated non-personal 1800×1200 PNG.
+- No test draft was published or deleted. No avatar/banner or unrelated user
+  content was changed in this follow-up.
+
+Remaining work recorded at that checkpoint (now resolved above, with explicit
+live-test limits):
+
+1. Rerun `pnpm check` after the warning correction and review the complete
+   follow-up diff from `17bcefa` locally (including untracked/new files).
+2. Exercise the pencil upload itself on the test song, and create a dedicated
+   test album with a selected cover; test album pencil/empty-cover behavior.
+3. Check existing edit-form upload behavior, mobile layout/keyboard access,
+   console and no overflow; verify no duplicate after the failed-image retry.
+4. Confirm useful error/retry states and public read-only controls remain absent.
+   The resumed scope now changes Convex messages and includes a data cleanup;
+   repeat the Convex review and verify a development push before handoff.
+5. Update completion evidence and save a final local commit. Do not create a PR.
+
+### T1 implementation and verification
+
+- Fixed review point: merged `main` at `b9b5c4d`. The primary agent reviewed
+  the entire T1 change set locally against repository standards and this
+  request, including new files, generated API changes, callers and tests.
+  No code-review sub-agent was used. The only check correction was changing
+  three extracted helper imports to type-only imports; the corrected files
+  were reviewed again. No blocking standards or specification finding remains.
+- The `convex:convex-reviewer` security, performance and quality passes found
+  no unresolved Critical or Important finding. Artist authorization and
+  ownership, explicit return validators, deliberately anonymous published-only
+  projections, indexed bounded reads, transactional Aggregate writes and the
+  exhaustive storage-claim registry are preserved. All 82 declarations from
+  the old catalogue were compared after path/import normalization: no business
+  logic difference. Named Aggregate definitions are unchanged.
+- The catalogue now owns `read`, `songs`, `albums`, `artwork`, `values`,
+  `access`, `tracks`, `lyrics`, `lyricsMigration` and `aggregates` modules.
+  Every current web caller, test, cron, new schedule and migration command uses
+  the nested paths. The two former root modules retain only internal aliases
+  for pre-migration scheduled work; removal requires inspecting pending jobs
+  on all target deployments, not a guessed expiry date. The compatibility
+  aliases have an additional regression test. This deliberate compatibility
+  trade-off is accepted; no global queries/mutations directories were created.
+- `prepareImageForUpload` is shared by avatar, banner, song and album artwork.
+  Per-kind dimension/byte targets, same-origin bundled worker, lazy codec,
+  actual MIME handling, EXIF policy and fail-closed errors are documented in
+  [architecture.md](architecture.md). Input limits and server security remain
+  independent. The original is neither uploaded nor retained as a derivative.
+- `pnpm install --frozen-lockfile`, `pnpm check` and `git diff --check` pass.
+  The gate includes formatting, lint, TypeScript, **99 tests** (28 shared,
+  32 backend, 39 web), and production client/SSR builds. Fourteen new image
+  tests cover all three policies, worker asset origin, output type fallback,
+  invalid inputs and failed encoding; the localized error has a regression
+  case. The production build emits the local compression worker asset.
+- Real code generation and `convex dev --once` succeeded on the configured
+  **development** deployment (`Convex functions ready`, 24 October 2026).
+  No production deployment or schema migration was run for T1.
+- The authenticated in-app browser successfully read the migrated Studio and
+  created/read a private `[TEST T1] Optimisation image` draft. Uploading a
+  synthetic **3200×2400 JPEG, 5,666,941 bytes**, stored one **1520×1140 WebP,
+  609,300 bytes** (about 89% fewer bytes, same aspect ratio). `_storage`
+  metadata confirmed the MIME/size; no upload intent remained after success.
+  A deliberately corrupt JPEG displayed the French preparation error before
+  any upload, left storage unchanged and created no intent. Browser console:
+  no warning/error. Existing avatar, banner, songs and albums were not edited.
+  The test draft is intentionally left unpublished, not silently deleted.
+- Live avatar/banner replacement, browsers without WebP support and the
+  worker-unavailable fallback were not exercised against a real account;
+  their helper policies/output contracts are covered by automated tests.
+  These evidence limits do not claim a cross-browser live acceptance matrix.
+
+T1 is a local delivery only: no push, PR or merge. The next action requires the
+user's direction; do not begin lot 6 or reopen lot 5 automatically.
 
 ## Evidence checklist
 
@@ -628,5 +804,8 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Implement the approved Lot 5 only. The writing notebook with local audio and
-the Genius-style sharing-card refinement remain proposal-only.
+Await user direction after the completed local T1 delivery on
+`codex/catalogue-refactor-image-uploads`. Lot 5 remains merged and closed;
+lot 6 has not started. No push, PR or merge is authorized. The writing notebook
+with local audio and the Genius-style sharing-card refinement remain
+proposal-only.

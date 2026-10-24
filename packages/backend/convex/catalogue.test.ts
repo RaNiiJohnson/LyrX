@@ -52,7 +52,6 @@ const songInput = (title: string) => ({
   title,
   primaryArtist: "Rija",
   guestArtists: ["Aina"],
-  primaryLanguage: "mg",
   genre: "other" as const,
   otherGenre: "Salegy moderne",
   writers: ["Rija"],
@@ -65,6 +64,42 @@ const songInput = (title: string) => ({
 })
 
 describe("artist catalogue", () => {
+  it("keeps pre-migration scheduled jobs callable through their internal paths", async () => {
+    const t = backend()
+    await expect(
+      t.mutation(internal.catalogue.backfillSongLyricsText, { cursor: null })
+    ).resolves.toMatchObject({ migrated: 0, scheduledContinuation: false })
+    await expect(
+      t.mutation(internal.catalogue.sweepUnclaimedStorage, {})
+    ).resolves.toBeNull()
+    await expect(
+      t.mutation(internal.catalogueAggregates.backfill, {
+        phase: "albumTracks",
+        cursor: null,
+      })
+    ).resolves.toMatchObject({ migrated: 0, scheduledContinuation: false })
+    const { client, memberId } = await artist(t, "legacy-upload-expiry")
+    const songId = await client.mutation(
+      api.catalogue.songs.createSong,
+      songInput("Ancienne autorisation")
+    )
+    const intentId = await t.run((ctx) =>
+      ctx.db.insert("catalogueImageUploadIntents", {
+        ownerMemberId: memberId,
+        kind: "song",
+        resourceId: songId,
+        createdAt: Date.now() - 60_000,
+        expiresAt: Date.now() - 1,
+      })
+    )
+    await expect(
+      t.mutation(internal.catalogue.expireArtworkUploadIntent, { intentId })
+    ).resolves.toBeNull()
+    await expect(
+      t.run((ctx) => ctx.db.get("catalogueImageUploadIntents", intentId))
+    ).resolves.toBeNull()
+  })
+
   it("accepts supported artwork metadata and rejects MIME or size violations", () => {
     expect(
       isValidCatalogueImageMetadata(
@@ -92,10 +127,10 @@ describe("artist catalogue", () => {
   it("denies anonymous, fan and suspended accounts", async () => {
     const t = backend()
     await expect(
-      t.query(api.catalogue.listMySongs, {
+      t.query(api.catalogue.read.listMySongs, {
         paginationOpts: { numItems: 24, cursor: null },
       })
-    ).rejects.toThrow("connexion")
+    ).rejects.toThrow("UNAUTHENTICATED")
     const fan = t.withIdentity(identity("fan-catalogue"))
     await fan.mutation(api.members.completeOnboarding, {
       role: "fan",
@@ -103,8 +138,8 @@ describe("artist catalogue", () => {
       displayName: "Fan",
     })
     await expect(
-      fan.mutation(api.catalogue.createSong, songInput("Interdit"))
-    ).rejects.toThrow("artiste")
+      fan.mutation(api.catalogue.songs.createSong, songInput("Interdit"))
+    ).rejects.toThrow("ARTIST_REQUIRED")
 
     const suspended = await artist(t, "suspended-artist")
     await t.mutation(internal.admin.setAccountSuspension, {
@@ -112,8 +147,11 @@ describe("artist catalogue", () => {
       suspended: true,
     })
     await expect(
-      suspended.client.mutation(api.catalogue.createSong, songInput("Suspendu"))
-    ).rejects.toThrow("suspendu")
+      suspended.client.mutation(
+        api.catalogue.songs.createSong,
+        songInput("Suspendu")
+      )
+    ).rejects.toThrow("ACCOUNT_SUSPENDED")
   })
 
   it("keeps ownership on every write and upload intent", async () => {
@@ -121,35 +159,35 @@ describe("artist catalogue", () => {
     const owner = await artist(t, "catalogue-owner")
     const attacker = await artist(t, "catalogue-attacker")
     const songId = await owner.client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Propriété")
     )
 
     await expect(
-      attacker.client.mutation(api.catalogue.publishSong, {
+      attacker.client.mutation(api.catalogue.songs.publishSong, {
         songId,
       })
-    ).rejects.toThrow("introuvable")
+    ).rejects.toThrow("NOT_FOUND")
     await expect(
-      attacker.client.mutation(api.catalogue.generateArtworkUploadUrl, {
+      attacker.client.mutation(api.catalogue.artwork.generateArtworkUploadUrl, {
         resource: { kind: "song", id: songId },
       })
-    ).rejects.toThrow("introuvable")
+    ).rejects.toThrow("NOT_FOUND")
 
     const upload = await owner.client.mutation(
-      api.catalogue.generateArtworkUploadUrl,
+      api.catalogue.artwork.generateArtworkUploadUrl,
       { resource: { kind: "song", id: songId } }
     )
     const storageId = await t.run((ctx) =>
       ctx.storage.store(new Blob(["artwork"], { type: "image/png" }))
     )
     await expect(
-      attacker.client.mutation(api.catalogue.saveArtwork, {
+      attacker.client.mutation(api.catalogue.artwork.saveArtwork, {
         resource: { kind: "song", id: songId },
         intentId: upload.intentId,
         storageId,
       })
-    ).rejects.toThrow("introuvable")
+    ).rejects.toThrow("NOT_FOUND")
     await expect(
       t.run((ctx) => ctx.db.system.get("_storage", storageId))
     ).resolves.not.toBeNull()
@@ -160,14 +198,17 @@ describe("artist catalogue", () => {
     const owner = await artist(t, "delete-song-owner")
     const attacker = await artist(t, "delete-song-attacker")
     const songId = await owner.client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("À supprimer")
     )
-    const albumId = await owner.client.mutation(api.catalogue.createAlbum, {
-      title: "Album lié",
-      credits: [],
-    })
-    await owner.client.mutation(api.catalogue.updateAlbum, {
+    const albumId = await owner.client.mutation(
+      api.catalogue.albums.createAlbum,
+      {
+        title: "Album lié",
+        credits: [],
+      }
+    )
+    await owner.client.mutation(api.catalogue.albums.updateAlbum, {
       albumId,
       songIds: [songId],
       title: "Album lié",
@@ -194,13 +235,13 @@ describe("artist catalogue", () => {
     })
 
     await expect(
-      attacker.client.mutation(api.catalogue.deleteSong, { songId })
-    ).rejects.toThrow("introuvable")
-    await owner.client.mutation(api.catalogue.deleteSong, { songId })
+      attacker.client.mutation(api.catalogue.songs.deleteSong, { songId })
+    ).rejects.toThrow("NOT_FOUND")
+    await owner.client.mutation(api.catalogue.songs.deleteSong, { songId })
 
     await expect(
-      owner.client.query(api.catalogue.getMySong, { songId })
-    ).rejects.toThrow("introuvable")
+      owner.client.query(api.catalogue.read.getMySong, { songId })
+    ).rejects.toThrow("NOT_FOUND")
     await expect(
       t.run((ctx) =>
         ctx.db
@@ -226,7 +267,7 @@ describe("artist catalogue", () => {
       )
     ).resolves.toEqual([])
     await expect(
-      owner.client.query(api.catalogue.getMyAlbum, { albumId })
+      owner.client.query(api.catalogue.read.getMyAlbum, { albumId })
     ).resolves.toMatchObject({ album: { status: "draft" }, tracks: [] })
   })
 
@@ -234,20 +275,20 @@ describe("artist catalogue", () => {
     const t = backend()
     const { client } = await artist(t, "stable-lyrics")
     const initialLyrics = "[Couplet 1]\r\nUne ligne\r\n\r\nUne autre\r\n"
-    const songId = await client.mutation(api.catalogue.createSong, {
+    const songId = await client.mutation(api.catalogue.songs.createSong, {
       ...songInput("Stable"),
       lyricsText: initialLyrics,
     })
-    const before = await client.query(api.catalogue.getMySong, { songId })
+    const before = await client.query(api.catalogue.read.getMySong, { songId })
     expect(before.lyricsText).toBe(initialLyrics)
 
     const editedLyrics = "[Verse]\nPremière ligne\n\n[Chorus]\nRefrain\n"
-    await client.mutation(api.catalogue.updateSong, {
+    await client.mutation(api.catalogue.songs.updateSong, {
       ...songInput("Stable, édité"),
       songId,
       lyricsText: editedLyrics,
     })
-    const after = await client.query(api.catalogue.getMySong, { songId })
+    const after = await client.query(api.catalogue.read.getMySong, { songId })
     expect(after.lyricsText).toBe(editedLyrics)
   })
 
@@ -256,59 +297,64 @@ describe("artist catalogue", () => {
     const { client } = await artist(t, "lyrics-limit")
 
     await expect(
-      client.mutation(api.catalogue.createSong, {
+      client.mutation(api.catalogue.songs.createSong, {
         ...songInput("Trop long"),
         lyricsText: "a".repeat(MAX_LYRICS_TEXT_LENGTH + 1),
       })
-    ).rejects.toThrow("ne peuvent pas dépasser")
+    ).rejects.toThrow("INVALID_LYRICS")
   })
 
-  it("requires lyrics while allowing songs without a primary language", async () => {
+  it("requires lyrics and rejects the removed primary language input", async () => {
     const t = backend()
     const { client } = await artist(t, "required-lyrics")
-    const { primaryLanguage: _primaryLanguage, ...withoutLanguage } =
-      songInput("Sans langue")
+    const withoutLanguage = songInput("Sans langue")
+    const legacyInput = { ...withoutLanguage, primaryLanguage: "mg" }
+    await expect(
+      client.mutation(api.catalogue.songs.createSong, legacyInput)
+    ).rejects.toThrow("primaryLanguage")
 
     await expect(
-      client.mutation(api.catalogue.createSong, {
+      client.mutation(api.catalogue.songs.createSong, {
         ...withoutLanguage,
         title: "Sans paroles",
         lyricsText: "  \n ",
       })
-    ).rejects.toThrow("obligatoire")
+    ).rejects.toThrow("INVALID_LYRICS")
 
     const songId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       withoutLanguage
     )
     const stored = await t.run((ctx) => ctx.db.get("songs", songId))
-    expect(stored?.primaryLanguage).toBeUndefined()
+    expect(stored).not.toHaveProperty("primaryLanguage")
     await expect(
-      client.mutation(api.catalogue.updateSong, {
+      client.mutation(api.catalogue.songs.updateSong, {
         ...withoutLanguage,
         songId,
         lyricsText: "\t\n ",
       })
-    ).rejects.toThrow("obligatoire")
-    await client.mutation(api.catalogue.publishSong, { songId })
-    const published = await t.query(api.catalogue.getPublishedSong, { songId })
-    expect(published?.song.primaryLanguage).toBeUndefined()
+    ).rejects.toThrow("INVALID_LYRICS")
+    await client.mutation(api.catalogue.songs.publishSong, { songId })
+    const published = await t.query(api.catalogue.read.getPublishedSong, {
+      songId,
+    })
+    expect(published?.song).not.toHaveProperty("primaryLanguage")
     expect(published?.lyricsText).toBe(withoutLanguage.lyricsText)
 
-    await client.mutation(api.catalogue.unpublishSong, { songId })
+    await client.mutation(api.catalogue.songs.unpublishSong, { songId })
     await t.run((ctx) =>
       ctx.db.patch("songs", songId, { lyricsText: undefined })
     )
     await expect(
-      client.mutation(api.catalogue.publishSong, { songId })
-    ).rejects.toThrow("obligatoire")
+      client.mutation(api.catalogue.songs.publishSong, { songId })
+    ).rejects.toThrow("INVALID_LYRICS")
   })
 
   it("reads legacy lyric rows and backfills them without deleting old data", async () => {
     const t = backend()
     const { client } = await artist(t, "legacy-lyrics")
     const songId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Héritage")
     )
     const legacyIds = await t.run(async (ctx) => {
@@ -333,11 +379,11 @@ describe("artist catalogue", () => {
     })
 
     await expect(
-      client.query(api.catalogue.getMySong, { songId })
+      client.query(api.catalogue.read.getMySong, { songId })
     ).resolves.toMatchObject({ lyricsText: "[Refrain]\nAncien refrain" })
 
     await expect(
-      t.mutation(internal.catalogue.backfillSongLyricsText, {
+      t.mutation(internal.catalogue.lyricsMigration.backfillSongLyricsText, {
         cursor: null,
       })
     ).resolves.toEqual({ migrated: 1, scheduledContinuation: false })
@@ -355,11 +401,11 @@ describe("artist catalogue", () => {
     const t = backend()
     const { client } = await artist(t, "legacy-lyrics-pages")
     const firstId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Premier héritage")
     )
     const secondId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Second héritage")
     )
     await t.run(async (ctx) => {
@@ -370,7 +416,9 @@ describe("artist catalogue", () => {
     vi.useFakeTimers()
     try {
       await expect(
-        t.mutation(internal.catalogue.backfillSongLyricsText, { cursor: null })
+        t.mutation(internal.catalogue.lyricsMigration.backfillSongLyricsText, {
+          cursor: null,
+        })
       ).resolves.toEqual({ migrated: 1, scheduledContinuation: true })
       await t.finishAllScheduledFunctions(() => vi.runAllTimers())
     } finally {
@@ -389,54 +437,58 @@ describe("artist catalogue", () => {
     const t = backend()
     const { client } = await artist(t, "publish-flow")
     const songId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Publication")
     )
     await expect(
-      t.query(api.catalogue.getPublishedSong, { songId })
+      t.query(api.catalogue.read.getPublishedSong, { songId })
     ).resolves.toBeNull()
 
-    const albumId = await client.mutation(api.catalogue.createAlbum, {
+    const albumId = await client.mutation(api.catalogue.albums.createAlbum, {
       title: "Album privé",
       credits: [],
     })
     await expect(
-      t.query(api.catalogue.getPublishedAlbum, { albumId })
+      t.query(api.catalogue.read.getPublishedAlbum, { albumId })
     ).resolves.toBeNull()
     await expect(
-      client.mutation(api.catalogue.publishAlbum, {
+      client.mutation(api.catalogue.albums.publishAlbum, {
         albumId,
       })
-    ).rejects.toThrow("au moins un morceau")
-    await client.mutation(api.catalogue.publishSong, {
+    ).rejects.toThrow("ALBUM_NEEDS_PUBLISHED_TRACK")
+    await client.mutation(api.catalogue.songs.publishSong, {
       songId,
     })
-    await client.mutation(api.catalogue.setAlbumTracks, {
+    await client.mutation(api.catalogue.albums.setAlbumTracks, {
       albumId,
       songIds: [songId],
     })
-    await client.mutation(api.catalogue.publishAlbum, {
+    await client.mutation(api.catalogue.albums.publishAlbum, {
       albumId,
     })
     await expect(
-      t.query(api.catalogue.getPublishedAlbum, { albumId })
+      t.query(api.catalogue.read.getPublishedAlbum, { albumId })
     ).resolves.toMatchObject({ album: { status: "published" } })
-    await client.mutation(api.catalogue.unpublishAlbum, { albumId })
+    await client.mutation(api.catalogue.albums.unpublishAlbum, { albumId })
     await expect(
-      t.query(api.catalogue.getPublishedAlbum, { albumId })
+      t.query(api.catalogue.read.getPublishedAlbum, { albumId })
     ).resolves.toBeNull()
-    await client.mutation(api.catalogue.publishAlbum, {
+    await client.mutation(api.catalogue.albums.publishAlbum, {
       albumId,
     })
-    const publishedSong = await t.query(api.catalogue.getPublishedSong, {
+    const publishedSong = await t.query(api.catalogue.read.getPublishedSong, {
       songId,
     })
     expect(publishedSong).toMatchObject({ song: { status: "published" } })
     expect(publishedSong?.lyricsText).toBe(songInput("Publication").lyricsText)
     expect(publishedSong?.song).not.toHaveProperty("ownerMemberId")
     expect(publishedSong?.song).not.toHaveProperty("rightsConfirmedAt")
-    const ownedSong = await client.query(api.catalogue.getMySong, { songId })
-    const ownedAlbum = await client.query(api.catalogue.getMyAlbum, { albumId })
+    const ownedSong = await client.query(api.catalogue.read.getMySong, {
+      songId,
+    })
+    const ownedAlbum = await client.query(api.catalogue.read.getMyAlbum, {
+      albumId,
+    })
     expect(ownedSong.song.rightsConfirmedAt).toBeUndefined()
     expect(ownedAlbum.album.rightsConfirmedAt).toBeUndefined()
     const member = await client.query(api.members.current, {})
@@ -446,27 +498,29 @@ describe("artist catalogue", () => {
       suspended: true,
     })
     await expect(
-      t.query(api.catalogue.getPublishedSong, { songId })
+      t.query(api.catalogue.read.getPublishedSong, { songId })
     ).resolves.toBeNull()
     await expect(
-      t.query(api.catalogue.getPublishedAlbum, { albumId })
+      t.query(api.catalogue.read.getPublishedAlbum, { albumId })
     ).resolves.toBeNull()
     await t.mutation(internal.admin.setAccountSuspension, {
       memberId: member.member._id,
       suspended: false,
     })
-    await client.mutation(api.catalogue.updateSong, {
+    await client.mutation(api.catalogue.songs.updateSong, {
       ...songInput("Publication modifiée"),
       songId,
     })
-    await client.mutation(api.catalogue.updateAlbum, {
+    await client.mutation(api.catalogue.albums.updateAlbum, {
       albumId,
       songIds: [],
       title: "Album modifié",
       credits: [],
     })
-    const editedSong = await client.query(api.catalogue.getMySong, { songId })
-    const editedAlbum = await client.query(api.catalogue.getMyAlbum, {
+    const editedSong = await client.query(api.catalogue.read.getMySong, {
+      songId,
+    })
+    const editedAlbum = await client.query(api.catalogue.read.getMyAlbum, {
       albumId,
     })
     expect(editedSong.song).toMatchObject({ status: "draft" })
@@ -474,17 +528,17 @@ describe("artist catalogue", () => {
     expect(editedAlbum.album).toMatchObject({ status: "draft" })
     expect(editedAlbum.album.rightsConfirmedAt).toBeUndefined()
     await expect(
-      t.query(api.catalogue.getPublishedSong, { songId })
+      t.query(api.catalogue.read.getPublishedSong, { songId })
     ).resolves.toBeNull()
     await expect(
-      t.query(api.catalogue.getPublishedAlbum, { albumId })
+      t.query(api.catalogue.read.getPublishedAlbum, { albumId })
     ).resolves.toBeNull()
-    await client.mutation(api.catalogue.publishSong, {
+    await client.mutation(api.catalogue.songs.publishSong, {
       songId,
     })
-    await client.mutation(api.catalogue.unpublishSong, { songId })
+    await client.mutation(api.catalogue.songs.unpublishSong, { songId })
     await expect(
-      t.query(api.catalogue.getPublishedSong, { songId })
+      t.query(api.catalogue.read.getPublishedSong, { songId })
     ).resolves.toBeNull()
   })
 
@@ -492,11 +546,11 @@ describe("artist catalogue", () => {
     const t = backend()
     const { client, memberId } = await artist(t, "artwork-flow")
     const songId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Pochette")
     )
     const upload = await client.mutation(
-      api.catalogue.generateArtworkUploadUrl,
+      api.catalogue.artwork.generateArtworkUploadUrl,
       { resource: { kind: "song", id: songId } }
     )
     const storageId = await t.run((ctx) =>
@@ -509,15 +563,15 @@ describe("artist catalogue", () => {
         storageId,
       })
     )
-    await client.mutation(api.catalogue.publishSong, {
+    await client.mutation(api.catalogue.songs.publishSong, {
       songId,
     })
-    await client.mutation(api.catalogue.saveArtwork, {
+    await client.mutation(api.catalogue.artwork.saveArtwork, {
       resource: { kind: "song", id: songId },
       intentId: upload.intentId,
       storageId,
     })
-    const detail = await client.query(api.catalogue.getMySong, { songId })
+    const detail = await client.query(api.catalogue.read.getMySong, { songId })
     expect(detail.song.artworkStorageId).toBe(storageId)
     expect(detail.song.status).toBe("draft")
     expect(detail.song.rightsConfirmedAt).toBeUndefined()
@@ -535,12 +589,12 @@ describe("artist catalogue", () => {
       ctx.storage.store(new Blob(["not an image"], { type: "text/plain" }))
     )
     await expect(
-      client.mutation(api.catalogue.registerArtworkUpload, {
+      client.mutation(api.catalogue.artwork.registerArtworkUpload, {
         resource: { kind: "song", id: songId },
         intentId: invalidIntent,
         storageId: invalidStorageId,
       })
-    ).rejects.toThrow("JPEG")
+    ).rejects.toThrow("INVALID_IMAGE")
 
     const abandonedStorageId = await t.run((ctx) =>
       ctx.storage.store(new Blob(["abandoned"], { type: "image/webp" }))
@@ -555,7 +609,7 @@ describe("artist catalogue", () => {
         expiresAt: Date.now() - 60_000,
       })
     )
-    await t.mutation(internal.catalogue.expireArtworkUploadIntent, {
+    await t.mutation(internal.catalogue.artwork.expireArtworkUploadIntent, {
       intentId: expiredIntent,
     })
     await expect(
@@ -567,15 +621,15 @@ describe("artist catalogue", () => {
     const t = backend()
     const { client, memberId } = await artist(t, "artwork-reservation")
     const songId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Pochette partagée")
     )
     const first = await client.mutation(
-      api.catalogue.generateArtworkUploadUrl,
+      api.catalogue.artwork.generateArtworkUploadUrl,
       { resource: { kind: "song", id: songId } }
     )
     const second = await client.mutation(
-      api.catalogue.generateArtworkUploadUrl,
+      api.catalogue.artwork.generateArtworkUploadUrl,
       { resource: { kind: "song", id: songId } }
     )
     const storageId = await t.run((ctx) =>
@@ -585,12 +639,12 @@ describe("artist catalogue", () => {
       ctx.db.patch("catalogueImageUploadIntents", first.intentId, { storageId })
     )
     await expect(
-      client.mutation(api.catalogue.registerArtworkUpload, {
+      client.mutation(api.catalogue.artwork.registerArtworkUpload, {
         resource: { kind: "song", id: songId },
         intentId: second.intentId,
         storageId,
       })
-    ).rejects.toThrow("réservée")
+    ).rejects.toThrow("IMAGE_ALREADY_ATTACHED")
 
     await t.run(async (ctx) => {
       await ctx.db.patch("catalogueImageUploadIntents", second.intentId, {
@@ -605,7 +659,7 @@ describe("artist catalogue", () => {
       })
       await ctx.db.patch("songs", songId, { artworkStorageId: storageId })
     })
-    await t.mutation(internal.catalogue.expireArtworkUploadIntent, {
+    await t.mutation(internal.catalogue.artwork.expireArtworkUploadIntent, {
       intentId: second.intentId,
     })
     await expect(
@@ -620,10 +674,10 @@ describe("artist catalogue", () => {
       const t = backend()
       const { client } = await artist(t, "scheduled-orphan-cleanup")
       const songId = await client.mutation(
-        api.catalogue.createSong,
+        api.catalogue.songs.createSong,
         songInput("Upload orphelin")
       )
-      await client.mutation(api.catalogue.generateArtworkUploadUrl, {
+      await client.mutation(api.catalogue.artwork.generateArtworkUploadUrl, {
         resource: { kind: "song", id: songId },
       })
       vi.advanceTimersByTime(59 * 60 * 1000)
@@ -631,7 +685,7 @@ describe("artist catalogue", () => {
         ctx.storage.store(new Blob(["orphan"], { type: "image/png" }))
       )
       vi.advanceTimersByTime(11 * 60 * 1000)
-      await t.mutation(internal.catalogue.sweepUnclaimedStorage, {})
+      await t.mutation(internal.catalogue.artwork.sweepUnclaimedStorage, {})
       await expect(
         t.run((ctx) => ctx.db.system.get("_storage", storageId))
       ).resolves.toBeNull()
@@ -652,7 +706,7 @@ describe("artist catalogue", () => {
         return ids
       })
       vi.advanceTimersByTime(11 * 60 * 1000)
-      await t.mutation(internal.catalogue.sweepUnclaimedStorage, {})
+      await t.mutation(internal.catalogue.artwork.sweepUnclaimedStorage, {})
       await t.finishAllScheduledFunctions(() => vi.runAllTimers())
       const remaining = await t.run(async (ctx) =>
         Promise.all(storageIds.map((id) => ctx.db.system.get("_storage", id)))
@@ -674,7 +728,6 @@ describe("artist catalogue", () => {
           title: `Morceau ${index}`,
           primaryArtist: "Rija",
           guestArtists: [],
-          primaryLanguage: "mg",
           writers: [],
           composers: [],
           producers: [],
@@ -685,7 +738,7 @@ describe("artist catalogue", () => {
     })
     vi.useFakeTimers()
     try {
-      await t.mutation(internal.catalogueAggregates.backfill, {
+      await t.mutation(internal.catalogue.aggregates.backfill, {
         phase: "songs",
         cursor: null,
       })
@@ -693,10 +746,10 @@ describe("artist catalogue", () => {
     } finally {
       vi.useRealTimers()
     }
-    const first = await client.query(api.catalogue.listMySongs, {
+    const first = await client.query(api.catalogue.read.listMySongs, {
       paginationOpts: { numItems: 100, cursor: null },
     })
-    const second = await client.query(api.catalogue.listMySongs, {
+    const second = await client.query(api.catalogue.read.listMySongs, {
       paginationOpts: { numItems: 100, cursor: first.continueCursor },
     })
     expect(first.page).toHaveLength(100)
@@ -710,43 +763,45 @@ describe("artist catalogue", () => {
     const t = backend()
     const { client } = await artist(t, "catalogue-aggregate-counts")
     const draftSongId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Brouillon agrégé")
     )
     const publishedSongId = await client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Publié agrégé")
     )
-    await client.mutation(api.catalogue.publishSong, {
+    await client.mutation(api.catalogue.songs.publishSong, {
       songId: publishedSongId,
     })
-    const albumId = await client.mutation(api.catalogue.createAlbum, {
+    const albumId = await client.mutation(api.catalogue.albums.createAlbum, {
       title: "Album agrégé",
       credits: [],
     })
 
     await expect(
-      client.query(api.catalogue.getMyCatalogueCounts, {})
+      client.query(api.catalogue.read.getMyCatalogueCounts, {})
     ).resolves.toEqual({
       songs: { all: 2, draft: 1, published: 1 },
       albums: { all: 1, draft: 1, published: 0 },
     })
 
-    const drafts = await client.query(api.catalogue.listMySongs, {
+    const drafts = await client.query(api.catalogue.read.listMySongs, {
       paginationOpts: { numItems: 10, cursor: null },
       status: "draft",
     })
-    const published = await client.query(api.catalogue.listMySongs, {
+    const published = await client.query(api.catalogue.read.listMySongs, {
       paginationOpts: { numItems: 10, cursor: null },
       status: "published",
     })
     expect(drafts.page.map(({ _id }) => _id)).toEqual([draftSongId])
     expect(published.page.map(({ _id }) => _id)).toEqual([publishedSongId])
 
-    await client.mutation(api.catalogue.deleteSong, { songId: draftSongId })
-    await client.mutation(api.catalogue.deleteAlbum, { albumId })
+    await client.mutation(api.catalogue.songs.deleteSong, {
+      songId: draftSongId,
+    })
+    await client.mutation(api.catalogue.albums.deleteAlbum, { albumId })
     await expect(
-      client.query(api.catalogue.getMyCatalogueCounts, {})
+      client.query(api.catalogue.read.getMyCatalogueCounts, {})
     ).resolves.toEqual({
       songs: { all: 1, draft: 0, published: 1 },
       albums: { all: 0, draft: 0, published: 0 },
@@ -758,65 +813,73 @@ describe("artist catalogue", () => {
     const firstArtist = await artist(t, "album-owner")
     const secondArtist = await artist(t, "album-outsider")
     const firstSong = await firstArtist.client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Premier")
     )
     const secondSong = await firstArtist.client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Deuxième")
     )
     const outsiderSong = await secondArtist.client.mutation(
-      api.catalogue.createSong,
+      api.catalogue.songs.createSong,
       songInput("Étranger")
     )
     const albumId = await firstArtist.client.mutation(
-      api.catalogue.createAlbum,
+      api.catalogue.albums.createAlbum,
       { title: "Album", credits: [] }
     )
     const otherAlbumId = await firstArtist.client.mutation(
-      api.catalogue.createAlbum,
+      api.catalogue.albums.createAlbum,
       { title: "Autre album", credits: [] }
     )
 
-    await firstArtist.client.mutation(api.catalogue.setAlbumTracks, {
+    await firstArtist.client.mutation(api.catalogue.albums.setAlbumTracks, {
       albumId,
       songIds: [secondSong, firstSong],
     })
-    const detail = await firstArtist.client.query(api.catalogue.getMyAlbum, {
-      albumId,
-    })
+    const detail = await firstArtist.client.query(
+      api.catalogue.read.getMyAlbum,
+      {
+        albumId,
+      }
+    )
     expect(detail.tracks.map(({ song }) => song._id)).toEqual([
       secondSong,
       firstSong,
     ])
-    await firstArtist.client.mutation(api.catalogue.reorderAlbumTracks, {
+    await firstArtist.client.mutation(api.catalogue.albums.reorderAlbumTracks, {
       albumId,
       songIds: [firstSong, secondSong],
     })
-    const reordered = await firstArtist.client.query(api.catalogue.getMyAlbum, {
-      albumId,
-    })
+    const reordered = await firstArtist.client.query(
+      api.catalogue.read.getMyAlbum,
+      {
+        albumId,
+      }
+    )
     expect(reordered.tracks.map(({ song }) => song._id)).toEqual([
       firstSong,
       secondSong,
     ])
-    await firstArtist.client.mutation(api.catalogue.detachSongFromAlbum, {
-      albumId,
-      songId: firstSong,
-    })
-    await firstArtist.client.mutation(api.catalogue.attachSongToAlbum, {
+    await firstArtist.client.mutation(
+      api.catalogue.albums.detachSongFromAlbum,
+      {
+        albumId,
+        songId: firstSong,
+      }
+    )
+    await firstArtist.client.mutation(api.catalogue.albums.attachSongToAlbum, {
       albumId,
       songId: firstSong,
       inheritance: {
         inheritArtwork: false,
-        inheritPrimaryLanguage: false,
         inheritGenre: false,
         inheritLabel: false,
         inheritCredits: false,
       },
     })
     const reattached = await firstArtist.client.query(
-      api.catalogue.getMyAlbum,
+      api.catalogue.read.getMyAlbum,
       { albumId }
     )
     expect(
@@ -826,39 +889,39 @@ describe("artist catalogue", () => {
       [1, firstSong],
     ])
     await expect(
-      firstArtist.client.mutation(api.catalogue.setAlbumTracks, {
+      firstArtist.client.mutation(api.catalogue.albums.setAlbumTracks, {
         albumId: otherAlbumId,
         songIds: [firstSong],
       })
-    ).rejects.toThrow("qu’à un album")
+    ).rejects.toThrow("SONG_ALREADY_IN_ALBUM")
     await expect(
-      firstArtist.client.mutation(api.catalogue.setAlbumTracks, {
+      firstArtist.client.mutation(api.catalogue.albums.setAlbumTracks, {
         albumId,
         songIds: [outsiderSong],
       })
-    ).rejects.toThrow("introuvable")
+    ).rejects.toThrow("NOT_FOUND")
   })
 
   it("inherits album metadata and materializes it before album deletion", async () => {
     const t = backend()
     const owner = await artist(t, "album-inheritance")
-    const albumId = await owner.client.mutation(api.catalogue.createAlbum, {
-      title: "Héritage",
-      primaryLanguage: "mg",
-      genre: "rock",
-      label: "Label A",
-      credits: ["Pochette — Aina"],
-    })
-    const songId = await owner.client.mutation(api.catalogue.createSong, {
+    const albumId = await owner.client.mutation(
+      api.catalogue.albums.createAlbum,
+      {
+        title: "Héritage",
+        genre: "rock",
+        label: "Label A",
+        credits: ["Pochette — Aina"],
+      }
+    )
+    const songId = await owner.client.mutation(api.catalogue.songs.createSong, {
       ...songInput("Piste héritée"),
-      primaryLanguage: "fr",
       genre: "pop",
       otherGenre: undefined,
       albumContext: {
         albumId,
         inheritance: {
           inheritArtwork: true,
-          inheritPrimaryLanguage: true,
           inheritGenre: true,
           inheritLabel: true,
           inheritCredits: true,
@@ -867,50 +930,45 @@ describe("artist catalogue", () => {
     })
 
     await expect(
-      owner.client.query(api.catalogue.getMySong, { songId })
+      owner.client.query(api.catalogue.read.getMySong, { songId })
     ).resolves.toMatchObject({
       song: {
-        primaryLanguage: "mg",
         genre: "rock",
         label: "Label A",
         additionalCredits: ["Pochette — Aina"],
       },
       album: { _id: albumId },
       albumTrack: {
-        inheritPrimaryLanguage: true,
         inheritGenre: true,
       },
     })
 
-    await owner.client.mutation(api.catalogue.updateAlbum, {
+    await owner.client.mutation(api.catalogue.albums.updateAlbum, {
       albumId,
       songIds: [songId],
       title: "Héritage modifié",
-      primaryLanguage: "en",
       genre: "jazz",
       label: "Label B",
       credits: ["Mastering — Solo"],
     })
     await expect(
-      owner.client.query(api.catalogue.getMySong, { songId })
+      owner.client.query(api.catalogue.read.getMySong, { songId })
     ).resolves.toMatchObject({
       song: {
-        primaryLanguage: "en",
         genre: "jazz",
         label: "Label B",
         additionalCredits: ["Mastering — Solo"],
       },
     })
 
-    await owner.client.mutation(api.catalogue.deleteAlbum, { albumId })
+    await owner.client.mutation(api.catalogue.albums.deleteAlbum, { albumId })
     await expect(
-      owner.client.query(api.catalogue.getMyAlbum, { albumId })
-    ).rejects.toThrow("introuvable")
+      owner.client.query(api.catalogue.read.getMyAlbum, { albumId })
+    ).rejects.toThrow("NOT_FOUND")
     await expect(
-      owner.client.query(api.catalogue.getMySong, { songId })
+      owner.client.query(api.catalogue.read.getMySong, { songId })
     ).resolves.toMatchObject({
       song: {
-        primaryLanguage: "en",
         genre: "jazz",
         label: "Label B",
         additionalCredits: ["Mastering — Solo"],

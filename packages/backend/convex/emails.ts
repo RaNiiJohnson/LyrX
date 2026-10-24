@@ -27,18 +27,16 @@ export async function sendAuthEmail(
 
   const isVerification = input.kind === "verification"
   const subject = isVerification
-    ? "Vérifiez votre adresse email Lyr’X"
-    : "Réinitialisez votre mot de passe Lyr’X"
-  const action = isVerification
-    ? "Vérifier mon adresse"
-    : "Réinitialiser mon mot de passe"
+    ? "Verify your Lyr’X email address"
+    : "Reset your Lyr’X password"
+  const action = isVerification ? "Verify my email" : "Reset my password"
 
   await resend.sendEmail(ctx, {
     from: env.EMAIL_FROM ?? "Lyr’X <noreply@hallomada.de>",
     to: input.to,
     subject,
-    html: `<p>Bonjour ${escapeHtml(input.name)},</p><p><a href="${escapeHtml(input.url)}">${action}</a></p><p>Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.</p>`,
-    text: `Bonjour ${input.name},\n\n${action} : ${input.url}\n\nSi vous n’êtes pas à l’origine de cette demande, ignorez ce message.`,
+    html: `<p>Hello ${escapeHtml(input.name)},</p><p><a href="${escapeHtml(input.url)}">${action}</a></p><p>If you did not request this, ignore this message.</p>`,
+    text: `Hello ${input.name},\n\n${action} : ${input.url}\n\nIf you did not request this, ignore this message.`,
   })
 }
 

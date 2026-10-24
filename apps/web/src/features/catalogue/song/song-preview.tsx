@@ -31,6 +31,7 @@ import { toast } from "@lyrx/ui/lib/toast"
 import { useLocale } from "@/app/locale-provider"
 import { PreviewSkeleton } from "@/features/catalogue/shared/preview-skeleton"
 import { getErrorMessage } from "@/lib/errors"
+import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
 import { SongReadOnly } from "./song-read-only"
 
 export function SongPreview({
@@ -61,12 +62,17 @@ function ReadySongPreview({
   fromAlbumId?: Id<"albums">
   songId: Id<"songs">
 }) {
-  const detail = useQuery(api.catalogue.getMySong, { songId })
+  const detail = useQuery(api.catalogue.read.getMySong, { songId })
   const { t } = useLocale()
   const navigate = useNavigate()
-  const deleteSong = useMutation(api.catalogue.deleteSong)
+  const deleteSong = useMutation(api.catalogue.songs.deleteSong)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [artworkError, setArtworkError] = useState<string | null>(null)
+  const artwork = useCatalogueArtworkUpload(
+    { kind: "song", id: songId },
+    setArtworkError
+  )
   if (detail === undefined) return <PreviewSkeleton />
 
   async function handleDelete() {
@@ -93,6 +99,18 @@ function ReadySongPreview({
   return (
     <SongReadOnly
       detail={detail}
+      artworkAction={{
+        pending: artwork.pending,
+        onSelect: (file) => void artwork.uploadArtwork(file),
+      }}
+      notice={
+        artworkError ? (
+          <Alert variant="destructive">
+            <AlertTitle>{t("catalogue.uploadError")}</AlertTitle>
+            <AlertDescription>{artworkError}</AlertDescription>
+          </Alert>
+        ) : null
+      }
       actions={
         <>
           <div className="flex flex-wrap items-center gap-2">

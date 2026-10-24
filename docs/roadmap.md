@@ -1,8 +1,8 @@
 # Delivery roadmap
 
 Each lot is a coherent future PR. A lot is complete only after implementation,
-relevant automated and manual checks, independent review, documentation, and a
-cleanly identifiable Git state. The mandatory independent-review procedure is
+relevant automated and manual checks, local review, documentation, and a
+cleanly identifiable Git state. The mandatory review procedure is
 defined in [the lot completion review gate](../.agents/rules/lot-completion.md).
 No later lot starts without user approval.
 The cross-lot product rules in [specification.md](specification.md) remain
@@ -15,6 +15,7 @@ authoritative throughout delivery.
 | 3. Corail shell, theme, i18n | Responsive French/English shell with light/dark/system themes and persisted choices | Browser matrix and accessibility checks |
 | 4. Artist catalogue and albums | Artists draft, preview, publish, edit, unpublish, and order their own songs/albums | Ownership, lifecycle, stable-line, and album-order tests |
 | 5. Web structure and lyric entry | Route-owned screens and data loading, feature-oriented web code, and one-textarea lyric authoring | Route/SSR/auth regression checks, raw-text/parser tests, and production build |
+| T1. Catalogue modules and image upload optimization | Domain-oriented Convex catalogue and optimized avatar/banner/artwork uploads | Ownership/lifecycle/Aggregate regressions, image-processing checks, root gate and browser smoke test |
 | 6. Fan proposals and admin validation | Fans submit private songs/artwork; admins accept or refuse once with a reason | Privacy and idempotent moderation tests |
 | 7. Public pages and discovery | Public artist, album, and song pages plus recent/popular discovery | Visibility, pagination, ranking, and external-player checks |
 | 8. Catalogue and lyrics search | Search published titles, artists, albums, genres, and supported lyrics terms with excerpts | Search capability/limit tests and no-private-data proof |
@@ -27,6 +28,12 @@ authoritative throughout delivery.
 | 15. Android release preparation | Produce and exercise the supported Android build path without publishing | EAS/native build evidence, install smoke test, release checklist |
 
 ## Dependency notes
+
+Lot 5 is merged and closed on `main` (`b9b5c4d`, PR #1). Technical lot T1 is
+an independently authorized maintenance lot after it and before lot 6. Its scope
+is recorded in [the Hallohallo research](research/hallohallo-patterns-for-lyrx.md)
+and [progress](progress.md). T1 does not authorize fan proposals or a PR; a new
+PR requires the user's explicit authorization.
 
 Lots 2–12 stabilize the web and shared backend before Expo. Search follows the
 public content model so its visibility rules are testable. Notebook excerpts and

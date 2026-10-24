@@ -16,7 +16,6 @@ import {
 import { FieldGroup } from "@lyrx/ui/components/field"
 
 import { useLocale } from "@/app/locale-provider"
-import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
 import { CatalogueArtworkCard } from "@/features/catalogue/shared/catalogue-artwork-card"
 import { SongBasicsStep } from "./song-basics-step"
 import { SongCreditsStep } from "./song-credits-step"
@@ -47,10 +46,6 @@ export function SongEditorForm({
     returnAlbumId,
     songId,
   })
-  const { pending: uploadPending, uploadArtwork } = useCatalogueArtworkUpload(
-    songId ? { kind: "song", id: songId } : undefined,
-    controller.setError
-  )
 
   return (
     <section className="flex flex-col gap-6">
@@ -87,20 +82,18 @@ export function SongEditorForm({
           </div>
         ) : null}
       </div>
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight">
           {songId ? t("studio.songEditTitle") : t("studio.songNewTitle")}
         </h1>
-        <p className="text-muted-foreground">{t("studio.description")}</p>
       </div>
-      {detail ? (
-        <CatalogueArtworkCard
-          artworkUrl={detail.artworkUrl}
-          inputId="song-artwork"
-          pending={uploadPending}
-          onSelect={(file) => void uploadArtwork(file)}
-        />
-      ) : null}
+      <CatalogueArtworkCard
+        artworkUrl={controller.artworkPreviewUrl}
+        inputId="song-artwork"
+        pending={controller.artworkPending || controller.saving}
+        selectedFile={controller.selectedArtwork}
+        onSelect={controller.selectArtwork}
+      />
       <form
         onSubmit={(event) => {
           event.preventDefault()
@@ -131,7 +124,7 @@ export function SongEditorForm({
             </CardContent>
             <CardFooter className="justify-end border-t">
               <controller.form.SubmitButton
-                disabled={uploadPending || controller.saving}
+                disabled={controller.artworkPending || controller.saving}
               >
                 {t("common.save")}
               </controller.form.SubmitButton>

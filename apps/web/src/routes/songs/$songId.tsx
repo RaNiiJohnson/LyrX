@@ -16,7 +16,7 @@ export const Route = createFileRoute("/songs/$songId")({
     if (!context.convexQueryClient) return
     const songId = params.songId as Id<"songs">
     const detail = await context.queryClient.query({
-      ...convexQuery(api.catalogue.getPublishedSong, { songId }),
+      ...convexQuery(api.catalogue.read.getPublishedSong, { songId }),
       staleTime: "static",
     })
     if (!detail) throw notFound()

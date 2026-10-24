@@ -1,4 +1,4 @@
-import { Disc3, FileMusic, MonitorPlay } from "lucide-react"
+import { Disc3, MonitorPlay } from "lucide-react"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 
 import {
@@ -10,6 +10,10 @@ import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
 
 import { useLocale } from "@/app/locale-provider"
+import {
+  CatalogueArtwork,
+  type ArtworkAction,
+} from "@/features/catalogue/shared/catalogue-artwork"
 import type {
   ListeningProvider,
   SongGenre,
@@ -36,7 +40,6 @@ type ReadOnlySong = {
     listeningLinks: Array<{ provider: ListeningProvider; url: string }>
     otherGenre?: string
     primaryArtist: string
-    primaryLanguage?: string
     producers: Array<string>
     releaseDate?: number
     title: string
@@ -46,9 +49,13 @@ type ReadOnlySong = {
 
 export function SongReadOnly({
   actions,
+  artworkAction,
+  notice,
   detail,
 }: {
   actions?: ReactNode
+  artworkAction?: ArtworkAction
+  notice?: ReactNode
   detail: ReadOnlySong
 }) {
   const { locale, t } = useLocale()
@@ -71,9 +78,6 @@ export function SongReadOnly({
   )
   const metadata = [
     genreLabel(detail.song, t),
-    detail.song.primaryLanguage
-      ? languageLabel(detail.song.primaryLanguage, locale)
-      : undefined,
     shortDate(detail.song.releaseDate, locale),
   ].filter((value): value is string => Boolean(value))
 
@@ -104,18 +108,14 @@ export function SongReadOnly({
           {actions}
         </div>
       ) : null}
+      {notice}
       <header className="flex gap-4 sm:gap-6">
-        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-muted text-muted-foreground lg:size-[8.25rem] lg:self-end">
-          {detail.artworkUrl ? (
-            <img
-              src={detail.artworkUrl}
-              alt=""
-              className="size-full object-cover"
-            />
-          ) : (
-            <FileMusic className="size-8 lg:size-10" />
-          )}
-        </div>
+        <CatalogueArtwork
+          artworkUrl={detail.artworkUrl}
+          kind="song"
+          className="size-24 lg:size-[8.25rem] lg:self-end"
+          action={artworkAction}
+        />
         <div className="min-w-0 flex-1">
           <p className="font-mono text-xs font-medium tracking-[0.16em] text-primary uppercase">
             {detail.song.primaryArtist}
@@ -261,14 +261,6 @@ function genreLabel(
   if (!song.genre) return undefined
   if (song.genre === "other") return song.otherGenre
   return t(genreMessageKeys[song.genre])
-}
-
-function languageLabel(language: string, locale: SupportedLocale) {
-  try {
-    return new Intl.DisplayNames([locale], { type: "language" }).of(language)
-  } catch {
-    return language
-  }
 }
 
 function shortDate(date: number | undefined, locale: SupportedLocale) {

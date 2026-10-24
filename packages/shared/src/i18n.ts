@@ -20,6 +20,11 @@ const frenchMessages = {
   "catalogue.add": "Ajouter",
   "catalogue.artwork": "Pochette",
   "catalogue.artworkDescription": "JPEG, PNG ou WebP, 10 Mo maximum.",
+  "catalogue.editArtwork": "Modifier la pochette",
+  "catalogue.addArtwork": "Ajouter une pochette",
+  "catalogue.clearArtworkSelection": "Retirer la sélection",
+  "catalogue.artworkSavePartial":
+    "Le brouillon est enregistré, mais pas sa pochette. Réessayez ou retirez l’image sélectionnée pour continuer sans l’envoyer.",
   "catalogue.artworkUpdated": "Pochette mise à jour",
   "catalogue.created": "Brouillon créé",
   "catalogue.deleted": "Morceau supprimé",
@@ -46,7 +51,7 @@ const frenchMessages = {
   "catalogue.unpublish": "Dépublier",
   "catalogue.unpublishedNotice": "Le contenu est revenu en brouillon.",
   "catalogue.uploadError": "Envoi de la pochette impossible",
-  "catalogue.uploading": "Envoi de la pochette…",
+  "catalogue.uploading": "Préparation et envoi de la pochette…",
   "auth.actionError": "Action impossible",
   "auth.email": "Adresse email",
   "auth.emailInvalid": "Adresse email invalide.",
@@ -80,7 +85,9 @@ const frenchMessages = {
   "error.invalidCredentials": "Email ou mot de passe incorrect.",
   "error.invalidCatalogue": "Vérifiez les informations du catalogue.",
   "error.invalidImage":
-    "La pochette doit être une image JPEG, PNG ou WebP de 10 Mo maximum.",
+    "Choisissez une image JPEG, PNG ou WebP non vide, dans la limite de taille indiquée.",
+  "error.imageOptimizationFailed":
+    "Impossible de préparer cette image. Essayez une autre image.",
   "error.invalidLyrics": "Vérifiez la structure et le contenu des paroles.",
   "error.invalidTracks": "Vérifiez les morceaux et leur ordre dans l’album.",
   "error.invalidDisplayName":
@@ -279,7 +286,7 @@ const frenchMessages = {
   "profile.imageInvalidResponse": "La réponse du stockage est invalide.",
   "profile.imageUploadFailed": "Le transfert de l’image a échoué.",
   "profile.images": "Images du profil",
-  "profile.imageUploading": "Envoi de l’image…",
+  "profile.imageUploading": "Préparation et envoi de l’image…",
   "profile.noCustomLinks": "Aucun lien personnalisé.",
   "profile.presentation": "Présentation",
   "profile.publicNotFoundDescription":
@@ -347,7 +354,6 @@ const frenchMessages = {
     "Commencez par l’identité du morceau et ses paroles. Le reste peut être complété ensuite.",
   "studio.guestArtists": "Artistes invités",
   "studio.label": "Label",
-  "studio.language": "Langue principale",
   "studio.inheritedMetadata": "Informations héritées de l’album",
   "studio.inheritedMetadataDescription":
     "Décochez un champ pour le personnaliser uniquement sur ce morceau.",
@@ -369,7 +375,9 @@ const frenchMessages = {
   "studio.lyricsSections": "Sections des paroles",
   "studio.lyricsEditor": "Texte des paroles",
   "studio.lyricsEditorDescription":
-    "Écrivez ou collez tout le texte ici. Placez les titres de section seuls sur une ligne, par exemple [Couplet 1], [Refrain], [Verse] ou [Chorus]. Les titres personnalisés sont acceptés et les lignes vides sont conservées.",
+    "Vous pouvez écrire librement. Les repères comme [Couplet] ou [Refrain] sont facultatifs.",
+  "studio.lyricsEditorPlaceholder":
+    "Vos paroles, telles que vous souhaitez les écrire…",
   "studio.lyricsRequired": "Le texte des paroles est obligatoire.",
   "studio.nextStep": "Continuer",
   "studio.newAlbum": "Créer un album",
@@ -461,6 +469,11 @@ const englishMessages = {
   "catalogue.add": "Add",
   "catalogue.artwork": "Artwork",
   "catalogue.artworkDescription": "JPEG, PNG, or WebP, up to 10 MB.",
+  "catalogue.editArtwork": "Change artwork",
+  "catalogue.addArtwork": "Add artwork",
+  "catalogue.clearArtworkSelection": "Clear selection",
+  "catalogue.artworkSavePartial":
+    "The draft is saved, but its artwork is not. Retry or clear the selected image to continue without uploading it.",
   "catalogue.artworkUpdated": "Artwork updated",
   "catalogue.created": "Draft created",
   "catalogue.deleted": "Song deleted",
@@ -487,7 +500,7 @@ const englishMessages = {
   "catalogue.unpublish": "Unpublish",
   "catalogue.unpublishedNotice": "This content is a draft again.",
   "catalogue.uploadError": "Unable to upload artwork",
-  "catalogue.uploading": "Uploading artwork…",
+  "catalogue.uploading": "Preparing and uploading artwork…",
   "auth.actionError": "Action unavailable",
   "auth.email": "Email address",
   "auth.emailInvalid": "Invalid email address.",
@@ -520,7 +533,9 @@ const englishMessages = {
   "error.invalidCredentials": "Incorrect email or password.",
   "error.invalidCatalogue": "Check the catalogue information.",
   "error.invalidImage":
-    "Artwork must be a JPEG, PNG, or WebP image up to 10 MB.",
+    "Choose a non-empty JPEG, PNG, or WebP image within the stated size limit.",
+  "error.imageOptimizationFailed":
+    "Unable to prepare this image. Try another image.",
   "error.invalidLyrics": "Check the lyrics structure and content.",
   "error.invalidTracks": "Check the album tracks and their order.",
   "error.invalidDisplayName":
@@ -713,7 +728,7 @@ const englishMessages = {
   "profile.imageInvalidResponse": "The storage response is invalid.",
   "profile.imageUploadFailed": "The image upload failed.",
   "profile.images": "Profile images",
-  "profile.imageUploading": "Uploading image…",
+  "profile.imageUploading": "Preparing and uploading image…",
   "profile.noCustomLinks": "No custom links.",
   "profile.presentation": "Introduction",
   "profile.publicNotFoundDescription":
@@ -780,7 +795,6 @@ const englishMessages = {
     "Start with the song identity and its lyrics. Everything else can be completed later.",
   "studio.guestArtists": "Guest artists",
   "studio.label": "Label",
-  "studio.language": "Primary language",
   "studio.inheritedMetadata": "Inherited album information",
   "studio.inheritedMetadataDescription":
     "Uncheck a field to customize it only for this song.",
@@ -802,7 +816,9 @@ const englishMessages = {
   "studio.lyricsSections": "Lyrics sections",
   "studio.lyricsEditor": "Lyrics text",
   "studio.lyricsEditorDescription":
-    "Write or paste the complete text here. Put section headings on their own line, for example [Verse 1], [Chorus], [Couplet] or [Refrain]. Custom headings are accepted and blank lines are preserved.",
+    "Write freely. Section markers such as [Verse] or [Chorus] are optional.",
+  "studio.lyricsEditorPlaceholder":
+    "Your lyrics, however you want to write them…",
   "studio.lyricsRequired": "Lyrics are required.",
   "studio.nextStep": "Continue",
   "studio.newAlbum": "Create an album",

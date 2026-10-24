@@ -4,14 +4,13 @@ import type { api } from "@lyrx/backend/convex/_generated/api"
 
 import { dateInputFromTimestamp, type SongFormValues } from "./catalogue-form"
 
-type SongDetail = FunctionReturnType<typeof api.catalogue.getMySong>
+type SongDetail = FunctionReturnType<typeof api.catalogue.read.getMySong>
 
 export function songValuesFromDetail(detail: SongDetail): SongFormValues {
   return {
     releaseType: detail.album ? "album" : "single",
     albumId: detail.album?._id ?? "",
     inheritArtwork: detail.albumTrack?.inheritArtwork ?? false,
-    inheritPrimaryLanguage: detail.albumTrack?.inheritPrimaryLanguage ?? false,
     inheritGenre: detail.albumTrack?.inheritGenre ?? false,
     inheritLabel: detail.albumTrack?.inheritLabel ?? false,
     inheritCredits: detail.albumTrack?.inheritCredits ?? false,
@@ -21,7 +20,6 @@ export function songValuesFromDetail(detail: SongDetail): SongFormValues {
     releaseDate: dateInputFromTimestamp(detail.song.releaseDate),
     description: detail.song.description ?? "",
     context: detail.song.context ?? "",
-    primaryLanguage: detail.song.primaryLanguage ?? "",
     genre: detail.song.genre ?? "",
     otherGenre: detail.song.otherGenre ?? "",
     writers: detail.song.writers.join("\n"),

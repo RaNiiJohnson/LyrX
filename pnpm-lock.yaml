@@ -74,6 +74,9 @@ importers:
       better-auth:
         specifier: 1.6.33
         version: 1.6.33(@tanstack/react-start@1.168.61(esbuild@0.27.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.14)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.27.0)(jiti@2.7.0)))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.5(@edge-runtime/vm@5.0.0)(@types/node@22.20.5)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.27.0)(jiti@2.7.0)))
+      browser-image-compression:
+        specifier: 2.0.2
+        version: 2.0.2
       convex:
         specifier: 1.47.0
         version: 1.47.0(react@19.3.0)
@@ -2247,6 +2250,9 @@ packages:
     resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
     engines: {node: 20 || >=22}
 
+  browser-image-compression@2.0.2:
+    resolution: {integrity: sha512-pBLlQyUf6yB8SmmngrcOw3EoS4RpQ1BcylI3T9Yqn7+4nrQTXJD4sJDe5ODnJdrvNMaio5OicFo75rDyJD2Ucw==}
+
   browserslist@4.29.3:
     resolution: {integrity: sha512-1R4kiYKXGViqEN0CnoDrXc1StD9niAwu+j2dukWzrD4bJgsD4lDmEp0CRbc6E/vYJIfTHwPmwyaKtVSudICdPA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
@@ -3296,6 +3302,9 @@ packages:
     resolution: {integrity: sha512-6L+EeigHMQhdaIPNIFUKwfWJSwWFQ8gJbJ2DLOs5sDIegTwR9fRxvnM3uciHKjIZhFz+KAv2emhWMRvDmMcY8A==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  uzip@0.20201231.0:
+    resolution: {integrity: sha512-OZeJfZP+R0z9D6TmBgLq2LHzSSptGMGDGigGiEe0pr8UBe/7fdflgHlHBNDASTXB5jnFuxHpNaJywSg8YFeGng==}
 
   vite@8.3.4:
     resolution: {integrity: sha512-IftLE8phJhdNRIGNEV4JCCvfNScoZQVfcXaN8TQropWGJtOHcu+iAB9pHcuGvmEb/kddw0LBe/jS8ztdC6xdiQ==}
@@ -5433,6 +5442,10 @@ snapshots:
     dependencies:
       balanced-match: 4.0.4
 
+  browser-image-compression@2.0.2:
+    dependencies:
+      uzip: 0.20201231.0
+
   browserslist@4.29.3:
     dependencies:
       baseline-browser-mapping: 2.11.29
@@ -6337,6 +6350,8 @@ snapshots:
   use-sync-external-store@1.7.0(react@19.3.0):
     dependencies:
       react: 19.3.0
+
+  uzip@0.20201231.0: {}
 
   vite@8.3.4(@types/node@22.20.5)(esbuild@0.27.0)(jiti@2.7.0):
     dependencies:

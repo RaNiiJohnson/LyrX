@@ -10,13 +10,13 @@ export async function requireVerifiedIdentity(ctx: DatabaseCtx) {
   if (!identity) {
     throw new ConvexError({
       code: "UNAUTHENTICATED",
-      message: "Une connexion est nécessaire.",
+      message: "Sign-in is required.",
     })
   }
   if (identity.emailVerified !== true || typeof identity.email !== "string") {
     throw new ConvexError({
       code: "EMAIL_NOT_VERIFIED",
-      message: "L’adresse email doit être vérifiée.",
+      message: "The email address must be verified.",
     })
   }
   return { ...identity, email: identity.email, emailVerified: true as const }
@@ -40,13 +40,13 @@ export function assertActiveMember(member: Doc<"members">) {
   if (member.status === "suspended") {
     throw new ConvexError({
       code: "ACCOUNT_SUSPENDED",
-      message: "Ce compte est suspendu.",
+      message: "This account is suspended.",
     })
   }
   if (!member.emailVerified) {
     throw new ConvexError({
       code: "EMAIL_NOT_VERIFIED",
-      message: "L’adresse email doit être vérifiée.",
+      message: "The email address must be verified.",
     })
   }
   return member
@@ -64,7 +64,7 @@ export async function requireActiveMember(ctx: DatabaseCtx) {
   if (!member) {
     throw new ConvexError({
       code: "ONBOARDING_REQUIRED",
-      message: "Le profil doit être créé avant cette action.",
+      message: "Complete onboarding before performing this action.",
     })
   }
   return assertActiveMember(member)
@@ -75,7 +75,7 @@ export async function requireActiveArtist(ctx: DatabaseCtx) {
   if (member.role !== "artist") {
     throw new ConvexError({
       code: "ARTIST_REQUIRED",
-      message: "Un compte artiste est nécessaire.",
+      message: "An artist account is required.",
     })
   }
   return member
@@ -86,7 +86,7 @@ export async function requireAdmin(ctx: DatabaseCtx) {
   if (!member.isAdmin) {
     throw new ConvexError({
       code: "FORBIDDEN",
-      message: "Les droits administrateur sont nécessaires.",
+      message: "Administrator privileges are required.",
     })
   }
   return member

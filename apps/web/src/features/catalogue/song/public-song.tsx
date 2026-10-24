@@ -11,7 +11,7 @@ import { SongReadOnly } from "./song-read-only"
 export function PublicSong({ songId }: { songId: Id<"songs"> }) {
   const { t } = useLocale()
   const { data: detail } = useSuspenseQuery(
-    convexQuery(api.catalogue.getPublishedSong, { songId })
+    convexQuery(api.catalogue.read.getPublishedSong, { songId })
   )
 
   if (!detail) {

@@ -6,16 +6,15 @@ import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import type { SongGenre } from "@/features/catalogue/lib/catalogue-form"
 
 export type AlbumDetail = NonNullable<
-  FunctionReturnType<typeof api.catalogue.getMyAlbum>
+  FunctionReturnType<typeof api.catalogue.read.getMyAlbum>
 >
 export type SongSummary = FunctionReturnType<
-  typeof api.catalogue.listMySongs
+  typeof api.catalogue.read.listMySongs
 >["page"][number]
 export type AlbumFormValues = {
   title: string
   releaseDate: string
   description: string
-  primaryLanguage: string
   genre: "" | SongGenre
   otherGenre: string
   label: string

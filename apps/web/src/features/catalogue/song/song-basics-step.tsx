@@ -34,7 +34,6 @@ export const SongBasicsStep = withForm({
                     if (value === "single") {
                       form.setFieldValue("albumId", "")
                       form.setFieldValue("inheritArtwork", false)
-                      form.setFieldValue("inheritPrimaryLanguage", false)
                       form.setFieldValue("inheritGenre", false)
                       form.setFieldValue("inheritLabel", false)
                       form.setFieldValue("inheritCredits", false)
@@ -71,10 +70,6 @@ export const SongBasicsStep = withForm({
                             form.state.values,
                             album
                           )
-                          form.setFieldValue(
-                            "primaryLanguage",
-                            next.primaryLanguage
-                          )
                           form.setFieldValue("genre", next.genre)
                           form.setFieldValue("otherGenre", next.otherGenre)
                           form.setFieldValue("label", next.label)
@@ -83,7 +78,6 @@ export const SongBasicsStep = withForm({
                             next.additionalCredits
                           )
                           form.setFieldValue("inheritArtwork", true)
-                          form.setFieldValue("inheritPrimaryLanguage", true)
                           form.setFieldValue("inheritGenre", true)
                           form.setFieldValue("inheritLabel", true)
                           form.setFieldValue("inheritCredits", true)
@@ -211,12 +205,7 @@ function InheritanceCheckbox({
 }: {
   form: Parameters<typeof SongBasicsStep>[0]["form"]
   label: string
-  name:
-    | "inheritArtwork"
-    | "inheritPrimaryLanguage"
-    | "inheritGenre"
-    | "inheritLabel"
-    | "inheritCredits"
+  name: "inheritArtwork" | "inheritGenre" | "inheritLabel" | "inheritCredits"
   onEnable?: () => void
 }) {
   return (

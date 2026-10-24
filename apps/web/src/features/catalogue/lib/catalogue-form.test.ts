@@ -22,9 +22,9 @@ describe("catalogue form mapping", () => {
     expect(toSongMutationInput(values).lyricsText).toBe(values.lyricsText)
   })
 
-  it("omits the transitional primary language when it is empty", () => {
+  it("never sends the removed primary language field", () => {
     const values = emptySongValues("Lyr’X")
 
-    expect(toSongMutationInput(values).primaryLanguage).toBeUndefined()
+    expect(toSongMutationInput(values)).not.toHaveProperty("primaryLanguage")
   })
 })

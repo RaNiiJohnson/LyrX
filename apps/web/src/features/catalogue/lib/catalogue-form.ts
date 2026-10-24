@@ -30,7 +30,6 @@ export type SongFormValues = {
   releaseType: "single" | "album"
   albumId: string
   inheritArtwork: boolean
-  inheritPrimaryLanguage: boolean
   inheritGenre: boolean
   inheritLabel: boolean
   inheritCredits: boolean
@@ -40,7 +39,6 @@ export type SongFormValues = {
   releaseDate: string
   description: string
   context: string
-  primaryLanguage: string
   genre: "" | SongGenre
   otherGenre: string
   writers: string
@@ -80,7 +78,6 @@ export function toSongMutationInput(value: SongFormValues) {
     releaseDate: timestampFromDateInput(value.releaseDate),
     description: value.description || undefined,
     context: value.context || undefined,
-    primaryLanguage: value.primaryLanguage || undefined,
     genre: value.genre || undefined,
     otherGenre:
       value.genre === "other" ? value.otherGenre || undefined : undefined,
@@ -97,7 +94,6 @@ export function toSongMutationInput(value: SongFormValues) {
             albumId: value.albumId as Id<"albums">,
             inheritance: {
               inheritArtwork: value.inheritArtwork,
-              inheritPrimaryLanguage: value.inheritPrimaryLanguage,
               inheritGenre: value.inheritGenre,
               inheritLabel: value.inheritLabel,
               inheritCredits: value.inheritCredits,
@@ -115,7 +111,6 @@ export function emptySongValues(
     releaseType: album ? "album" : "single",
     albumId: album?._id ?? "",
     inheritArtwork: Boolean(album),
-    inheritPrimaryLanguage: Boolean(album),
     inheritGenre: Boolean(album),
     inheritLabel: Boolean(album),
     inheritCredits: Boolean(album),
@@ -125,7 +120,6 @@ export function emptySongValues(
     releaseDate: "",
     description: "",
     context: "",
-    primaryLanguage: album?.primaryLanguage ?? "",
     genre: album?.genre ?? "",
     otherGenre: album?.otherGenre ?? "",
     writers: "",
@@ -146,11 +140,9 @@ export function applyAlbumDefaults(
     releaseType: "album",
     albumId: album._id,
     inheritArtwork: true,
-    inheritPrimaryLanguage: true,
     inheritGenre: true,
     inheritLabel: true,
     inheritCredits: true,
-    primaryLanguage: album.primaryLanguage ?? values.primaryLanguage,
     genre: album.genre ?? "",
     otherGenre: album.otherGenre ?? "",
     label: album.label ?? "",
