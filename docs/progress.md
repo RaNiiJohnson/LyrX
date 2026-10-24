@@ -2,17 +2,73 @@
 
 ## Active lot
 
-**Lot 5 — Web structure and lyric entry is complete locally.** Its approved
-scope and implementation guidance are recorded in
-[web-structure-and-convex-guidance.md](research/web-structure-and-convex-guidance.md).
+**Technical lot T1 — Catalogue backend modules and image upload optimization**
+was authorized on 24 October 2026 and is complete locally. Work is isolated on
+`codex/catalogue-refactor-image-uploads`, based on merged `main` at `b9b5c4d`.
+The scope is catalogue-only Convex refactoring, atomic caller/path migration,
+and client-side preprocessing of avatar, banner and artwork uploads while
+preserving server validation, ownership, cleanup and Aggregate invariants.
+The implementation reference is
+[Hallohallo patterns](research/hallohallo-patterns-for-lyrx.md).
 
-The lot introduces the Convex React Query integration for public SSR,
-reorganizes the web application around route-, application-, and domain-owned
-modules, and replaces the historical line editor with one canonical multiline
-lyrics field. The large catalogue screens are now factorized by responsibility,
-the legacy-data migration has a documented trigger, obsolete editor residue is
-removed, and the required checks and local reviews are clean. No later roadmap
-lot has started.
+**Lot 5 is merged and closed.** PR #1 was merged into `main` at `b9b5c4d` and
+its remote branch was deleted by the user. Its history below is retained as
+completed evidence; T1 neither reopens lot 5 nor starts the fan-proposals lot.
+No PR is authorized for T1; request explicit authorization before creating one.
+
+### T1 implementation and verification
+
+- Fixed review point: merged `main` at `b9b5c4d`. The primary agent reviewed
+  the entire T1 change set locally against repository standards and this
+  request, including new files, generated API changes, callers and tests.
+  No code-review sub-agent was used. The only check correction was changing
+  three extracted helper imports to type-only imports; the corrected files
+  were reviewed again. No blocking standards or specification finding remains.
+- The `convex:convex-reviewer` security, performance and quality passes found
+  no unresolved Critical or Important finding. Artist authorization and
+  ownership, explicit return validators, deliberately anonymous published-only
+  projections, indexed bounded reads, transactional Aggregate writes and the
+  exhaustive storage-claim registry are preserved. All 82 declarations from
+  the old catalogue were compared after path/import normalization: no business
+  logic difference. Named Aggregate definitions are unchanged.
+- The catalogue now owns `read`, `songs`, `albums`, `artwork`, `values`,
+  `access`, `tracks`, `lyrics`, `lyricsMigration` and `aggregates` modules.
+  Every current web caller, test, cron, new schedule and migration command uses
+  the nested paths. The two former root modules retain only internal aliases
+  for pre-migration scheduled work; removal requires inspecting pending jobs
+  on all target deployments, not a guessed expiry date. The compatibility
+  aliases have an additional regression test. This deliberate compatibility
+  trade-off is accepted; no global queries/mutations directories were created.
+- `prepareImageForUpload` is shared by avatar, banner, song and album artwork.
+  Per-kind dimension/byte targets, same-origin bundled worker, lazy codec,
+  actual MIME handling, EXIF policy and fail-closed errors are documented in
+  [architecture.md](architecture.md). Input limits and server security remain
+  independent. The original is neither uploaded nor retained as a derivative.
+- `pnpm install --frozen-lockfile`, `pnpm check` and `git diff --check` pass.
+  The gate includes formatting, lint, TypeScript, **99 tests** (28 shared,
+  32 backend, 39 web), and production client/SSR builds. Fourteen new image
+  tests cover all three policies, worker asset origin, output type fallback,
+  invalid inputs and failed encoding; the localized error has a regression
+  case. The production build emits the local compression worker asset.
+- Real code generation and `convex dev --once` succeeded on the configured
+  **development** deployment (`Convex functions ready`, 24 October 2026).
+  No production deployment or schema migration was run for T1.
+- The authenticated in-app browser successfully read the migrated Studio and
+  created/read a private `[TEST T1] Optimisation image` draft. Uploading a
+  synthetic **3200×2400 JPEG, 5,666,941 bytes**, stored one **1520×1140 WebP,
+  609,300 bytes** (about 89% fewer bytes, same aspect ratio). `_storage`
+  metadata confirmed the MIME/size; no upload intent remained after success.
+  A deliberately corrupt JPEG displayed the French preparation error before
+  any upload, left storage unchanged and created no intent. Browser console:
+  no warning/error. Existing avatar, banner, songs and albums were not edited.
+  The test draft is intentionally left unpublished, not silently deleted.
+- Live avatar/banner replacement, browsers without WebP support and the
+  worker-unavailable fallback were not exercised against a real account;
+  their helper policies/output contracts are covered by automated tests.
+  These evidence limits do not claim a cross-browser live acceptance matrix.
+
+T1 is a local delivery only: no push, PR or merge. The next action requires the
+user's direction; do not begin lot 6 or reopen lot 5 automatically.
 
 ## Evidence checklist
 

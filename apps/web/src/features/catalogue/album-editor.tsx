@@ -26,11 +26,11 @@ export function AlbumEditor({ albumId }: { albumId?: Id<"albums"> }) {
 
 function AlbumEditorData({ albumId }: { albumId?: Id<"albums"> }) {
   const detail = useQuery(
-    api.catalogue.getMyAlbum,
+    api.catalogue.read.getMyAlbum,
     albumId ? { albumId } : "skip"
   )
   const songs = usePaginatedQuery(
-    api.catalogue.listMySongs,
+    api.catalogue.read.listMySongs,
     {},
     { initialNumItems: 50 }
   )

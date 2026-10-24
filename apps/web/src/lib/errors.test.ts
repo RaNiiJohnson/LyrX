@@ -19,6 +19,7 @@ describe("localized error messages", () => {
   it.each([
     ["INVALID_INPUT", "error.invalidCatalogue"],
     ["INVALID_IMAGE", "error.invalidImage"],
+    ["IMAGE_OPTIMIZATION_FAILED", "error.imageOptimizationFailed"],
     ["INVALID_LYRICS", "error.invalidLyrics"],
     ["INVALID_TRACKS", "error.invalidTracks"],
     ["NOT_FOUND", "error.catalogueNotFound"],

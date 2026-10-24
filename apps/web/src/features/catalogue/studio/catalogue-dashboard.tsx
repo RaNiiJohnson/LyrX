@@ -36,10 +36,10 @@ export function CatalogueDashboard() {
   const activeKind: CatalogueKind = tab === "albums" ? "albums" : "songs"
   const [status, setStatus] = useState<StatusFilter>("all")
   const queryArgs = status === "all" ? {} : { status }
-  const songs = usePaginatedQuery(api.catalogue.listMySongs, queryArgs, {
+  const songs = usePaginatedQuery(api.catalogue.read.listMySongs, queryArgs, {
     initialNumItems: 24,
   })
-  const albums = usePaginatedQuery(api.catalogue.listMyAlbums, queryArgs, {
+  const albums = usePaginatedQuery(api.catalogue.read.listMyAlbums, queryArgs, {
     initialNumItems: 24,
   })
 

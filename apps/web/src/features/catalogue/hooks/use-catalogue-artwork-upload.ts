@@ -6,6 +6,7 @@ import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
+import { prepareImageForUpload } from "@/lib/image-upload"
 import { useLocale } from "@/app/locale-provider"
 
 type ArtworkResource =
@@ -16,9 +17,13 @@ export function useCatalogueArtworkUpload(
   setError: (message: string | null) => void
 ) {
   const { t } = useLocale()
-  const generateUploadUrl = useMutation(api.catalogue.generateArtworkUploadUrl)
-  const registerArtworkUpload = useMutation(api.catalogue.registerArtworkUpload)
-  const saveArtwork = useMutation(api.catalogue.saveArtwork)
+  const generateUploadUrl = useMutation(
+    api.catalogue.artwork.generateArtworkUploadUrl
+  )
+  const registerArtworkUpload = useMutation(
+    api.catalogue.artwork.registerArtworkUpload
+  )
+  const saveArtwork = useMutation(api.catalogue.artwork.saveArtwork)
   const [pending, setPending] = useState(false)
 
   async function uploadArtwork(file: File | undefined) {
@@ -26,11 +31,12 @@ export function useCatalogueArtworkUpload(
     setPending(true)
     setError(null)
     try {
+      const optimized = await prepareImageForUpload(file, "artwork")
       const { uploadUrl, intentId } = await generateUploadUrl({ resource })
       const response = await fetch(uploadUrl, {
         method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
+        headers: { "Content-Type": optimized.type },
+        body: optimized,
       })
       if (!response.ok) throw localizedUiError(t("catalogue.uploadError"))
       const payload: unknown = await response.json()

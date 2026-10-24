@@ -19,7 +19,8 @@ const frenchMessages = {
   "common.save": "Enregistrer",
   "catalogue.add": "Ajouter",
   "catalogue.artwork": "Pochette",
-  "catalogue.artworkDescription": "JPEG, PNG ou WebP, 10 Mo maximum.",
+  "catalogue.artworkDescription":
+    "JPEG, PNG ou WebP, 10 Mo maximum. L’image est optimisée avant l’envoi.",
   "catalogue.artworkUpdated": "Pochette mise à jour",
   "catalogue.created": "Brouillon créé",
   "catalogue.deleted": "Morceau supprimé",
@@ -46,7 +47,7 @@ const frenchMessages = {
   "catalogue.unpublish": "Dépublier",
   "catalogue.unpublishedNotice": "Le contenu est revenu en brouillon.",
   "catalogue.uploadError": "Envoi de la pochette impossible",
-  "catalogue.uploading": "Envoi de la pochette…",
+  "catalogue.uploading": "Préparation et envoi de la pochette…",
   "auth.actionError": "Action impossible",
   "auth.email": "Adresse email",
   "auth.emailInvalid": "Adresse email invalide.",
@@ -80,7 +81,9 @@ const frenchMessages = {
   "error.invalidCredentials": "Email ou mot de passe incorrect.",
   "error.invalidCatalogue": "Vérifiez les informations du catalogue.",
   "error.invalidImage":
-    "La pochette doit être une image JPEG, PNG ou WebP de 10 Mo maximum.",
+    "Choisissez une image JPEG, PNG ou WebP non vide, dans la limite de taille indiquée.",
+  "error.imageOptimizationFailed":
+    "Impossible de préparer cette image. Essayez une autre image.",
   "error.invalidLyrics": "Vérifiez la structure et le contenu des paroles.",
   "error.invalidTracks": "Vérifiez les morceaux et leur ordre dans l’album.",
   "error.invalidDisplayName":
@@ -264,10 +267,12 @@ const frenchMessages = {
   "profile.addLink": "Ajouter un lien",
   "profile.artistIdentity": "Identité artiste",
   "profile.avatar": "Avatar",
-  "profile.avatarDescription": "JPEG, PNG ou WebP, 5 Mo maximum.",
+  "profile.avatarDescription":
+    "JPEG, PNG ou WebP, 5 Mo maximum. L’image est optimisée avant l’envoi.",
   "profile.avatarUpdated": "Avatar mis à jour",
   "profile.banner": "Bannière",
-  "profile.bannerDescription": "JPEG, PNG ou WebP, 10 Mo maximum.",
+  "profile.bannerDescription":
+    "JPEG, PNG ou WebP, 10 Mo maximum. L’image est optimisée avant l’envoi.",
   "profile.bannerUpdated": "Bannière mise à jour",
   "profile.bio": "Bio",
   "profile.customLinkLabel": "Libellé du lien {{number}}",
@@ -279,7 +284,7 @@ const frenchMessages = {
   "profile.imageInvalidResponse": "La réponse du stockage est invalide.",
   "profile.imageUploadFailed": "Le transfert de l’image a échoué.",
   "profile.images": "Images du profil",
-  "profile.imageUploading": "Envoi de l’image…",
+  "profile.imageUploading": "Préparation et envoi de l’image…",
   "profile.noCustomLinks": "Aucun lien personnalisé.",
   "profile.presentation": "Présentation",
   "profile.publicNotFoundDescription":
@@ -460,7 +465,8 @@ const englishMessages = {
   "common.save": "Save",
   "catalogue.add": "Add",
   "catalogue.artwork": "Artwork",
-  "catalogue.artworkDescription": "JPEG, PNG, or WebP, up to 10 MB.",
+  "catalogue.artworkDescription":
+    "JPEG, PNG, or WebP, up to 10 MB. The image is optimized before upload.",
   "catalogue.artworkUpdated": "Artwork updated",
   "catalogue.created": "Draft created",
   "catalogue.deleted": "Song deleted",
@@ -487,7 +493,7 @@ const englishMessages = {
   "catalogue.unpublish": "Unpublish",
   "catalogue.unpublishedNotice": "This content is a draft again.",
   "catalogue.uploadError": "Unable to upload artwork",
-  "catalogue.uploading": "Uploading artwork…",
+  "catalogue.uploading": "Preparing and uploading artwork…",
   "auth.actionError": "Action unavailable",
   "auth.email": "Email address",
   "auth.emailInvalid": "Invalid email address.",
@@ -520,7 +526,9 @@ const englishMessages = {
   "error.invalidCredentials": "Incorrect email or password.",
   "error.invalidCatalogue": "Check the catalogue information.",
   "error.invalidImage":
-    "Artwork must be a JPEG, PNG, or WebP image up to 10 MB.",
+    "Choose a non-empty JPEG, PNG, or WebP image within the stated size limit.",
+  "error.imageOptimizationFailed":
+    "Unable to prepare this image. Try another image.",
   "error.invalidLyrics": "Check the lyrics structure and content.",
   "error.invalidTracks": "Check the album tracks and their order.",
   "error.invalidDisplayName":
@@ -698,10 +706,12 @@ const englishMessages = {
   "profile.addLink": "Add a link",
   "profile.artistIdentity": "Artist identity",
   "profile.avatar": "Avatar",
-  "profile.avatarDescription": "JPEG, PNG, or WebP, up to 5 MB.",
+  "profile.avatarDescription":
+    "JPEG, PNG, or WebP, up to 5 MB. The image is optimized before upload.",
   "profile.avatarUpdated": "Avatar updated",
   "profile.banner": "Banner",
-  "profile.bannerDescription": "JPEG, PNG, or WebP, up to 10 MB.",
+  "profile.bannerDescription":
+    "JPEG, PNG, or WebP, up to 10 MB. The image is optimized before upload.",
   "profile.bannerUpdated": "Banner updated",
   "profile.bio": "Bio",
   "profile.customLinkLabel": "Link {{number}} label",
@@ -713,7 +723,7 @@ const englishMessages = {
   "profile.imageInvalidResponse": "The storage response is invalid.",
   "profile.imageUploadFailed": "The image upload failed.",
   "profile.images": "Profile images",
-  "profile.imageUploading": "Uploading image…",
+  "profile.imageUploading": "Preparing and uploading image…",
   "profile.noCustomLinks": "No custom links.",
   "profile.presentation": "Introduction",
   "profile.publicNotFoundDescription":

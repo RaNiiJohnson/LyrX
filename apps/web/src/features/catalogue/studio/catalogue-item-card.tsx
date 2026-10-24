@@ -26,7 +26,7 @@ import { useLocale } from "@/app/locale-provider"
 import { usePublicationControl } from "./use-publication-control"
 
 type SongSummary = FunctionReturnType<
-  typeof api.catalogue.listMySongs
+  typeof api.catalogue.read.listMySongs
 >["page"][number]
 
 export function SongCard({ song }: { song: SongSummary }) {

@@ -12,6 +12,7 @@ const ERROR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   HANDLE_TAKEN: "error.handleTaken",
   CATALOGUE_INVARIANT: "error.catalogueUnavailable",
   IMAGE_ALREADY_ATTACHED: "error.invalidImage",
+  IMAGE_OPTIMIZATION_FAILED: "error.imageOptimizationFailed",
   INVALID_IMAGE: "error.invalidImage",
   INVALID_INPUT: "error.invalidCatalogue",
   INVALID_LYRICS: "error.invalidLyrics",

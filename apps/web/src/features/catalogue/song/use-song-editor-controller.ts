@@ -31,8 +31,8 @@ export function useSongEditorController({
 }) {
   const { t } = useLocale()
   const navigate = useNavigate()
-  const createSong = useMutation(api.catalogue.createSong)
-  const updateSong = useMutation(api.catalogue.updateSong)
+  const createSong = useMutation(api.catalogue.songs.createSong)
+  const updateSong = useMutation(api.catalogue.songs.updateSong)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 

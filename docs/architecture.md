@@ -92,6 +92,57 @@ not duplicated as trust decisions in clients.
     tests before release; otherwise the global sweep must be replaced with a
     capability-scoped ownership record.
 
+## Catalogue module boundary (technical lot T1)
+
+Catalogue capabilities live together under `packages/backend/convex/catalogue/`:
+
+- `read.ts` owns artist reads, Aggregate-backed lists/counts and public projections.
+- `songs.ts` and `albums.ts` own their respective lifecycle mutations.
+- `artwork.ts` owns upload intents, image claims, replacement and storage cleanup.
+- `values.ts` owns shared validators, validation and projection helpers;
+  `access.ts` centralizes catalogue ownership lookups.
+- `tracks.ts` shares bounded album associations, ordering and metadata inheritance.
+- `lyrics.ts` isolates bounded legacy lyric reconstruction from ordinary editing;
+  `lyricsMigration.ts` owns its internal cursor-based backfill.
+- `aggregates.ts` owns the existing named projections, triggers and backfill.
+
+Public callers use generated `api.catalogue.read`, `.songs`, `.albums` and
+`.artwork` paths. There is no global queries/mutations directory and no public
+compatibility façade. Root `catalogue.ts` and `catalogueAggregates.ts` retain only
+internal aliases for jobs scheduled before the path migration. New schedules,
+crons and migration scripts target the nested modules. Remove these aliases only
+after checking every target deployment for pending old-path scheduled jobs;
+upload expiry alone is not enough if an old migration is still queued.
+
+Authorization remains in the server function wrappers and ownership helpers.
+No schema, public data shape, image-claim registry or named Aggregate component
+changes as part of the file movement.
+
+## Image preparation decisions (technical lot T1)
+
+Before requesting an upload intent, both profile and catalogue uploads use one
+web-only `prepareImageForUpload` helper and pinned
+`browser-image-compression@2.0.2`. Preserve aspect ratio and use these targets:
+
+| Kind | Longest side | Target size | Input/server size cap |
+| --- | --- | --- | --- |
+| Avatar | 512 px | 250 KiB | 5 MiB |
+| Banner | 1920 px | 750 KiB | 10 MiB |
+| Song/album artwork | 1600 px | 750 KiB | 10 MiB |
+
+Byte targets guide compression, not server trust decisions. Request WebP at
+initial quality 0.85 without retaining EXIF; preserve the actual encoder MIME
+and extension when a browser falls back to PNG/JPEG. The codec is loaded lazily,
+and the worker library is a bundled, same-origin asset rather than a CDN import.
+The library can fall back to the main thread when workers are unavailable.
+Empty, unsupported, oversized or undecodable input fails before an intent is
+created. Encoding failures do not silently upload the original. Pending states
+cover preparation and upload, with localized errors in French and English.
+
+Store only the optimized file. Do not retain originals or create derivatives.
+Server MIME/size validation, short-lived intents, ownership checks, replacement
+and orphan cleanup remain mandatory even when a client bypasses compression.
+
 ## Catalogue aggregate decisions
 
 1. `@convex-dev/aggregate@0.3.4` owns the artist catalogue projections used for
@@ -103,7 +154,7 @@ not duplicated as trust decisions in clients.
    transactionally. The projections use idempotent triggers to remain safe
    while historical rows are backfilled.
 3. Historical catalogue rows are indexed by the bounded, cursor-driven
-   `internal.catalogueAggregates.backfill` mutation. It advances through songs,
+   `internal.catalogue.aggregates.backfill` mutation. It advances through songs,
    albums, and album tracks in scheduled batches without unbounded collection.
 4. Artist Studio publication is an ownership-authorized action and no longer
    records a per-item rights confirmation. A future fan proposal flow retains

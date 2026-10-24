@@ -14,7 +14,7 @@ import { useLocale } from "@/app/locale-provider"
 export function PublicAlbum({ albumId }: { albumId: Id<"albums"> }) {
   const { locale, t } = useLocale()
   const { data: detail } = useSuspenseQuery(
-    convexQuery(api.catalogue.getPublishedAlbum, { albumId })
+    convexQuery(api.catalogue.read.getPublishedAlbum, { albumId })
   )
 
   if (!detail) {

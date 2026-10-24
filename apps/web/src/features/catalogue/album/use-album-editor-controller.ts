@@ -26,8 +26,8 @@ export function useAlbumEditorController({
 }) {
   const { t } = useLocale()
   const navigate = useNavigate()
-  const createAlbum = useMutation(api.catalogue.createAlbum)
-  const updateAlbum = useMutation(api.catalogue.updateAlbum)
+  const createAlbum = useMutation(api.catalogue.albums.createAlbum)
+  const updateAlbum = useMutation(api.catalogue.albums.updateAlbum)
   const [error, setError] = useState<string | null>(null)
   const defaultValues: AlbumFormValues = detail
     ? {

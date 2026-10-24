@@ -61,10 +61,10 @@ function ReadySongPreview({
   fromAlbumId?: Id<"albums">
   songId: Id<"songs">
 }) {
-  const detail = useQuery(api.catalogue.getMySong, { songId })
+  const detail = useQuery(api.catalogue.read.getMySong, { songId })
   const { t } = useLocale()
   const navigate = useNavigate()
-  const deleteSong = useMutation(api.catalogue.deleteSong)
+  const deleteSong = useMutation(api.catalogue.songs.deleteSong)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   if (detail === undefined) return <PreviewSkeleton />

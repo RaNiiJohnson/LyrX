@@ -31,6 +31,7 @@ import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
+import { prepareImageForUpload } from "@/lib/image-upload"
 import { useLocale } from "@/app/locale-provider"
 
 function OptionalLabel() {
@@ -136,11 +137,12 @@ function ReadyProfileEditor({
     setImagePending(kind)
     setError(null)
     try {
+      const optimized = await prepareImageForUpload(file, kind)
       const { uploadIntentId, uploadUrl } = await generateUploadUrl({ kind })
       const response = await fetch(uploadUrl, {
         method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
+        headers: { "Content-Type": optimized.type },
+        body: optimized,
       })
       if (!response.ok) {
         throw localizedUiError(t("profile.imageUploadFailed"))

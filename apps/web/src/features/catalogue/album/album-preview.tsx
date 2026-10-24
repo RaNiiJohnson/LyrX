@@ -87,7 +87,7 @@ import { getErrorMessage } from "@/lib/errors"
 import { usePublicationControl } from "@/features/catalogue/studio/use-publication-control"
 
 type AlbumTrack = NonNullable<
-  FunctionReturnType<typeof api.catalogue.getMyAlbum>
+  FunctionReturnType<typeof api.catalogue.read.getMyAlbum>
 >["tracks"][number]
 
 const preserveExistingSong = {
@@ -125,15 +125,15 @@ function ReadyAlbumPreview({
   albumId: Id<"albums">
   artistName: string
 }) {
-  const detail = useQuery(api.catalogue.getMyAlbum, { albumId })
+  const detail = useQuery(api.catalogue.read.getMyAlbum, { albumId })
   const songs = usePaginatedQuery(
-    api.catalogue.listMySongs,
+    api.catalogue.read.listMySongs,
     {},
     { initialNumItems: 50 }
   )
-  const deleteAlbum = useMutation(api.catalogue.deleteAlbum)
-  const attachSong = useMutation(api.catalogue.attachSongToAlbum)
-  const reorderTracks = useMutation(api.catalogue.reorderAlbumTracks)
+  const deleteAlbum = useMutation(api.catalogue.albums.deleteAlbum)
+  const attachSong = useMutation(api.catalogue.albums.attachSongToAlbum)
+  const reorderTracks = useMutation(api.catalogue.albums.reorderAlbumTracks)
   const navigate = useNavigate()
   const { locale, t } = useLocale()
   const [deleteOpen, setDeleteOpen] = useState(false)

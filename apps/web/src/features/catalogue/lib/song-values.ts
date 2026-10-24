@@ -4,7 +4,7 @@ import type { api } from "@lyrx/backend/convex/_generated/api"
 
 import { dateInputFromTimestamp, type SongFormValues } from "./catalogue-form"
 
-type SongDetail = FunctionReturnType<typeof api.catalogue.getMySong>
+type SongDetail = FunctionReturnType<typeof api.catalogue.read.getMySong>
 
 export function songValuesFromDetail(detail: SongDetail): SongFormValues {
   return {
