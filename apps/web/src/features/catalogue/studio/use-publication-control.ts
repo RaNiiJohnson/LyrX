@@ -28,15 +28,10 @@ export function usePublicationControl(
     setError(null)
     try {
       if (resource.kind === "song") {
-        if (status === "draft")
-          await publishSong({ songId: resource.id } as Parameters<
-            typeof publishSong
-          >[0])
+        if (status === "draft") await publishSong({ songId: resource.id })
         else await unpublishSong({ songId: resource.id })
       } else if (status === "draft")
-        await publishAlbum({ albumId: resource.id } as Parameters<
-          typeof publishAlbum
-        >[0])
+        await publishAlbum({ albumId: resource.id })
       else await unpublishAlbum({ albumId: resource.id })
       toast.success(
         status === "draft"

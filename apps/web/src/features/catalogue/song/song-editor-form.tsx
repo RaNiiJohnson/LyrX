@@ -23,12 +23,14 @@ export function SongEditorForm({
   initialAlbum,
   albums,
   primaryArtist,
+  returnAlbumId,
   songId,
 }: {
   detail?: SongDetail
   initialAlbum?: Doc<"albums">
   albums: Array<Doc<"albums">>
   primaryArtist: string
+  returnAlbumId?: Id<"albums">
   songId?: Id<"songs">
 }) {
   const { t } = useLocale()
@@ -36,6 +38,7 @@ export function SongEditorForm({
     detail,
     initialAlbum,
     primaryArtist,
+    returnAlbumId,
     songId,
   })
   const { pending: uploadPending, uploadArtwork } = useCatalogueArtworkUpload(
@@ -47,7 +50,11 @@ export function SongEditorForm({
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/studio">
+          <Link
+            to={returnAlbumId ? "/studio/albums/$albumId/preview" : "/studio"}
+            params={returnAlbumId ? { albumId: returnAlbumId } : undefined}
+            search={returnAlbumId ? undefined : { tab: "songs" }}
+          >
             <ArrowLeft /> {t("common.back")}
           </Link>
         </Button>
@@ -66,6 +73,7 @@ export function SongEditorForm({
               <Link
                 to="/studio/songs/$songId/preview"
                 params={{ songId: detail.song._id }}
+                search={{ fromAlbumId: returnAlbumId }}
               >
                 {t("catalogue.preview")}
               </Link>

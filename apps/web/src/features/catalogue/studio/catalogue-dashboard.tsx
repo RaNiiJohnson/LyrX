@@ -36,16 +36,12 @@ export function CatalogueDashboard() {
   const activeKind: CatalogueKind = tab === "albums" ? "albums" : "songs"
   const [status, setStatus] = useState<StatusFilter>("all")
   const queryArgs = status === "all" ? {} : { status }
-  const songs = usePaginatedQuery(
-    api.catalogue.listMySongs,
-    queryArgs as never,
-    { initialNumItems: 24 }
-  )
-  const albums = usePaginatedQuery(
-    api.catalogue.listMyAlbums,
-    queryArgs as never,
-    { initialNumItems: 24 }
-  )
+  const songs = usePaginatedQuery(api.catalogue.listMySongs, queryArgs, {
+    initialNumItems: 24,
+  })
+  const albums = usePaginatedQuery(api.catalogue.listMyAlbums, queryArgs, {
+    initialNumItems: 24,
+  })
 
   return (
     <section className="flex flex-col gap-6">
@@ -70,11 +66,20 @@ export function CatalogueDashboard() {
           })
         }
       >
-        <TabsList className="grid w-full grid-cols-2" aria-label={t("studio.title")}>
-          <TabsTrigger value="songs">
+        <TabsList
+          className="grid w-full grid-cols-2"
+          aria-label={t("studio.title")}
+        >
+          <TabsTrigger
+            value="songs"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground"
+          >
             <FileMusic /> {t("studio.songs")}
           </TabsTrigger>
-          <TabsTrigger value="albums">
+          <TabsTrigger
+            value="albums"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground"
+          >
             <Disc3 /> {t("studio.albums")}
           </TabsTrigger>
         </TabsList>
@@ -143,7 +148,10 @@ function StatusFilters({
           size="sm"
           variant={value === option.value ? "secondary" : "outline"}
           aria-pressed={value === option.value}
-          className={cn("rounded-full", value === option.value && "font-semibold")}
+          className={cn(
+            "rounded-full",
+            value === option.value && "font-semibold"
+          )}
           onClick={() => onChange(option.value)}
         >
           {option.label}

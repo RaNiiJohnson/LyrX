@@ -20,11 +20,13 @@ export function useSongEditorController({
   detail,
   initialAlbum,
   primaryArtist,
+  returnAlbumId,
   songId,
 }: {
   detail?: SongDetail
   initialAlbum?: Doc<"albums">
   primaryArtist: string
+  returnAlbumId?: Id<"albums">
   songId?: Id<"songs">
 }) {
   const { t } = useLocale()
@@ -61,6 +63,7 @@ export function useSongEditorController({
         await navigate({
           to: "/studio/songs/$songId/preview",
           params: { songId: savedSongId },
+          search: { fromAlbumId: returnAlbumId },
         })
       } catch (caught) {
         const message = getErrorMessage(caught, t)

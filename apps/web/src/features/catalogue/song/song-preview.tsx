@@ -33,7 +33,13 @@ import { PreviewSkeleton } from "@/features/catalogue/shared/preview-skeleton"
 import { getErrorMessage } from "@/lib/errors"
 import { SongReadOnly } from "./song-read-only"
 
-export function SongPreview({ songId }: { songId: Id<"songs"> }) {
+export function SongPreview({
+  fromAlbumId,
+  songId,
+}: {
+  fromAlbumId?: Id<"albums">
+  songId: Id<"songs">
+}) {
   const current = useQuery(api.members.current, {})
   const { t } = useLocale()
   if (current === undefined) return <PreviewSkeleton />
@@ -45,10 +51,16 @@ export function SongPreview({ songId }: { songId: Id<"songs"> }) {
       </Alert>
     )
   }
-  return <ReadySongPreview songId={songId} />
+  return <ReadySongPreview songId={songId} fromAlbumId={fromAlbumId} />
 }
 
-function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
+function ReadySongPreview({
+  fromAlbumId,
+  songId,
+}: {
+  fromAlbumId?: Id<"albums">
+  songId: Id<"songs">
+}) {
   const detail = useQuery(api.catalogue.getMySong, { songId })
   const { t } = useLocale()
   const navigate = useNavigate()
@@ -62,7 +74,14 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
     try {
       await deleteSong({ songId })
       toast.success(t("catalogue.deleted"))
-      await navigate({ to: "/studio" })
+      if (fromAlbumId) {
+        await navigate({
+          to: "/studio/albums/$albumId/preview",
+          params: { albumId: fromAlbumId },
+        })
+      } else {
+        await navigate({ to: "/studio", search: { tab: "songs" } })
+      }
     } catch (caught) {
       toast.error(t("catalogue.saveError"), {
         description: getErrorMessage(caught, t),
@@ -78,7 +97,11 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
         <>
           <div className="flex flex-wrap items-center gap-2">
             <Button asChild variant="ghost" size="sm">
-              <Link to="/studio">
+              <Link
+                to={fromAlbumId ? "/studio/albums/$albumId/preview" : "/studio"}
+                params={fromAlbumId ? { albumId: fromAlbumId } : undefined}
+                search={fromAlbumId ? undefined : { tab: "songs" }}
+              >
                 <ArrowLeft data-icon="inline-start" /> {t("common.back")}
               </Link>
             </Button>
@@ -101,7 +124,11 @@ function ReadySongPreview({ songId }: { songId: Id<"songs"> }) {
               <DropdownMenuContent align="end">
                 <DropdownMenuGroup>
                   <DropdownMenuItem asChild>
-                    <Link to="/studio/songs/$songId" params={{ songId }}>
+                    <Link
+                      to="/studio/songs/$songId"
+                      params={{ songId }}
+                      search={{ fromAlbumId }}
+                    >
                       <Pencil /> {t("catalogue.edit")}
                     </Link>
                   </DropdownMenuItem>

@@ -264,7 +264,9 @@ function ReadyAlbumPreview({
     const from = orderedTracks.findIndex(
       ({ song }) => song._id === event.active.id
     )
-    const to = orderedTracks.findIndex(({ song }) => song._id === event.over?.id)
+    const to = orderedTracks.findIndex(
+      ({ song }) => song._id === event.over?.id
+    )
     if (from !== -1 && to !== -1) moveTrack(from, to)
   }
 
@@ -374,7 +376,7 @@ function ReadyAlbumPreview({
           </h1>
           <div className="mt-2 flex flex-wrap gap-2">
             <Badge variant="outline">
-              {t("studio.trackCount", { count: orderedTracks.length })}
+              {t("studio.trackCount", { count: detail.trackCount })}
             </Badge>
             {detail.album.releaseDate !== undefined ? (
               <Badge variant="outline">
@@ -632,11 +634,12 @@ function SortableAlbumTrack({
             : "catalogue.draft"
         )}
       </Badge>
-      <div className="hidden items-center sm:flex">
+      <div className="flex flex-col items-center sm:flex-row">
         <Button
           type="button"
           variant="ghost"
-          size="icon"
+          size="icon-sm"
+          className="size-6 sm:size-8"
           disabled={disabled || isFirst}
           aria-label={t("catalogue.moveUp")}
           onClick={onMoveUp}
@@ -646,7 +649,8 @@ function SortableAlbumTrack({
         <Button
           type="button"
           variant="ghost"
-          size="icon"
+          size="icon-sm"
+          className="size-6 sm:size-8"
           disabled={disabled || isLast}
           aria-label={t("catalogue.moveDown")}
           onClick={onMoveDown}

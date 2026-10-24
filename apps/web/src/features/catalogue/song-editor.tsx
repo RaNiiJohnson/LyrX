@@ -10,9 +10,11 @@ import { SongEditorForm } from "./song/song-editor-form"
 
 export function SongEditor({
   initialAlbumId,
+  returnAlbumId,
   songId,
 }: {
   initialAlbumId?: string
+  returnAlbumId?: string
   songId?: Id<"songs">
 }) {
   const current = useQuery(api.members.current, {})
@@ -31,6 +33,7 @@ export function SongEditor({
     <SongEditorData
       songId={songId}
       initialAlbumId={initialAlbumId as Id<"albums"> | undefined}
+      returnAlbumId={returnAlbumId as Id<"albums"> | undefined}
       primaryArtist={current.profile.displayName}
     />
   )
@@ -39,10 +42,12 @@ export function SongEditor({
 function SongEditorData({
   primaryArtist,
   initialAlbumId,
+  returnAlbumId,
   songId,
 }: {
   primaryArtist: string
   initialAlbumId?: Id<"albums">
+  returnAlbumId?: Id<"albums">
   songId?: Id<"songs">
 }) {
   const detail = useQuery(api.catalogue.getMySong, songId ? { songId } : "skip")
@@ -77,6 +82,7 @@ function SongEditorData({
       primaryArtist={primaryArtist}
       detail={detail ?? undefined}
       initialAlbum={initialAlbum?.album ?? detail?.album ?? undefined}
+      returnAlbumId={returnAlbumId ?? initialAlbumId}
       albums={albumChoices}
     />
   )

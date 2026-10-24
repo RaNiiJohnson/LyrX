@@ -24,7 +24,7 @@ function NewSongPage() {
   return (
     <PageShell width="wide">
       <BackendRequired>
-        <SongEditor initialAlbumId={albumId} />
+        <SongEditor initialAlbumId={albumId} returnAlbumId={albumId} />
       </BackendRequired>
     </PageShell>
   )

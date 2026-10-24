@@ -40,7 +40,7 @@ export function AlbumEditorForm({
     <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/studio">
+          <Link to="/studio" search={{ tab: "albums" }}>
             <ArrowLeft /> {t("common.back")}
           </Link>
         </Button>

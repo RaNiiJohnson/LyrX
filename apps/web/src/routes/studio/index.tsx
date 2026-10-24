@@ -10,6 +10,12 @@ import {
 import { ArtistStudio } from "@/features/catalogue/artist-studio"
 
 export const Route = createFileRoute("/studio/")({
+  validateSearch: (
+    search: Record<string, unknown>
+  ): { tab?: "songs" | "albums" } =>
+    search.tab === "albums" || search.tab === "songs"
+      ? { tab: search.tab }
+      : {},
   component: StudioPage,
   errorComponent: CatalogueRouteError,
   notFoundComponent: CatalogueRouteNotFound,
