@@ -241,6 +241,13 @@ lot has started.
   exécuté. Le navigateur intégré Codex a vérifié Studio et aperçu album en
   desktop et à 390×844, les filtres, le bouton Créer flottant, les contrôles
   d’ordre mobiles et le retour morceau → album, sans erreur console.
+- Ajustement visuel final du Studio : l’action mobile n’est plus fixée au
+  viewport et ne recouvre donc plus le footer. Elle suit maintenant la liste,
+  juste avant le footer, avec le libellé contextuel `+ Morceau` ou `+ Album` ;
+  l’action desktop conserve son libellé complet en haut de la liste. La revue
+  locale ne relève aucun écart Standards/Spec et la revue Convex n’est pas
+  applicable. `pnpm check` reste vert avec 81 tests et les deux variantes ont
+  été contrôlées à largeur mobile dans le navigateur intégré, footer visible.
 
 ### Lot 4 — Catalogue artiste (complete)
 

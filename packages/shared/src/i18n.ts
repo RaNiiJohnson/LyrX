@@ -366,9 +366,9 @@ const frenchMessages = {
   "studio.lyricsPreviewEmpty": "L’aperçu apparaîtra dès que vous écrirez.",
   "studio.nextStep": "Continuer",
   "studio.newAlbum": "Créer un album",
-  "studio.newAlbumShort": "Créer",
+  "studio.newAlbumShort": "Album",
   "studio.newSong": "Créer un morceau",
-  "studio.newSongShort": "Créer",
+  "studio.newSongShort": "Morceau",
   "studio.noAvailableTracks": "Tous vos morceaux sont déjà dans cet album.",
   "studio.notArtistDescription":
     "Le studio de publication est réservé aux comptes Artiste.",
@@ -791,9 +791,9 @@ const englishMessages = {
     "The preview will appear when you start writing.",
   "studio.nextStep": "Continue",
   "studio.newAlbum": "Create an album",
-  "studio.newAlbumShort": "Create",
+  "studio.newAlbumShort": "Album",
   "studio.newSong": "Create a song",
-  "studio.newSongShort": "Create",
+  "studio.newSongShort": "Song",
   "studio.noAvailableTracks": "All your songs are already in this album.",
   "studio.notArtistDescription":
     "The publishing studio is reserved for Artist accounts.",

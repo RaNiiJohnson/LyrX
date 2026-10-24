@@ -44,7 +44,7 @@ export function CatalogueDashboard() {
   })
 
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex h-full flex-col gap-6">
       <div className="flex flex-col gap-2">
         <p className="font-mono text-xs font-medium tracking-[0.2em] text-primary uppercase">
           {t("home.eyebrow")}
@@ -58,7 +58,7 @@ export function CatalogueDashboard() {
       </div>
       <Tabs
         value={activeKind}
-        className="w-full"
+        className="w-full flex-1"
         onValueChange={(value) =>
           void navigate({
             to: "/studio",
@@ -87,7 +87,7 @@ export function CatalogueDashboard() {
         <StatusFilters value={status} onChange={setStatus} />
 
         <TabsContent value="songs" className="flex flex-col gap-4 pt-1">
-          <CreateButton kind="song" />
+          <CreateButton kind="song" placement="desktop" />
           <CatalogueListState
             loading={songs.status === "LoadingFirstPage"}
             empty={songs.results.length === 0}
@@ -101,9 +101,10 @@ export function CatalogueDashboard() {
             status={songs.status}
             onLoadMore={() => songs.loadMore(24)}
           />
+          <CreateButton kind="song" placement="mobile" />
         </TabsContent>
         <TabsContent value="albums" className="flex flex-col gap-4 pt-1">
-          <CreateButton kind="album" />
+          <CreateButton kind="album" placement="desktop" />
           <CatalogueListState
             loading={albums.status === "LoadingFirstPage"}
             empty={albums.results.length === 0}
@@ -117,6 +118,7 @@ export function CatalogueDashboard() {
             status={albums.status}
             onLoadMore={() => albums.loadMore(24)}
           />
+          <CreateButton kind="album" placement="mobile" />
         </TabsContent>
       </Tabs>
     </section>
@@ -161,20 +163,39 @@ function StatusFilters({
   )
 }
 
-function CreateButton({ kind }: { kind: "song" | "album" }) {
+function CreateButton({
+  kind,
+  placement,
+}: {
+  kind: "song" | "album"
+  placement: "desktop" | "mobile"
+}) {
   const { t } = useLocale()
   const song = kind === "song"
   return (
     <Button
       asChild
-      className="fixed right-5 bottom-5 z-20 self-end rounded-full shadow-lg sm:static sm:rounded-md sm:shadow-none"
+      className={cn(
+        "self-end",
+        placement === "desktop"
+          ? "hidden sm:inline-flex"
+          : "mt-auto rounded-full sm:hidden"
+      )}
     >
       <Link
         to={song ? "/studio/songs/new" : "/studio/albums/new"}
         search={song ? { albumId: undefined } : undefined}
       >
         <Plus data-icon="inline-start" />
-        {t(song ? "studio.newSongShort" : "studio.newAlbumShort")}
+        {t(
+          song
+            ? placement === "mobile"
+              ? "studio.newSongShort"
+              : "studio.newSong"
+            : placement === "mobile"
+              ? "studio.newAlbumShort"
+              : "studio.newAlbum"
+        )}
       </Link>
     </Button>
   )
