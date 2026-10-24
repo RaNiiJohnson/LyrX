@@ -53,19 +53,19 @@ function CatalogueItemRow({
   const params = kind === "song" ? { songId: item._id } : { albumId: item._id }
 
   return (
-    <article className="flex min-w-0 flex-col border-b py-3 last:border-b-0">
-      <div className="flex min-w-0 items-center gap-3">
+    <article className="relative flex min-w-0 flex-col border-b py-3 last:border-b-0">
+      <Link
+        to={previewTo}
+        params={params}
+        aria-label={item.title}
+        className="absolute inset-0 z-0 rounded-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+      />
+      <div className="pointer-events-none relative z-10 flex min-w-0 items-center gap-3">
         <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground sm:size-14">
           {kind === "song" ? <FileMusic /> : <Disc3 />}
         </div>
         <div className="min-w-0 flex-1">
-          <Link
-            to={previewTo}
-            params={params}
-            className="block truncate rounded-sm font-semibold hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-          >
-            {item.title}
-          </Link>
+          <p className="truncate font-semibold">{item.title}</p>
           {subtitle ? (
             <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
           ) : null}
@@ -74,13 +74,8 @@ function CatalogueItemRow({
           </div>
         </div>
 
-        <div className="hidden items-center gap-2 sm:flex">
+        <div className="pointer-events-auto hidden items-center gap-2 sm:flex">
           <StatusBadge status={item.status} />
-          <Button asChild variant="ghost" size="sm">
-            <Link to={previewTo} params={params}>
-              {t("catalogue.preview")}
-            </Link>
-          </Button>
           <Button asChild variant="outline" size="sm">
             <Link to={editTo} params={params}>
               <Pencil data-icon="inline-start" /> {t("catalogue.edit")}
@@ -99,44 +94,41 @@ function CatalogueItemRow({
           </Button>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="sm:hidden"
-              aria-label={t("catalogue.moreActions")}
-            >
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                <Link to={previewTo} params={params}>
-                  {t("catalogue.preview")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to={editTo} params={params}>
-                  <Pencil /> {t("catalogue.edit")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={publication.pending}
-                onSelect={() => void publication.changeStatus()}
+        <div className="pointer-events-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="sm:hidden"
+                aria-label={t("catalogue.moreActions")}
               >
-                {item.status === "draft"
-                  ? t("catalogue.publish")
-                  : t("catalogue.unpublish")}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                  <Link to={editTo} params={params}>
+                    <Pencil /> {t("catalogue.edit")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={publication.pending}
+                  onSelect={() => void publication.changeStatus()}
+                >
+                  {item.status === "draft"
+                    ? t("catalogue.publish")
+                    : t("catalogue.unpublish")}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       {publication.error ? (
-        <Alert variant="destructive" className="mt-2">
+        <Alert variant="destructive" className="relative z-10 mt-2">
           <AlertDescription>{publication.error}</AlertDescription>
         </Alert>
       ) : null}

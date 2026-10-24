@@ -248,6 +248,11 @@ lot has started.
   locale ne relève aucun écart Standards/Spec et la revue Convex n’est pas
   applicable. `pnpm check` reste vert avec 81 tests et les deux variantes ont
   été contrôlées à largeur mobile dans le navigateur intégré, footer visible.
+- Les cartes du Studio ouvrent désormais directement l’aperçu sur toute la
+  ligne ; les actions Modifier/Publier et le menu restent isolés du lien, et
+  l’action Aperçu a été retirée des vues desktop et mobile. Les clics directs
+  morceau et album ont été vérifiés dans le navigateur intégré, puis `pnpm
+  check` a repassé avec 81 tests et les builds client/SSR.
 
 ### Lot 4 — Catalogue artiste (complete)
 
