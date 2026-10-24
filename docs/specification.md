@@ -52,7 +52,7 @@ A song can contain:
 
 - title, artwork, primary and guest artists;
 - optional album and album position, release date, description, and context;
-- primary language, optional genre including an “other” value;
+- optional legacy primary language, optional genre including an “other” value;
 - writers, composers, producers, label, and listening links;
 - lyrics entered as one multiline source text. A heading on its own line in
   brackets marks a section, for example `[Couplet 1]`, `[Refrain]` or `[Pont]`.
@@ -60,7 +60,14 @@ A song can contain:
 Unknown credits and metadata remain optional. A song may be a standalone single.
 The raw lyric text is the canonical authoring source and must be retained without
 loss. A parser may derive sections and display lines from it, but this is not an
-array of editable line fields. The normal song page renders lyrics read-only;
+array of editable line fields. Lyrics are required at creation, update, and
+publication, including for historical drafts. Whitespace-only lyrics are rejected
+without normalizing the stored source. The song form presents the single/album
+context, title, primary artist, and lyrics first, followed by collapsed optional
+sections for release/presentation, credits, and listening links. It has no live
+read-only lyrics preview. Primary language is hidden from this form while its
+optional stored field preserves historical values and album inheritance.
+The normal song page renders lyrics read-only;
 lines have no click, annotation, reordering, or individual deletion action.
 
 An artist can create a draft, preview, publish, edit, and unpublish content they

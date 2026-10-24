@@ -127,11 +127,7 @@ function CatalogueItemRow({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className={
-                    item.status === "draft"
-                      ? "text-primary focus:text-primary [&_svg]:text-primary"
-                      : undefined
-                  }
+                  variant={item.status === "draft" ? "primary" : "default"}
                   disabled={publication.pending}
                   onSelect={() => void publication.changeStatus()}
                 >

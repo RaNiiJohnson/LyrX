@@ -24,7 +24,7 @@ export const Route = createFileRoute("/studio/")({
 
 function StudioPage() {
   return (
-    <PageShell width="wide">
+    <PageShell width="wide" footerBelowFold>
       <BackendRequired>
         <ArtistStudio />
       </BackendRequired>

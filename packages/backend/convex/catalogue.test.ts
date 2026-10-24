@@ -283,6 +283,25 @@ describe("artist catalogue", () => {
     )
     const stored = await t.run((ctx) => ctx.db.get("songs", songId))
     expect(stored?.primaryLanguage).toBeUndefined()
+    await expect(
+      client.mutation(api.catalogue.updateSong, {
+        ...withoutLanguage,
+        songId,
+        lyricsText: "\t\n ",
+      })
+    ).rejects.toThrow("obligatoire")
+    await client.mutation(api.catalogue.publishSong, { songId })
+    const published = await t.query(api.catalogue.getPublishedSong, { songId })
+    expect(published?.song.primaryLanguage).toBeUndefined()
+    expect(published?.lyricsText).toBe(withoutLanguage.lyricsText)
+
+    await client.mutation(api.catalogue.unpublishSong, { songId })
+    await t.run((ctx) =>
+      ctx.db.patch("songs", songId, { lyricsText: undefined })
+    )
+    await expect(
+      client.mutation(api.catalogue.publishSong, { songId })
+    ).rejects.toThrow("obligatoire")
   })
 
   it("reads legacy lyric rows and backfills them without deleting old data", async () => {

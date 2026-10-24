@@ -371,10 +371,6 @@ const frenchMessages = {
   "studio.lyricsEditorDescription":
     "Écrivez ou collez tout le texte ici. Placez les titres de section seuls sur une ligne, par exemple [Couplet 1], [Refrain], [Verse] ou [Chorus]. Les titres personnalisés sont acceptés et les lignes vides sont conservées.",
   "studio.lyricsRequired": "Le texte des paroles est obligatoire.",
-  "studio.lyricsPreview": "Aperçu en lecture seule",
-  "studio.lyricsPreviewDescription":
-    "L’aperçu suit vos balises et retours à la ligne. Toute correction se fait dans le champ ci-dessus.",
-  "studio.lyricsPreviewEmpty": "L’aperçu apparaîtra dès que vous écrirez.",
   "studio.nextStep": "Continuer",
   "studio.newAlbum": "Créer un album",
   "studio.newAlbumShort": "Album",
@@ -808,11 +804,6 @@ const englishMessages = {
   "studio.lyricsEditorDescription":
     "Write or paste the complete text here. Put section headings on their own line, for example [Verse 1], [Chorus], [Couplet] or [Refrain]. Custom headings are accepted and blank lines are preserved.",
   "studio.lyricsRequired": "Lyrics are required.",
-  "studio.lyricsPreview": "Read-only preview",
-  "studio.lyricsPreviewDescription":
-    "The preview follows your headings and line breaks. Make every correction in the field above.",
-  "studio.lyricsPreviewEmpty":
-    "The preview will appear when you start writing.",
   "studio.nextStep": "Continue",
   "studio.newAlbum": "Create an album",
   "studio.newAlbumShort": "Album",

@@ -248,6 +248,41 @@ lot has started.
   locale ne relève aucun écart Standards/Spec et la revue Convex n’est pas
   applicable. `pnpm check` reste vert avec 81 tests et les deux variantes ont
   été contrôlées à largeur mobile dans le navigateur intégré, footer visible.
+- Reprise du formulaire et correctifs du 2026-10-24, base de revue `a62bb8d` :
+  le checkpoint `3ea2ada` est repris puis revu intégralement. Le formulaire de
+  morceau réunit maintenant contexte single/album, titre, artiste et paroles,
+  puis trois volets repliables pour sortie/présentation, crédits/collaborations
+  et écoute. Les valeurs restent présentes après fermeture/réouverture. L’aperçu
+  en lecture seule intégré au formulaire et son composant inutilisé sont retirés ;
+  le rendu de la page du morceau continue de parser le texte canonique.
+- `primaryLanguage` est facultatif dans le schéma, les entrées et les projections
+  publiques. Le champ n’est plus demandé dans l’éditeur de morceau ; les valeurs
+  historiques et l’héritage d’album sont conservés. Les paroles vides ou composées
+  d’espaces sont refusées à la création, à l’édition et à la publication des
+  anciens brouillons. La compatibilité de lecture des anciens enregistrements
+  et le backfill restent inchangés.
+- Le bouton mobile `+ Morceau` / `+ Album` est à nouveau fixe, selon le dernier
+  retour utilisateur. Sur le Studio, la zone principale occupe au moins l’écran
+  sous la navbar : le footer ne se montre qu’en défilant. Un espace mobile en bas
+  du footer évite que son texte soit couvert lorsque le bas de page est atteint.
+  Le menu mobile utilise une variante primaire partagée pour le fond, le texte
+  et l’icône de Publier ; Modifier garde sa variante neutre.
+- Revue locale Standards/Spec et revue `convex:convex-reviewer` : les légendes
+  des groupes de formulaire ont été séparées correctement ; le contrôle des
+  paroles a été ajouté au chemin de publication des anciens brouillons. Aucune
+  violation bloquante, Critical ou Important ne reste. Les mutations gardent
+  leur autorisation artiste/propriétaire ; la projection publique accepte
+  l’absence de langue sans exposer de champ privé.
+- Vérification : `pnpm check` passe avec 28 tests shared, 31 backend et 24 web
+  (83 tests), lint, TypeScript et builds client/SSR. La synchronisation
+  `convex dev --once` du déploiement de développement a confirmé
+  `Convex functions ready!`. Le navigateur intégré a vérifié le nouveau
+  formulaire, la conservation des champs repliés et l’absence d’aperçu/langue.
+  À 390×844, le footer du Studio démarre à 844 px ; en bas de page son texte
+  finit à 764 px et le bouton fixe commence à 796 px, sans recouvrement ni
+  débordement horizontal. Le fond primaire et le contraste texte/icône ont été
+  contrôlés visuellement et via les styles calculés. Les anciennes erreurs HMR
+  ont été distinguées d’un rechargement propre avant le contrôle console final.
 - Les cartes du Studio ouvrent désormais directement l’aperçu sur toute la
   ligne ; les actions Modifier/Publier et le menu restent isolés du lien, et
   l’action Aperçu a été retirée des vues desktop et mobile. Les clics directs

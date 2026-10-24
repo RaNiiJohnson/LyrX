@@ -2,7 +2,6 @@ import { MAX_LYRICS_TEXT_LENGTH } from "@lyrx/shared"
 import { FieldLegend, FieldSet } from "@lyrx/ui/components/field"
 
 import { useLocale } from "@/app/locale-provider"
-import { LyricsPreview } from "@/features/catalogue/lyrics-preview"
 import { withForm } from "@/lib/app-form"
 import { songFormOptions } from "./song-form-options"
 
@@ -31,9 +30,6 @@ export const SongLyricsStep = withForm({
             />
           )}
         </form.AppField>
-        <form.Subscribe selector={(state) => state.values.lyricsText}>
-          {(lyricsText) => <LyricsPreview lyricsText={lyricsText} />}
-        </form.Subscribe>
       </FieldSet>
     )
   },

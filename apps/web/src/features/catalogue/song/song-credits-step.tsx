@@ -67,7 +67,7 @@ export const SongCreditsStep = withForm({
               {t("studio.releaseAndPresentation")}
             </FieldLegend>
             <FieldGroup>
-              <div className="grid gap-5 md:grid-cols-2">
+              <FieldGroup className="grid gap-5 md:grid-cols-2">
                 <form.AppField name="releaseDate">
                   {(field) => (
                     <field.TextField
@@ -113,7 +113,7 @@ export const SongCreditsStep = withForm({
                     ) : null
                   }
                 </form.Subscribe>
-              </div>
+              </FieldGroup>
               <form.AppField name="description">
                 {(field) => (
                   <field.TextareaField
@@ -144,7 +144,7 @@ export const SongCreditsStep = withForm({
               {t("studio.creditsAndContributors")}
             </FieldLegend>
             <FieldGroup>
-              <div className="grid gap-5 md:grid-cols-2">
+              <FieldGroup className="grid gap-5 md:grid-cols-2">
                 {(
                   [
                     ["guestArtists", "studio.guestArtists"],
@@ -191,7 +191,7 @@ export const SongCreditsStep = withForm({
                     />
                   )}
                 </form.AppField>
-              </div>
+              </FieldGroup>
             </FieldGroup>
           </FieldSet>
         </AdditionalSection>
@@ -228,7 +228,7 @@ export const SongCreditsStep = withForm({
                 ) : (
                   <div className="flex flex-col gap-4">
                     {linksField.state.value.map((_, index) => (
-                      <div
+                      <FieldGroup
                         key={index}
                         className="grid gap-3 rounded-xl border p-4 md:grid-cols-[12rem_1fr_auto] md:items-end"
                       >
@@ -266,7 +266,7 @@ export const SongCreditsStep = withForm({
                         >
                           <Trash2 />
                         </Button>
-                      </div>
+                      </FieldGroup>
                     ))}
                   </div>
                 )

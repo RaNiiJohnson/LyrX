@@ -1062,6 +1062,9 @@ async function setSongStatus(
   status: "draft" | "published"
 ) {
   const song = await ownedSong(ctx, memberId, songId)
+  if (status === "published") {
+    validateLyricsText(await lyricsTextForSong(ctx, song))
+  }
   const now = Date.now()
   await ctx.db.patch("songs", songId, {
     status,
