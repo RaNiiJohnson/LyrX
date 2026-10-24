@@ -204,6 +204,9 @@ lot has started.
   nouveau morceau, enregistré le brouillon `[TEST] Parcours album 2026-10-24`,
   redirigé vers son aperçu et affiché immédiatement cette piste en position 1
   avec le statut Brouillon dans l’album.
+- État Git de cette extension : branche `codex/album-workflow`, commit principal
+  `be59773`, corrections de revue `087ac16`; le diff
+  `a6cca538...087ac16` est non vide et constitue la base de revue complète.
 
 ### Lot 4 — Catalogue artiste (complete)
 
