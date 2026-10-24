@@ -283,6 +283,20 @@ lot has started.
   débordement horizontal. Le fond primaire et le contraste texte/icône ont été
   contrôlés visuellement et via les styles calculés. Les anciennes erreurs HMR
   ont été distinguées d’un rechargement propre avant le contrôle console final.
+- CI GitHub Actions ajoutée le 2026-10-24 à la demande utilisateur :
+  `.github/workflows/ci.yml` exécute `pnpm install --frozen-lockfile` puis
+  `pnpm check` sur les PR vers `main`, les pushes vers `main` et à la demande.
+  Node 22 et le pnpm du `packageManager` sont utilisés, avec cache des
+  dépendances, annulation des exécutions dépassées, limite de 15 minutes et
+  permissions `contents: read`. Les trois actions sont épinglées sur des
+  commits officiels vérifiés. Aucun secret ni déploiement n’est inclus.
+- Revue locale du workflow : YAML validé, déclencheurs et commande vérifiés,
+  aucun défaut bloquant. Aucun fichier Convex n’est modifié dans cet ajout ;
+  sa revue spécifique est non applicable. L’installation figée et `pnpm check`
+  passent localement (83 tests et builds client/SSR ; résultats Turbo réutilisés
+  pour le code inchangé). La première exécution hébergée sera déclenchée par
+  l’ouverture de la PR `codex/album-workflow` vers `main`, autorisée par
+  l’utilisateur ; son résultat doit être distingué de la validation locale.
 - Les cartes du Studio ouvrent désormais directement l’aperçu sur toute la
   ligne ; les actions Modifier/Publier et le menu restent isolés du lien, et
   l’action Aperçu a été retirée des vues desktop et mobile. Les clics directs
