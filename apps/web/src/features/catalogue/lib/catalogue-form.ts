@@ -1,3 +1,5 @@
+import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
+
 export const SONG_GENRES = [
   "pop",
   "rock",
@@ -135,9 +137,6 @@ export function emptySongValues(
     lyricsText: "",
   }
 }
-import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
-
-
 export function applyAlbumDefaults(
   values: SongFormValues,
   album: Doc<"albums">

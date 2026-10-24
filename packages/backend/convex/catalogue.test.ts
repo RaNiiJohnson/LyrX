@@ -692,13 +692,37 @@ describe("artist catalogue", () => {
       albumId,
       songIds: [firstSong, secondSong],
     })
-    const reordered = await firstArtist.client.query(
-      api.catalogue.getMyAlbum,
-      { albumId }
-    )
+    const reordered = await firstArtist.client.query(api.catalogue.getMyAlbum, {
+      albumId,
+    })
     expect(reordered.tracks.map(({ song }) => song._id)).toEqual([
       firstSong,
       secondSong,
+    ])
+    await firstArtist.client.mutation(api.catalogue.detachSongFromAlbum, {
+      albumId,
+      songId: firstSong,
+    })
+    await firstArtist.client.mutation(api.catalogue.attachSongToAlbum, {
+      albumId,
+      songId: firstSong,
+      inheritance: {
+        inheritArtwork: false,
+        inheritPrimaryLanguage: false,
+        inheritGenre: false,
+        inheritLabel: false,
+        inheritCredits: false,
+      },
+    })
+    const reattached = await firstArtist.client.query(
+      api.catalogue.getMyAlbum,
+      { albumId }
+    )
+    expect(
+      reattached.tracks.map(({ track, song }) => [track.position, song._id])
+    ).toEqual([
+      [0, secondSong],
+      [1, firstSong],
     ])
     await expect(
       firstArtist.client.mutation(api.catalogue.setAlbumTracks, {

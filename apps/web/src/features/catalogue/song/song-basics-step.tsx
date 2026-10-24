@@ -8,8 +8,10 @@ import {
 } from "@lyrx/ui/components/field"
 
 import { useLocale } from "@/app/locale-provider"
-import { SONG_GENRES } from "@/features/catalogue/lib/catalogue-form"
-import { applyAlbumDefaults } from "@/features/catalogue/lib/catalogue-form"
+import {
+  applyAlbumDefaults,
+  SONG_GENRES,
+} from "@/features/catalogue/lib/catalogue-form"
 import { OptionalLabel } from "@/features/catalogue/shared/optional-label"
 import { withForm } from "@/lib/app-form"
 import { songFormOptions } from "./song-form-options"
@@ -110,10 +112,9 @@ export const SongBasicsStep = withForm({
           </form.Subscribe>
         </div>
         <form.Subscribe
-          selector={(state) => [
-            state.values.releaseType,
-            state.values.albumId,
-          ] as const}
+          selector={(state) =>
+            [state.values.releaseType, state.values.albumId] as const
+          }
         >
           {([releaseType, albumId]) =>
             releaseType === "album" && albumId ? (
@@ -154,10 +155,7 @@ export const SongBasicsStep = withForm({
                         (candidate) => candidate._id === albumId
                       )
                       form.setFieldValue("genre", album?.genre ?? "")
-                      form.setFieldValue(
-                        "otherGenre",
-                        album?.otherGenre ?? ""
-                      )
+                      form.setFieldValue("otherGenre", album?.otherGenre ?? "")
                     }}
                   />
                   <InheritanceCheckbox

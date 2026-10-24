@@ -70,7 +70,21 @@ own. V1 has no artist co-editing.
 
 - Album pages include title, artwork, release date, description, available
   artists/credits, and an ordered list linking to song pages.
-- An artist manages their albums and track order.
+- A song belongs to at most one album. Song creation starts with an explicit
+  choice between a standalone single and an existing album; entering from an
+  album preselects it.
+- Album artwork, language, genre, label, and general credits may be inherited by
+  a track. Each inherited field can be customized on the track. The track keeps
+  its own release date; the album date remains contextual.
+- An artist manages their albums and track order with drag-and-drop plus
+  keyboard-accessible up/down controls. Existing standalone songs can be
+  attached from a searchable selector, or created directly inside the album.
+- Publishing an album requires at least one published track. The artist view
+  shows each track status, while the public album page lists published tracks
+  only.
+- Deleting an album keeps its songs. Values currently inherited from the album
+  are copied onto each affected song before the associations and album are
+  removed.
 - A fan proposal may name an album but never directly modify a public album.
   Administration can correct associations while reviewing the proposal.
 

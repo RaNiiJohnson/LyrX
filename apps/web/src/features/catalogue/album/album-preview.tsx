@@ -134,7 +134,7 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
     detail.album.primaryLanguage
       ? {
           id: "language",
-          label: "Langue principale",
+          label: t("studio.language"),
           value: detail.album.primaryLanguage,
         }
       : undefined,
@@ -167,7 +167,7 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
     setDeleting(true)
     try {
       await deleteAlbum({ albumId })
-      toast.success("Album supprimé")
+      toast.success(t("studio.albumDeleted"))
       await navigate({ to: "/studio" })
     } catch (caught) {
       toast.error(t("catalogue.saveError"), {
@@ -185,7 +185,7 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
         songId,
         inheritance: preserveExistingSong,
       })
-      toast.success("Morceau ajouté à l’album")
+      toast.success(t("studio.songAttached"))
       setSearch("")
       setSelectorOpen(false)
     } catch (caught) {
@@ -214,10 +214,9 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cet album ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("studio.deleteAlbumTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Les morceaux seront conservés comme singles. Les informations
-              héritées de l’album seront copiées avant sa suppression.
+              {t("studio.deleteAlbumDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -253,7 +252,7 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-mono text-xs font-medium tracking-[0.18em] text-primary uppercase">
-              Album
+              {t("studio.album")}
             </p>
             <Badge variant="secondary">
               {t(
@@ -284,10 +283,10 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex flex-col gap-1">
             <h2 id="album-tracks" className="text-xl font-semibold">
-              Morceaux
+              {t("studio.tracks")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Seuls les morceaux publiés apparaîtront sur la page publique.
+              {t("studio.publicTracksDescription")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -297,11 +296,11 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
               onClick={() => setSelectorOpen((open) => !open)}
               aria-expanded={selectorOpen}
             >
-              <Link2 data-icon="inline-start" /> Rattacher un morceau
+              <Link2 data-icon="inline-start" /> {t("studio.attachSong")}
             </Button>
             <Button asChild>
               <Link to="/studio/songs/new" search={{ albumId }}>
-                <Plus data-icon="inline-start" /> Créer un morceau
+                <Plus data-icon="inline-start" /> {t("studio.createSong")}
               </Link>
             </Button>
           </div>
@@ -311,12 +310,12 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
           <CollapsibleContent>
             <Card>
               <CardHeader>
-                <CardTitle>Rattacher un single existant</CardTitle>
+                <CardTitle>{t("studio.attachExistingSong")}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <Field>
                   <FieldLabel htmlFor="album-song-search">
-                    Rechercher un morceau
+                    {t("studio.searchSong")}
                   </FieldLabel>
                   <div className="relative">
                     <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -325,7 +324,7 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       className="pl-8"
-                      placeholder="Titre ou artiste"
+                      placeholder={t("studio.searchSongPlaceholder")}
                     />
                   </div>
                 </Field>
@@ -350,15 +349,15 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
                           onClick={() => void handleAttach(song._id)}
                         >
                           {attachingSongId === song._id
-                            ? "Ajout…"
-                            : "Rattacher"}
+                            ? t("studio.attaching")
+                            : t("studio.attach")}
                         </Button>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Aucun single disponible ne correspond à cette recherche.
+                    {t("studio.noMatchingSingles")}
                   </p>
                 )}
                 {songs.status === "CanLoadMore" ? (
@@ -367,7 +366,7 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
                     variant="ghost"
                     onClick={() => songs.loadMore(50)}
                   >
-                    Charger plus de morceaux
+                    {t("studio.loadMoreSongs")}
                   </Button>
                 ) : null}
               </CardContent>
@@ -381,10 +380,9 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
               <EmptyMedia variant="icon">
                 <FileMusic />
               </EmptyMedia>
-              <EmptyTitle>Cet album n’a pas encore de morceau</EmptyTitle>
+              <EmptyTitle>{t("studio.emptyAlbumTitle")}</EmptyTitle>
               <EmptyDescription>
-                Rattachez un single existant ou créez un nouveau morceau déjà
-                lié à cet album.
+                {t("studio.emptyAlbumDescription")}
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
@@ -393,11 +391,12 @@ function ReadyAlbumPreview({ albumId }: { albumId: Id<"albums"> }) {
                 variant="outline"
                 onClick={() => setSelectorOpen(true)}
               >
-                <Link2 data-icon="inline-start" /> Rattacher un morceau
+                <Link2 data-icon="inline-start" /> {t("studio.attachSong")}
               </Button>
               <Button asChild>
                 <Link to="/studio/songs/new" search={{ albumId }}>
-                  <Plus data-icon="inline-start" /> Créer pour cet album
+                  <Plus data-icon="inline-start" />
+                  {t("studio.createForAlbum")}
                 </Link>
               </Button>
             </EmptyContent>
@@ -491,6 +490,7 @@ function AlbumDetails({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
+  const { t } = useLocale()
   if (items.length === 0) return null
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
@@ -502,7 +502,7 @@ function AlbumDetails({
               variant="ghost"
               className="group w-full justify-between px-0"
             >
-              <CardTitle>Détails de l’album</CardTitle>
+              <CardTitle>{t("studio.albumDetails")}</CardTitle>
               <ChevronDown
                 className="transition-transform group-aria-expanded:rotate-180"
                 aria-hidden="true"

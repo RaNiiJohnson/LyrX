@@ -307,20 +307,12 @@ function validatedAlbum(args: Infer<typeof albumInputValidator>) {
       : { releaseDate: optionalDate(args.releaseDate) }),
     ...(optionalText(args.description, 5_000, "La description")
       ? {
-          description: optionalText(
-            args.description,
-            5_000,
-            "La description"
-          ),
+          description: optionalText(args.description, 5_000, "La description"),
         }
       : {}),
     ...(optionalText(args.primaryLanguage, 50, "La langue")
       ? {
-          primaryLanguage: optionalText(
-            args.primaryLanguage,
-            50,
-            "La langue"
-          ),
+          primaryLanguage: optionalText(args.primaryLanguage, 50, "La langue"),
         }
       : {}),
     ...(args.genre === undefined ? {} : { genre: args.genre }),
@@ -394,9 +386,7 @@ function projectPublicAlbum(album: Doc<"albums">) {
       ? {}
       : { primaryLanguage: album.primaryLanguage }),
     ...(album.genre === undefined ? {} : { genre: album.genre }),
-    ...(album.otherGenre === undefined
-      ? {}
-      : { otherGenre: album.otherGenre }),
+    ...(album.otherGenre === undefined ? {} : { otherGenre: album.otherGenre }),
     ...(album.label === undefined ? {} : { label: album.label }),
     credits: album.credits,
     ...(album.firstPublishedAt === undefined
@@ -407,10 +397,7 @@ function projectPublicAlbum(album: Doc<"albums">) {
   }
 }
 
-function projectSongSummary(
-  song: Doc<"songs">,
-  albumId: Id<"albums"> | null
-) {
+function projectSongSummary(song: Doc<"songs">, albumId: Id<"albums"> | null) {
   return {
     _id: song._id,
     _creationTime: song._creationTime,
@@ -546,7 +533,9 @@ export const getMySong = artistQuery({
       .query("albumTracks")
       .withIndex("by_song_id", (q) => q.eq("songId", song._id))
       .unique()
-    const album = albumTrack ? await ctx.db.get("albums", albumTrack.albumId) : null
+    const album = albumTrack
+      ? await ctx.db.get("albums", albumTrack.albumId)
+      : null
     return {
       song,
       lyricsText: await lyricsTextForSong(ctx, song),
@@ -688,7 +677,8 @@ function materializeAlbumMetadata(
     artworkStorageId?: Id<"_storage">
   } = { ...song }
   if (inheritance.inheritArtwork) {
-    if (album.artworkStorageId) materialized.artworkStorageId = album.artworkStorageId
+    if (album.artworkStorageId)
+      materialized.artworkStorageId = album.artworkStorageId
     else delete materialized.artworkStorageId
   }
   if (inheritance.inheritPrimaryLanguage && album.primaryLanguage) {
@@ -711,10 +701,7 @@ function materializeAlbumMetadata(
   return materialized
 }
 
-async function patchInheritedSongs(
-  ctx: MutationCtx,
-  album: Doc<"albums">
-) {
+async function patchInheritedSongs(ctx: MutationCtx, album: Doc<"albums">) {
   const tracks = await ctx.db
     .query("albumTracks")
     .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
@@ -756,6 +743,23 @@ async function patchInheritedSongs(
   }
 }
 
+async function compactAlbumTrackPositions(
+  ctx: MutationCtx,
+  albumId: Id<"albums">
+) {
+  const tracks = await ctx.db
+    .query("albumTracks")
+    .withIndex("by_album_id_and_position", (q) => q.eq("albumId", albumId))
+    .take(MAX_TRACKS + 1)
+  if (tracks.length > MAX_TRACKS)
+    bad("CATALOGUE_INVARIANT", "Trop de morceaux dans l’album.")
+  const now = Date.now()
+  for (const [position, track] of tracks.entries()) {
+    if (track.position !== position)
+      await ctx.db.patch("albumTracks", track._id, { position, updatedAt: now })
+  }
+}
+
 async function setSongAlbumContext(
   ctx: MutationCtx,
   memberId: Id<"members">,
@@ -771,6 +775,7 @@ async function setSongAlbumContext(
   if (context === null) {
     if (current) {
       await ctx.db.delete("albumTracks", current._id)
+      await compactAlbumTrackPositions(ctx, current.albumId)
       await ctx.db.patch("albums", current.albumId, {
         status: "draft",
         rightsConfirmedAt: undefined,
@@ -783,6 +788,7 @@ async function setSongAlbumContext(
   await ownedAlbum(ctx, memberId, context.albumId)
   if (current && current.albumId !== context.albumId) {
     await ctx.db.delete("albumTracks", current._id)
+    await compactAlbumTrackPositions(ctx, current.albumId)
     await ctx.db.patch("albums", current.albumId, {
       status: "draft",
       rightsConfirmedAt: undefined,
@@ -807,7 +813,8 @@ async function setSongAlbumContext(
       albumId: context.albumId,
       songId,
       ownerMemberId: memberId,
-      position: rows.length,
+      position:
+        rows.reduce((highest, row) => Math.max(highest, row.position), -1) + 1,
       ...context.inheritance,
       createdAt: now,
       updatedAt: now,
@@ -993,6 +1000,7 @@ export const deleteSong = artistMutation({
     if (track) {
       await ownedAlbum(ctx, ctx.member._id, track.albumId)
       await ctx.db.delete("albumTracks", track._id)
+      await compactAlbumTrackPositions(ctx, track.albumId)
       await ctx.db.patch("albums", track.albumId, {
         status: "draft",
         rightsConfirmedAt: undefined,
@@ -1174,6 +1182,7 @@ export const detachSongFromAlbum = artistMutation({
     if (!track || track.albumId !== args.albumId)
       bad("NOT_FOUND", "Ce morceau ne fait pas partie de cet album.")
     await ctx.db.delete("albumTracks", track._id)
+    await compactAlbumTrackPositions(ctx, args.albumId)
     const now = Date.now()
     await ctx.db.patch("songs", song._id, {
       status: "draft",
@@ -1257,7 +1266,10 @@ export const publishAlbum = artistMutation({
     let hasPublishedTrack = false
     for (const track of tracks) {
       const song = await ctx.db.get("songs", track.songId)
-      if (song?.status === "published") {
+      if (
+        song?.status === "published" &&
+        song.ownerMemberId === ctx.member._id
+      ) {
         hasPublishedTrack = true
         break
       }

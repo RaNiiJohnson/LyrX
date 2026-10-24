@@ -11,8 +11,7 @@ export function songValuesFromDetail(detail: SongDetail): SongFormValues {
     releaseType: detail.album ? "album" : "single",
     albumId: detail.album?._id ?? "",
     inheritArtwork: detail.albumTrack?.inheritArtwork ?? false,
-    inheritPrimaryLanguage:
-      detail.albumTrack?.inheritPrimaryLanguage ?? false,
+    inheritPrimaryLanguage: detail.albumTrack?.inheritPrimaryLanguage ?? false,
     inheritGenre: detail.albumTrack?.inheritGenre ?? false,
     inheritLabel: detail.albumTrack?.inheritLabel ?? false,
     inheritCredits: detail.albumTrack?.inheritCredits ?? false,

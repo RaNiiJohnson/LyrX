@@ -35,11 +35,7 @@ export function PublicAlbum({ albumId }: { albumId: Id<"albums"> }) {
       <header className="grid gap-5 sm:grid-cols-[8.25rem_1fr] sm:items-end">
         <div className="flex aspect-square size-24 items-center justify-center overflow-hidden rounded-2xl bg-muted sm:size-[8.25rem]">
           {artworkUrl ? (
-            <img
-              src={artworkUrl}
-              alt=""
-              className="size-full object-cover"
-            />
+            <img src={artworkUrl} alt="" className="size-full object-cover" />
           ) : (
             <Disc3 className="size-10 text-muted-foreground" aria-hidden />
           )}
@@ -92,7 +88,7 @@ export function PublicAlbum({ albumId }: { albumId: Id<"albums"> }) {
                   <Link
                     to="/songs/$songId"
                     params={{ songId: song._id }}
-                    className="font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   >
                     {song.title}
                   </Link>
@@ -108,17 +104,21 @@ export function PublicAlbum({ albumId }: { albumId: Id<"albums"> }) {
 
       {album.label || album.credits.length > 0 ? (
         <section className="space-y-3 border-t pt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider">
+          <h2 className="text-sm font-semibold tracking-wider uppercase">
             {t("studio.detailsAndCredits")}
           </h2>
           {album.label ? (
             <p className="text-sm">
-              <span className="text-muted-foreground">{t("studio.label")}: </span>
+              <span className="text-muted-foreground">
+                {t("studio.label")}:{" "}
+              </span>
               {album.label}
             </p>
           ) : null}
           {album.credits.length > 0 ? (
-            <p className="whitespace-pre-line text-sm">{album.credits.join("\n")}</p>
+            <p className="text-sm whitespace-pre-line">
+              {album.credits.join("\n")}
+            </p>
           ) : null}
         </section>
       ) : null}

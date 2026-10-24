@@ -177,6 +177,33 @@ lot has started.
   les onglets, les curseurs et la boîte de confirmation ont été vérifiés ; le
   contenu n'a pas été supprimé pendant ce contrôle. `pnpm check` passe avec 28
   tests shared, 28 backend et 23 web, ainsi que les builds client et SSR.
+- Extension album post-lot du 2026-10-24, basée sur `a6cca538` : la création
+  d’un morceau choisit explicitement single ou album et peut hériter de la
+  pochette, de la langue, du genre, du label et des crédits généraux, avec une
+  personnalisation champ par champ. Un morceau reste limité à un album. La
+  suppression d’un album conserve les morceaux en matérialisant les valeurs
+  héritées avant de détacher les associations.
+- L’aperçu artiste d’un album expose maintenant les actions Modifier/Supprimer,
+  le rattachement recherché d’un single, la création directe déjà liée, les
+  statuts Brouillon/Publié et une liste de pistes prioritaire. Le réordonnancement
+  accepte le glisser-déposer pointeur/clavier et conserve les boutons haut/bas.
+  La page publique `/albums/$albumId` utilise le même pattern SSR
+  `convexQuery`/`useSuspenseQuery` que les autres données publiques et ne reçoit
+  que les pistes publiées. La publication d’un album exige au moins une piste
+  publiée.
+- Revue locale complète : aucun défaut Standards/Spec bloquant ne reste. La
+  revue Convex a corrigé la compaction des positions après retrait afin
+  d’éviter trous et collisions lors d’un rattachement ultérieur ; les fonctions
+  publiques ont leurs validateurs, les mutations artiste centralisent
+  authentification et propriété, et les listes restent indexées et bornées.
+  Aucun finding Critical ou Important ne reste.
+- `pnpm check` passe avec 28 tests shared, 29 backend et 23 web (80 tests), puis
+  les builds client et SSR. `convex dev --once` a préparé avec succès les
+  fonctions du déploiement de développement. Dans le navigateur intégré et le
+  compte artiste existant, l’album vide a préselectionné son contexte dans le
+  nouveau morceau, enregistré le brouillon `[TEST] Parcours album 2026-10-24`,
+  redirigé vers son aperçu et affiché immédiatement cette piste en position 1
+  avec le statut Brouillon dans l’album.
 
 ### Lot 4 — Catalogue artiste (complete)
 

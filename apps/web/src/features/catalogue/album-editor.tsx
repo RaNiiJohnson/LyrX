@@ -47,7 +47,8 @@ function AlbumEditorData({ albumId }: { albumId?: Id<"albums"> }) {
       updatedAt: song.updatedAt,
     })) ?? []),
     ...songs.results.filter(
-      (song) => !detail?.tracks.some(({ song: track }) => track._id === song._id)
+      (song) =>
+        !detail?.tracks.some(({ song: track }) => track._id === song._id)
     ),
   ]
   return (

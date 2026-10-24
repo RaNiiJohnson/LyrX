@@ -30,18 +30,18 @@ export function useAlbumEditorController({
   const updateAlbum = useMutation(api.catalogue.updateAlbum)
   const [error, setError] = useState<string | null>(null)
   const defaultValues: AlbumFormValues = detail
-      ? {
-          title: detail.album.title,
-          releaseDate: dateInputFromTimestamp(detail.album.releaseDate),
-          description: detail.album.description ?? "",
-          primaryLanguage: detail.album.primaryLanguage ?? "",
-          genre: detail.album.genre ?? "",
-          otherGenre: detail.album.otherGenre ?? "",
-          label: detail.album.label ?? "",
-          credits: detail.album.credits.join("\n"),
-          trackIds: detail.tracks.map(({ song }) => song._id),
-        }
-      : emptyAlbumValues
+    ? {
+        title: detail.album.title,
+        releaseDate: dateInputFromTimestamp(detail.album.releaseDate),
+        description: detail.album.description ?? "",
+        primaryLanguage: detail.album.primaryLanguage ?? "",
+        genre: detail.album.genre ?? "",
+        otherGenre: detail.album.otherGenre ?? "",
+        label: detail.album.label ?? "",
+        credits: detail.album.credits.join("\n"),
+        trackIds: detail.tracks.map(({ song }) => song._id),
+      }
+    : emptyAlbumValues
   const form = useAppForm({
     defaultValues,
     onSubmit: async ({ value }) => {
