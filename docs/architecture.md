@@ -92,6 +92,23 @@ not duplicated as trust decisions in clients.
     tests before release; otherwise the global sweep must be replaced with a
     capability-scoped ownership record.
 
+## Catalogue aggregate decisions
+
+1. `@convex-dev/aggregate@0.3.4` owns the artist catalogue projections used for
+   counts, status filters, stable pagination, and album-track ordering. Songs
+   and albums each have an owner projection and an owner/status projection;
+   album tracks have a per-album position projection.
+2. Every artist catalogue mutation runs through one trigger-wrapped Convex
+   database context, so source-table changes and Aggregate maintenance commit
+   transactionally. The projections use idempotent triggers to remain safe
+   while historical rows are backfilled.
+3. Historical catalogue rows are indexed by the bounded, cursor-driven
+   `internal.catalogueAggregates.backfill` mutation. It advances through songs,
+   albums, and album tracks in scheduled batches without unbounded collection.
+4. Artist Studio publication is an ownership-authorized action and no longer
+   records a per-item rights confirmation. A future fan proposal flow retains
+   its own explicit affirmation and separate server authorization.
+
 Operational setup and the evidence boundary are documented in
 [authentication.md](authentication.md).
 

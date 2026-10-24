@@ -101,8 +101,9 @@ own. V1 has no artist co-editing.
   homonyms, versions, or potential duplicates automatically.
 - A self-declared artist cannot claim a fan-created artist page by matching a
   name. Automated claims and co-editing are deferred; disputes go to admin.
-- Artists and fans affirm at submission that they hold the necessary rights or
-  authorization for lyrics and images.
+- Fan proposals require an explicit rights and authorization affirmation at
+  submission. The artist-owned Studio publishes directly; it does not repeat a
+  rights checkbox on every draft or catalogue row.
 
 ## Public discovery and search
 

@@ -88,6 +88,22 @@ Use `--prod` only as an explicit manual addition to the underlying Convex
 command after the development deployment has been migrated and verified. The
 repository command intentionally targets the selected development deployment.
 
+## Catalogue Aggregate backfill
+
+After functions containing the Aggregate components and trigger-wrapped artist
+mutations are deployed, index existing songs, albums, and album tracks with:
+
+```bash
+pnpm --filter @lyrx/backend migrate:catalogue-aggregates
+```
+
+The internal migration processes bounded pages and schedules its continuation
+through the three source tables. It uses `insertIfDoesNotExist`, so rerunning it
+is safe. Deploy the trigger-wrapped mutations before starting the backfill so
+concurrent catalogue writes remain synchronized. The repository command targets
+the selected development deployment unless `--prod` is deliberately supplied
+to the underlying Convex command.
+
 ## Environment policy
 
 Copy a package's `.env.example` only when that package documents the values it

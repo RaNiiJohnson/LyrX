@@ -74,6 +74,9 @@ lot has started.
 - [x] Lot 5 `pnpm check` passes formatting, lint, TypeScript, 76 tests, and the
       client/SSR production builds. The local standards/specification review and
       Convex review have no unresolved blocking finding.
+- [x] The album-workflow refinement passes `pnpm check` with 81 tests and both
+      production builds. Aggregate backfill and the development Convex push
+      succeeded; desktop and 390×844 browser checks have no console error.
 
 ## Lot history
 
@@ -207,6 +210,37 @@ lot has started.
 - État Git de cette extension : branche `codex/album-workflow`, commit principal
   `be59773`, corrections de revue `087ac16`; le diff
   `a6cca538...087ac16` est non vide et constitue la base de revue complète.
+- Raffinement album du 2026-10-24, basé sur `687d75a` : le Studio utilise
+  désormais `@convex-dev/aggregate` pour les listes paginées, les filtres par
+  statut, les compteurs et l’ordre des pistes. Cinq projections nommées sont
+  maintenues transactionnellement par des triggers idempotents, avec un backfill
+  borné et relançable documenté. Le backfill de développement a indexé les cinq
+  morceaux existants puis poursuivi albums et pistes ; la liste a retrouvé
+  l’album et ses quatre morceaux.
+- L’aperçu album suit le design compact desktop/mobile retenu : bouton Publier
+  visible sur un brouillon, menu d’actions, artiste, compteur Aggregate, date et
+  statut, description pleine largeur sur mobile, liste prioritaire et détails
+  après les morceaux. Le propriétaire peut réordonner directement avec
+  glisser-déposer, clavier ou boutons haut/bas également visibles sur mobile.
+  Les retours conservent maintenant leur contexte jusque dans l’aperçu et
+  l’édition d’un morceau ouvert depuis un album.
+- Le Studio présente des onglets explicitement contrastés, les filtres
+  Tous/Brouillons/Publiés, des lignes compactes, un menu mobile et le bouton
+  Créer flottant en vue étroite. La navbar n’a pas été modifiée. La publication
+  artiste ne demande plus une attestation répétée ; cette confirmation reste une
+  responsabilité du futur parcours de proposition fan.
+- Revue locale du diff `687d75a...ad26536` : l’attribut d’état Radix des onglets
+  et l’absence initiale des flèches de réordonnancement sur mobile ont été
+  corrigés. La revue finale Standards/Spec et la revue Convex ne laissent aucun
+  défaut bloquant, Critical ou Important. Les lectures supplémentaires des
+  lignes Studio restent bornées par page et sont acceptées pour conserver les
+  projections publiques minimales.
+- Vérification : `pnpm check` passe avec 28 tests shared, 30 backend et 23 web
+  (81 tests), lint, TypeScript et builds client/SSR. `convex dev --once` a préparé
+  les fonctions du déploiement de développement ; le backfill Aggregate a été
+  exécuté. Le navigateur intégré Codex a vérifié Studio et aperçu album en
+  desktop et à 390×844, les filtres, le bouton Créer flottant, les contrôles
+  d’ordre mobiles et le retour morceau → album, sans erreur console.
 
 ### Lot 4 — Catalogue artiste (complete)
 
