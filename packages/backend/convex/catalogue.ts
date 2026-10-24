@@ -52,7 +52,7 @@ const songInputValidator = v.object({
   releaseDate: v.optional(v.number()),
   description: v.optional(v.string()),
   context: v.optional(v.string()),
-  primaryLanguage: v.string(),
+  primaryLanguage: v.optional(v.string()),
   genre: v.optional(songGenreValidator),
   otherGenre: v.optional(v.string()),
   writers: v.array(v.string()),
@@ -147,7 +147,7 @@ const publicSong = v.object({
   releaseDate: v.optional(v.number()),
   description: v.optional(v.string()),
   context: v.optional(v.string()),
-  primaryLanguage: v.string(),
+  primaryLanguage: v.optional(v.string()),
   genre: v.optional(songGenreValidator),
   otherGenre: v.optional(v.string()),
   writers: v.array(v.string()),
@@ -287,7 +287,11 @@ function validatedSong(args: Infer<typeof songInputValidator>) {
     ...(optionalText(args.context, 5_000, "Le contexte")
       ? { context: optionalText(args.context, 5_000, "Le contexte") }
       : {}),
-    primaryLanguage: text(args.primaryLanguage, 50, "La langue"),
+    ...(optionalText(args.primaryLanguage, 50, "La langue")
+      ? {
+          primaryLanguage: optionalText(args.primaryLanguage, 50, "La langue"),
+        }
+      : {}),
     ...(args.genre === undefined ? {} : { genre: args.genre }),
     ...(args.genre === "other"
       ? { otherGenre: text(args.otherGenre ?? "", 60, "Le genre") }
@@ -352,6 +356,9 @@ function validatedAlbum(args: Infer<typeof albumInputValidator>) {
 }
 
 function validateLyricsText(value: string) {
+  if (!value.trim()) {
+    bad("INVALID_LYRICS", "Le texte des paroles est obligatoire.")
+  }
   if (value.length > MAX_LYRICS_TEXT_LENGTH) {
     bad(
       "INVALID_LYRICS",
@@ -376,7 +383,9 @@ function projectPublicSong(song: Doc<"songs">) {
       ? {}
       : { description: song.description }),
     ...(song.context === undefined ? {} : { context: song.context }),
-    primaryLanguage: song.primaryLanguage,
+    ...(song.primaryLanguage === undefined
+      ? {}
+      : { primaryLanguage: song.primaryLanguage }),
     ...(song.genre === undefined ? {} : { genre: song.genre }),
     ...(song.otherGenre === undefined ? {} : { otherGenre: song.otherGenre }),
     writers: song.writers,

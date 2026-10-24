@@ -5,9 +5,15 @@ import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
-import { Card, CardContent } from "@lyrx/ui/components/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@lyrx/ui/components/card"
 import { FieldGroup } from "@lyrx/ui/components/field"
-import { Progress } from "@lyrx/ui/components/progress"
 
 import { useLocale } from "@/app/locale-provider"
 import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
@@ -95,110 +101,44 @@ export function SongEditorForm({
           onSelect={(file) => void uploadArtwork(file)}
         />
       ) : null}
-      <Card>
-        <CardContent className="pt-6">
-          <SongStepProgress step={controller.step} steps={controller.steps} />
-          <form
-            className="flex flex-col gap-7"
-            onSubmit={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              void controller.form.handleSubmit()
-            }}
-          >
-            {controller.error ? (
-              <Alert variant="destructive">
-                <AlertTitle>{t("catalogue.saveError")}</AlertTitle>
-                <AlertDescription>{controller.error}</AlertDescription>
-              </Alert>
-            ) : null}
-            <controller.form.AppForm>
-              <FieldGroup>
-                {controller.step === 0 ? (
-                  <SongBasicsStep form={controller.form} albums={albums} />
-                ) : null}
-                {controller.step === 1 ? (
-                  <SongCreditsStep form={controller.form} />
-                ) : null}
-                {controller.step === 2 ? (
-                  <SongLyricsStep form={controller.form} />
-                ) : null}
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          void controller.form.handleSubmit()
+        }}
+      >
+        <controller.form.AppForm>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("studio.essentialInformation")}</CardTitle>
+              <CardDescription>
+                {t("studio.essentialInformationDescription")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-7">
+              {controller.error ? (
+                <Alert variant="destructive">
+                  <AlertTitle>{t("catalogue.saveError")}</AlertTitle>
+                  <AlertDescription>{controller.error}</AlertDescription>
+                </Alert>
+              ) : null}
+              <FieldGroup className="gap-8">
+                <SongBasicsStep form={controller.form} albums={albums} />
+                <SongLyricsStep form={controller.form} />
+                <SongCreditsStep form={controller.form} />
               </FieldGroup>
-              <div className="flex items-center justify-between gap-3 border-t pt-5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={controller.step === 0}
-                  onClick={controller.previousStep}
-                >
-                  {t("studio.previousStep")}
-                </Button>
-                <div className="flex items-center gap-2">
-                  {songId && controller.step < controller.steps.length - 1 ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={uploadPending || controller.saving}
-                      onClick={() => void controller.saveCurrentChanges()}
-                    >
-                      {t("common.save")}
-                    </Button>
-                  ) : null}
-                  {controller.step < controller.steps.length - 1 ? (
-                    <Button
-                      type="button"
-                      disabled={controller.saving}
-                      onClick={() => void controller.nextStep()}
-                    >
-                      {t("studio.nextStep")}
-                    </Button>
-                  ) : (
-                    <controller.form.SubmitButton
-                      disabled={uploadPending || controller.saving}
-                    >
-                      {t("common.save")}
-                    </controller.form.SubmitButton>
-                  )}
-                </div>
-              </div>
-            </controller.form.AppForm>
-          </form>
-        </CardContent>
-      </Card>
+            </CardContent>
+            <CardFooter className="justify-end border-t">
+              <controller.form.SubmitButton
+                disabled={uploadPending || controller.saving}
+              >
+                {t("common.save")}
+              </controller.form.SubmitButton>
+            </CardFooter>
+          </Card>
+        </controller.form.AppForm>
+      </form>
     </section>
-  )
-}
-
-function SongStepProgress({
-  step,
-  steps,
-}: {
-  step: number
-  steps: Array<string>
-}) {
-  const { t } = useLocale()
-  return (
-    <div className="mb-7 space-y-3" aria-label={t("studio.formProgress")}>
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="font-medium">{steps[step]}</span>
-        <span className="text-muted-foreground">
-          {t("studio.stepCount", { current: step + 1, total: steps.length })}
-        </span>
-      </div>
-      <Progress value={((step + 1) / steps.length) * 100} />
-      <ol className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-        {steps.map((label, index) => (
-          <li
-            key={label}
-            className={
-              index === step ? "font-medium text-foreground" : undefined
-            }
-            aria-current={index === step ? "step" : undefined}
-          >
-            {label}
-          </li>
-        ))}
-      </ol>
-    </div>
   )
 }

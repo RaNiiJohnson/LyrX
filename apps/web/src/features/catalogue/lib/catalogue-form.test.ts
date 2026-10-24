@@ -21,4 +21,10 @@ describe("catalogue form mapping", () => {
 
     expect(toSongMutationInput(values).lyricsText).toBe(values.lyricsText)
   })
+
+  it("omits the transitional primary language when it is empty", () => {
+    const values = emptySongValues("Lyr’X")
+
+    expect(toSongMutationInput(values).primaryLanguage).toBeUndefined()
+  })
 })

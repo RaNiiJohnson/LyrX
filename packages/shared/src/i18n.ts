@@ -337,6 +337,14 @@ const frenchMessages = {
   "studio.generalCredits": "Crédits généraux",
   "studio.generalCreditsDescription":
     "Un crédit par ligne : pochette, mixage, mastering ou autre contribution générale.",
+  "studio.additionalMetadata": "Informations complémentaires",
+  "studio.additionalMetadataDescription":
+    "Ajoutez seulement les détails utiles. Vous pourrez les compléter plus tard.",
+  "studio.audioAndListening": "Audio et liens d’écoute",
+  "studio.creditsAndContributors": "Crédits et collaborations",
+  "studio.essentialInformation": "L’essentiel du morceau",
+  "studio.essentialInformationDescription":
+    "Commencez par l’identité du morceau et ses paroles. Le reste peut être complété ensuite.",
   "studio.guestArtists": "Artistes invités",
   "studio.label": "Label",
   "studio.language": "Langue principale",
@@ -347,6 +355,8 @@ const frenchMessages = {
   "studio.listeningHidePlayer": "Masquer le lecteur",
   "studio.listeningLoadPlayer": "Charger le lecteur {{provider}}",
   "studio.listeningLinks": "Liens d’écoute",
+  "studio.listeningLinksEmpty":
+    "Ajoutez les plateformes où ce morceau peut être écouté.",
   "studio.listeningOpen": "Ouvrir sur {{provider}}",
   "studio.releaseAlbumTrack": "Morceau d’un album",
   "studio.releaseContext": "Type de sortie",
@@ -360,6 +370,7 @@ const frenchMessages = {
   "studio.lyricsEditor": "Texte des paroles",
   "studio.lyricsEditorDescription":
     "Écrivez ou collez tout le texte ici. Placez les titres de section seuls sur une ligne, par exemple [Couplet 1], [Refrain], [Verse] ou [Chorus]. Les titres personnalisés sont acceptés et les lignes vides sont conservées.",
+  "studio.lyricsRequired": "Le texte des paroles est obligatoire.",
   "studio.lyricsPreview": "Aperçu en lecture seule",
   "studio.lyricsPreviewDescription":
     "L’aperçu suit vos balises et retours à la ligne. Toute correction se fait dans le champ ci-dessus.",
@@ -381,6 +392,8 @@ const frenchMessages = {
   "studio.provider": "Plateforme",
   "studio.providerOther": "Autre",
   "studio.releaseDate": "Date de sortie",
+  "studio.releaseAndPresentation": "Sortie et présentation",
+  "studio.requiredField": "Le champ « {{field}} » est obligatoire.",
   "studio.removeTrack": "Retirer de l’album",
   "studio.songDescription": "Description du morceau",
   "studio.songCredits": "Crédits du morceau",
@@ -761,6 +774,14 @@ const englishMessages = {
   "studio.generalCredits": "General credits",
   "studio.generalCreditsDescription":
     "One credit per line: artwork, mixing, mastering, or another general contribution.",
+  "studio.additionalMetadata": "Additional information",
+  "studio.additionalMetadataDescription":
+    "Add only the useful details. You can complete them later.",
+  "studio.audioAndListening": "Audio and listening links",
+  "studio.creditsAndContributors": "Credits and collaborators",
+  "studio.essentialInformation": "Song essentials",
+  "studio.essentialInformationDescription":
+    "Start with the song identity and its lyrics. Everything else can be completed later.",
   "studio.guestArtists": "Guest artists",
   "studio.label": "Label",
   "studio.language": "Primary language",
@@ -771,6 +792,8 @@ const englishMessages = {
   "studio.listeningHidePlayer": "Hide player",
   "studio.listeningLoadPlayer": "Load the {{provider}} player",
   "studio.listeningLinks": "Listening links",
+  "studio.listeningLinksEmpty":
+    "Add the platforms where this song can be played.",
   "studio.listeningOpen": "Open on {{provider}}",
   "studio.releaseAlbumTrack": "Album track",
   "studio.releaseContext": "Release type",
@@ -784,6 +807,7 @@ const englishMessages = {
   "studio.lyricsEditor": "Lyrics text",
   "studio.lyricsEditorDescription":
     "Write or paste the complete text here. Put section headings on their own line, for example [Verse 1], [Chorus], [Couplet] or [Refrain]. Custom headings are accepted and blank lines are preserved.",
+  "studio.lyricsRequired": "Lyrics are required.",
   "studio.lyricsPreview": "Read-only preview",
   "studio.lyricsPreviewDescription":
     "The preview follows your headings and line breaks. Make every correction in the field above.",
@@ -806,6 +830,8 @@ const englishMessages = {
   "studio.provider": "Provider",
   "studio.providerOther": "Other",
   "studio.releaseDate": "Release date",
+  "studio.releaseAndPresentation": "Release and presentation",
+  "studio.requiredField": "The “{{field}}” field is required.",
   "studio.removeTrack": "Remove from album",
   "studio.songDescription": "Song description",
   "studio.songCredits": "Song credits",

@@ -80,7 +80,7 @@ export function toSongMutationInput(value: SongFormValues) {
     releaseDate: timestampFromDateInput(value.releaseDate),
     description: value.description || undefined,
     context: value.context || undefined,
-    primaryLanguage: value.primaryLanguage,
+    primaryLanguage: value.primaryLanguage || undefined,
     genre: value.genre || undefined,
     otherGenre:
       value.genre === "other" ? value.otherGenre || undefined : undefined,
@@ -125,7 +125,7 @@ export function emptySongValues(
     releaseDate: "",
     description: "",
     context: "",
-    primaryLanguage: album?.primaryLanguage ?? "fr",
+    primaryLanguage: album?.primaryLanguage ?? "",
     genre: album?.genre ?? "",
     otherGenre: album?.otherGenre ?? "",
     writers: "",

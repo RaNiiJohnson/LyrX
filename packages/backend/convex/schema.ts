@@ -4,9 +4,9 @@ import { v } from "convex/values"
 import {
   accountRoleValidator,
   accountStatusValidator,
-  customLinkValidator,
   catalogueImageKindValidator,
   catalogueStatusValidator,
+  customLinkValidator,
   listeningLinkValidator,
   lyricSectionKindValidator,
   profileImageKindValidator,
@@ -83,7 +83,8 @@ export default defineSchema({
     releaseDate: v.optional(v.number()),
     description: v.optional(v.string()),
     context: v.optional(v.string()),
-    primaryLanguage: v.string(),
+    // Kept optional while legacy rows and album inheritance still carry it.
+    primaryLanguage: v.optional(v.string()),
     genre: v.optional(songGenreValidator),
     otherGenre: v.optional(v.string()),
     writers: v.array(v.string()),

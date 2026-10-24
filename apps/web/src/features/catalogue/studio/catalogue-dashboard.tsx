@@ -86,7 +86,10 @@ export function CatalogueDashboard() {
 
         <StatusFilters value={status} onChange={setStatus} />
 
-        <TabsContent value="songs" className="flex flex-col gap-4 pt-1">
+        <TabsContent
+          value="songs"
+          className="flex flex-col gap-4 pt-1 pb-20 sm:pb-0"
+        >
           <CreateButton kind="song" placement="desktop" />
           <CatalogueListState
             loading={songs.status === "LoadingFirstPage"}
@@ -103,7 +106,10 @@ export function CatalogueDashboard() {
           />
           <CreateButton kind="song" placement="mobile" />
         </TabsContent>
-        <TabsContent value="albums" className="flex flex-col gap-4 pt-1">
+        <TabsContent
+          value="albums"
+          className="flex flex-col gap-4 pt-1 pb-20 sm:pb-0"
+        >
           <CreateButton kind="album" placement="desktop" />
           <CatalogueListState
             loading={albums.status === "LoadingFirstPage"}
@@ -179,7 +185,7 @@ function CreateButton({
         "self-end",
         placement === "desktop"
           ? "hidden sm:inline-flex"
-          : "mt-auto rounded-full sm:hidden"
+          : "fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20 rounded-full shadow-lg sm:hidden"
       )}
     >
       <Link

@@ -1,4 +1,3 @@
-import type { MessageKey } from "@lyrx/shared"
 import type { Doc } from "@lyrx/backend/convex/_generated/dataModel"
 import { Checkbox } from "@lyrx/ui/components/checkbox"
 import {
@@ -8,26 +7,9 @@ import {
 } from "@lyrx/ui/components/field"
 
 import { useLocale } from "@/app/locale-provider"
-import {
-  applyAlbumDefaults,
-  SONG_GENRES,
-} from "@/features/catalogue/lib/catalogue-form"
-import { OptionalLabel } from "@/features/catalogue/shared/optional-label"
+import { applyAlbumDefaults } from "@/features/catalogue/lib/catalogue-form"
 import { withForm } from "@/lib/app-form"
 import { songFormOptions } from "./song-form-options"
-
-const genreMessageKeys: Record<(typeof SONG_GENRES)[number], MessageKey> = {
-  pop: "studio.genrePop",
-  rock: "studio.genreRock",
-  "hip-hop": "studio.genreHipHop",
-  rnb: "studio.genreRnb",
-  electronic: "studio.genreElectronic",
-  jazz: "studio.genreJazz",
-  folk: "studio.genreFolk",
-  gospel: "studio.genreGospel",
-  reggae: "studio.genreReggae",
-  other: "studio.genreOtherOption",
-}
 
 export const SongBasicsStep = withForm({
   ...songFormOptions,
@@ -133,21 +115,6 @@ export const SongBasicsStep = withForm({
                   />
                   <InheritanceCheckbox
                     form={form}
-                    name="inheritPrimaryLanguage"
-                    label={t("studio.language")}
-                    onEnable={() => {
-                      const album = albums.find(
-                        (candidate) => candidate._id === albumId
-                      )
-                      if (album?.primaryLanguage)
-                        form.setFieldValue(
-                          "primaryLanguage",
-                          album.primaryLanguage
-                        )
-                    }}
-                  />
-                  <InheritanceCheckbox
-                    form={form}
                     name="inheritGenre"
                     label={t("studio.genre")}
                     onEnable={() => {
@@ -188,7 +155,7 @@ export const SongBasicsStep = withForm({
             ) : null
           }
         </form.Subscribe>
-        <FieldLegend>{t("studio.songTitle")}</FieldLegend>
+        <FieldLegend>{t("studio.essentialInformation")}</FieldLegend>
         <div className="grid gap-5 md:grid-cols-2">
           <form.AppField
             name="title"
@@ -220,101 +187,7 @@ export const SongBasicsStep = withForm({
               />
             )}
           </form.AppField>
-          <form.AppField name="releaseDate">
-            {(field) => (
-              <field.TextField
-                label={t("studio.releaseDate")}
-                labelExtra={<OptionalLabel />}
-                type="date"
-              />
-            )}
-          </form.AppField>
-          <form.AppField
-            name="primaryLanguage"
-            validators={{
-              onBlur: ({ value }) =>
-                value.trim() ? undefined : t("studio.language"),
-            }}
-          >
-            {(field) => (
-              <field.TextField
-                label={t("studio.language")}
-                required
-                maxLength={50}
-                onValueChange={() => {
-                  if (form.state.values.releaseType === "album")
-                    form.setFieldValue("inheritPrimaryLanguage", false)
-                }}
-              />
-            )}
-          </form.AppField>
-          <form.AppField name="genre">
-            {(field) => (
-              <field.SelectField
-                label={t("studio.genre")}
-                labelExtra={<OptionalLabel />}
-                options={SONG_GENRES.map((genre) => ({
-                  label: t(genreMessageKeys[genre]),
-                  value: genre,
-                }))}
-                placeholder="—"
-                onValueChange={() => {
-                  if (form.state.values.releaseType === "album")
-                    form.setFieldValue("inheritGenre", false)
-                }}
-              />
-            )}
-          </form.AppField>
-          <form.Subscribe selector={(state) => state.values.genre}>
-            {(genre) =>
-              genre === "other" ? (
-                <form.AppField name="otherGenre">
-                  {(field) => (
-                    <field.TextField
-                      label={t("studio.genreOther")}
-                      required
-                      maxLength={60}
-                      onValueChange={() => {
-                        if (form.state.values.releaseType === "album")
-                          form.setFieldValue("inheritGenre", false)
-                      }}
-                    />
-                  )}
-                </form.AppField>
-              ) : null
-            }
-          </form.Subscribe>
         </div>
-        <form.AppField name="guestArtists">
-          {(field) => (
-            <field.TextareaField
-              label={t("studio.guestArtists")}
-              labelExtra={<OptionalLabel />}
-              description={t("studio.creditsDescription")}
-              rows={3}
-            />
-          )}
-        </form.AppField>
-        <form.AppField name="description">
-          {(field) => (
-            <field.TextareaField
-              label={t("studio.songDescription")}
-              labelExtra={<OptionalLabel />}
-              maxLength={2000}
-              rows={4}
-            />
-          )}
-        </form.AppField>
-        <form.AppField name="context">
-          {(field) => (
-            <field.TextareaField
-              label={t("studio.context")}
-              labelExtra={<OptionalLabel />}
-              maxLength={5000}
-              rows={5}
-            />
-          )}
-        </form.AppField>
       </FieldSet>
     )
   },

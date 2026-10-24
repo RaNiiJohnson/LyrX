@@ -24,7 +24,7 @@ type SongDisplaySource = {
   guestArtists: Array<string>
   label?: string
   otherGenre?: string
-  primaryLanguage: string
+  primaryLanguage?: string
   producers: Array<string>
   releaseDate?: number
   writers: Array<string>

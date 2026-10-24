@@ -263,6 +263,28 @@ describe("artist catalogue", () => {
     ).rejects.toThrow("ne peuvent pas dépasser")
   })
 
+  it("requires lyrics while allowing songs without a primary language", async () => {
+    const t = backend()
+    const { client } = await artist(t, "required-lyrics")
+    const { primaryLanguage: _primaryLanguage, ...withoutLanguage } =
+      songInput("Sans langue")
+
+    await expect(
+      client.mutation(api.catalogue.createSong, {
+        ...withoutLanguage,
+        title: "Sans paroles",
+        lyricsText: "  \n ",
+      })
+    ).rejects.toThrow("obligatoire")
+
+    const songId = await client.mutation(
+      api.catalogue.createSong,
+      withoutLanguage
+    )
+    const stored = await t.run((ctx) => ctx.db.get("songs", songId))
+    expect(stored?.primaryLanguage).toBeUndefined()
+  })
+
   it("reads legacy lyric rows and backfills them without deleting old data", async () => {
     const t = backend()
     const { client } = await artist(t, "legacy-lyrics")

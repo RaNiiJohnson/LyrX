@@ -21,7 +21,7 @@ export function songValuesFromDetail(detail: SongDetail): SongFormValues {
     releaseDate: dateInputFromTimestamp(detail.song.releaseDate),
     description: detail.song.description ?? "",
     context: detail.song.context ?? "",
-    primaryLanguage: detail.song.primaryLanguage,
+    primaryLanguage: detail.song.primaryLanguage ?? "",
     genre: detail.song.genre ?? "",
     otherGenre: detail.song.otherGenre ?? "",
     writers: detail.song.writers.join("\n"),
