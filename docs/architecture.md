@@ -104,6 +104,8 @@ Catalogue capabilities live together under `packages/backend/convex/catalogue/`:
 - `tracks.ts` shares bounded album associations, ordering and metadata inheritance.
 - `lyrics.ts` isolates bounded legacy lyric reconstruction from ordinary editing;
   `lyricsMigration.ts` owns its internal cursor-based backfill.
+- `languageMigration.ts` owns the internal, bounded legacy-field cleanup used
+  before removing primary-language fields from a populated deployment.
 - `aggregates.ts` owns the existing named projections, triggers and backfill.
 
 Public callers use generated `api.catalogue.read`, `.songs`, `.albums` and
@@ -117,6 +119,15 @@ upload expiry alone is not enough if an old migration is still queued.
 Authorization remains in the server function wrappers and ownership helpers.
 No schema, public data shape, image-claim registry or named Aggregate component
 changes as part of the file movement.
+
+The separately authorized T1 follow-up removes song/album `primaryLanguage` and
+track `inheritPrimaryLanguage` from inputs, projections and the schema. Deploy
+the optional-field preparatory revision, clean all three tables and verify a
+zero-removal traversal before deploying the tightened schema; see
+[development.md](development.md). Other inherited metadata and Aggregate keys
+remain unchanged. Authored Convex diagnostics and transactional email text use
+English. Stable error codes, not server prose, select localized client messages.
+Historical lyric headings remain source content and are not translated.
 
 ## Image preparation decisions (technical lot T1)
 
@@ -156,6 +167,8 @@ placeholder), reusing the same upload pipeline for immediate replacement. The
 public read-only song/album views have no artwork-edit controls. Compression is
 an implementation detail: show format/size constraints once, not optimization
 explanations or duplicate helper text. The navbar remains unchanged.
+Editor thumbnails use fixed 96 px/160 px squares with a shrinkable input column,
+never a full-width square at a narrow breakpoint.
 
 ## Catalogue aggregate decisions
 

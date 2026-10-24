@@ -140,7 +140,7 @@ run a production deployment solely to manufacture evidence.
 ## Removing the legacy primary language
 
 This removal was explicitly approved by the user on 24 October 2026. A target
-with old rows must first deploy the preparatory T1 revision that keeps the
+with old rows must first deploy preparatory revision `c39cd1b`, which keeps the
 three legacy schema fields optional but no longer writes them. Do not deploy
 the final tightened schema over uncleared rows.
 

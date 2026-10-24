@@ -22,21 +22,72 @@ The user's next annotations authorize a same-branch refinement, reviewed from
 `17bcefa`: hide the optimization explanation, add direct owner-only pencil
 controls to song/album preview artwork, and offer artwork selection on both
 creation and editing forms. This is not a reopening of lot 5 or the start of
-lot 6. Implementation and verification are in progress for this follow-up.
+lot 6. This follow-up is now complete locally; the earlier quota checkpoint
+below is retained only as history.
 
 Resumed on 24 October with further user-authorized changes: compact artwork
 thumbnails below the desktop breakpoint, remove generic editor introductions,
 make section-heading guidance explicitly optional with a lyrics placeholder,
 and use English for authored Convex messages. The user explicitly confirmed
 permanent removal of `primaryLanguage` values and schema fields, including the
-album-track inheritance flag. Stage one stops all new language writes while
-retaining optional legacy schema fields for the bounded cleanup. Only after
-cleanup and a zero-removal verification pass will the schema be tightened.
+album-track inheritance flag. Preparatory revision `c39cd1b` stopped new language
+writes while keeping the legacy schema optional. The development cleanup and
+zero-removal verification are complete, and the tightened schema is deployed.
+
+#### Follow-up completion — 24 October 2026
+
+- The primary agent reviewed the whole follow-up against fixed point `17bcefa`,
+  including the new helpers, migration, generated API, callers and tests. The
+  original T1 review against `b9b5c4d` remains recorded below. No review was
+  delegated. Convex security, performance and type/quality passes found no
+  unresolved Critical or Important findings: maintenance is internal, paginated
+  at 25 rows, and deletes only the three approved keys. Artist ownership,
+  storage claims and Aggregate keys are unchanged.
+- Ran the development-only cleanup before tightening the schema. The observed
+  verification traversed **7 songs, 2 albums and 5 album-track rows** and
+  removed **zero remaining values** in all three tables. The earlier cleanup
+  process's totals were not retained across the interrupted session; no total
+  deletion count is claimed. The final `convex dev --once` succeeded with all
+  three fields absent from the schema. No production migration was run.
+  Legacy language values are permanently removed in development, without a
+  normal UI undo; documents, lyrics, artwork and track positions were retained.
+- Authored Convex diagnostics and auth-email text are English; existing stable
+  error codes select French/English client feedback. Historical lyric headings
+  remain untouched source content. Real email delivery was not exercised.
+- Generic editor introductions are removed. Lyrics remain required, while
+  section markers are explicitly optional and the textarea has a free-writing
+  placeholder. The mobile cover bug was reproduced at 600 px (521 px square)
+  and corrected to 96 px. Browser checks at 390, 600 and 1280 px show compact
+  thumbnails (96/160 px) without horizontal overflow.
+- The private song's pencil handles a corrupt image with a durable localized
+  error, then successfully retries from Enter-key activation. The Studio shows
+  exactly one `[TEST T1 UX] Pochette création` row after the creation retry.
+  A dedicated `[TEST T1 UX] Pochette album` draft was created with a selected
+  cover at `/studio/albums/jx7cekd4kncgxrj8rmb91878258gwbmq/preview`; direct
+  pencil replacement and immediate edit-form upload both succeeded. Pending
+  controls disable while uploading. New-song UI has no language field, generic
+  introduction or read-only lyrics preview. The dashboard subtitle remains.
+- Public artwork has no edit control, and empty-cover/pending controls are
+  covered by SSR tests; empty-cover upload was not separately exercised live.
+  No draft was published or deleted, no avatar/banner or unrelated user content
+  was modified. Temporary browser sizing was reset. No new warning/error was
+  captured during the final browser checks; older HMR/provider errors remain
+  in the historical browser log and are not claimed to have been fixed here.
+- `pnpm check` passes formatting, lint, TypeScript, **113 tests** (28 shared,
+  35 backend, 50 web), and production client/SSR builds. The gate caught and
+  corrected a constant-loop lint issue and a stale positional display assertion
+  after language removal; both corrected files were reviewed again.
+  `git diff --check` passes. Browser proof is saved locally at
+  `/tmp/lyrx-t1-form-proof.png` (temporary evidence, not a repository asset).
+
+The user accepted the result. Save a final local commit only; no push, PR,
+merge, production deployment or next lot is authorized.
 
 #### Quota checkpoint — 24 October 2026
 
-The user reported their quota running out; save locally and stop here. This
-follow-up is **not yet declared complete**. Stay on
+Historical checkpoint, superseded by the completion evidence above. At this
+point the user reported their quota running out and requested a local stop.
+The follow-up was not yet declared complete. Work stayed on
 `codex/catalogue-refactor-image-uploads`; no push, PR, merge or lot 6.
 
 Implemented since `17bcefa`:
@@ -71,7 +122,8 @@ Browser evidence so far (authenticated in-app account, development only):
 - No test draft was published or deleted. No avatar/banner or unrelated user
   content was changed in this follow-up.
 
-Still required before completion:
+Remaining work recorded at that checkpoint (now resolved above, with explicit
+live-test limits):
 
 1. Rerun `pnpm check` after the warning correction and review the complete
    follow-up diff from `17bcefa` locally (including untracked/new files).
@@ -752,7 +804,7 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Finish only the authorized T1 artwork UX follow-up on
+Await user direction after the completed local T1 delivery on
 `codex/catalogue-refactor-image-uploads`. Lot 5 remains merged and closed;
 lot 6 has not started. No push, PR or merge is authorized. The writing notebook
 with local audio and the Genius-style sharing-card refinement remain

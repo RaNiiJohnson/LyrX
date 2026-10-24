@@ -39,7 +39,7 @@ describe("primary language removal", () => {
     let cursor: string | null = null
     let removed = 0
     let pages = 0
-    while (true) {
+    for (;;) {
       const page: {
         removed: number
         processed: number

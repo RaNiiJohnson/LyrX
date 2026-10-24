@@ -52,7 +52,7 @@ A song can contain:
 
 - title, artwork, primary and guest artists;
 - optional album and album position, release date, description, and context;
-- optional legacy primary language, optional genre including an “other” value;
+- optional genre including an “other” value;
 - writers, composers, producers, label, and listening links;
 - lyrics entered as one multiline source text. A heading on its own line in
   brackets marks a section, for example `[Couplet 1]`, `[Refrain]` or `[Pont]`.
@@ -65,8 +65,9 @@ publication, including for historical drafts. Whitespace-only lyrics are rejecte
 without normalizing the stored source. The song form presents the single/album
 context, title, primary artist, and lyrics first, followed by collapsed optional
 sections for release/presentation, credits, and listening links. It has no live
-read-only lyrics preview. Primary language is hidden from this form while its
-optional stored field preserves historical values and album inheritance.
+read-only lyrics preview. Section headings are optional guidance, not required
+formatting; the textarea offers a free-writing placeholder. Primary language is
+not collected, stored, inherited or displayed.
 The normal song page renders lyrics read-only;
 lines have no click, annotation, reordering, or individual deletion action.
 
@@ -80,6 +81,9 @@ Artist preview pages also offer direct cover replacement through a labelled
 pencil button, including when no cover exists. Public read-only pages do not
 expose this control. Image optimization runs silently; only useful format/size
 constraints and actionable errors are displayed.
+Editor artwork thumbnails remain compact: 96 px on narrow screens and 160 px
+from the desktop breakpoint. Generic Studio introductions are not repeated on
+the creation/editing forms.
 
 ## Albums
 
@@ -88,7 +92,7 @@ constraints and actionable errors are displayed.
 - A song belongs to at most one album. Song creation starts with an explicit
   choice between a standalone single and an existing album; entering from an
   album preselects it.
-- Album artwork, language, genre, label, and general credits may be inherited by
+- Album artwork, genre, label, and general credits may be inherited by
   a track. Each inherited field can be customized on the track. The track keeps
   its own release date; the album date remains contextual.
 - An artist manages their albums and track order with drag-and-drop plus

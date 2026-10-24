@@ -30,9 +30,10 @@ describe("song preview display", () => {
       "producers",
       "label",
     ])
-    expect(collectSongInformation(completeSong)[2]?.value).toBe(
-      "Salegy moderne"
-    )
+    expect(
+      collectSongInformation(completeSong).find(({ id }) => id === "genre")
+        ?.value
+    ).toBe("Salegy moderne")
   })
 
   it("builds official on-demand YouTube and Spotify embeds", () => {
