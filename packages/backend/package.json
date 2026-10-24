@@ -14,11 +14,13 @@
     "convex:codegen": "convex codegen",
     "dev": "convex dev",
     "lint": "eslint src convex vitest.config.ts",
+    "migrate:catalogue-aggregates": "convex run internal.catalogueAggregates.backfill '{\"phase\":\"songs\",\"cursor\":null}'",
     "migrate:lyrics": "convex run internal.catalogue.backfillSongLyricsText '{\"cursor\":null}'",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@convex-dev/aggregate": "0.3.4",
     "@convex-dev/better-auth": "0.12.5",
     "@convex-dev/rate-limiter": "0.3.2",
     "@convex-dev/resend": "0.2.9",

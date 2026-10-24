@@ -12,6 +12,10 @@ import {
 import { SongPreview } from "@/features/catalogue/song/song-preview"
 
 export const Route = createFileRoute("/studio/songs/$songId/preview")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    fromAlbumId:
+      typeof search.fromAlbumId === "string" ? search.fromAlbumId : undefined,
+  }),
   component: SongPreviewPage,
   errorComponent: CatalogueRouteError,
   notFoundComponent: CatalogueRouteNotFound,
@@ -20,10 +24,14 @@ export const Route = createFileRoute("/studio/songs/$songId/preview")({
 
 function SongPreviewPage() {
   const { songId } = Route.useParams()
+  const { fromAlbumId } = Route.useSearch()
   return (
     <PageShell width="wide">
       <BackendRequired>
-        <SongPreview songId={songId as Id<"songs">} />
+        <SongPreview
+          songId={songId as Id<"songs">}
+          fromAlbumId={fromAlbumId as Id<"albums"> | undefined}
+        />
       </BackendRequired>
     </PageShell>
   )

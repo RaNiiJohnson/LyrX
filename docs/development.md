@@ -63,6 +63,23 @@ The first command regenerates the repository-owned Better Auth schema. The
 second requires a configured Convex deployment and replaces the documented
 bootstrap generated types.
 
+## GitHub Actions
+
+[CI](../.github/workflows/ci.yml) runs for pull requests targeting `main` and
+pushes to `main`. It can also be started manually from the Actions tab once the
+workflow is present on the default branch.
+
+The `Check project` job uses Node.js 22, installs the pnpm version declared in
+the root `packageManager` field, restores the pnpm dependency cache, installs
+with `--frozen-lockfile`, and runs the same `pnpm check` handoff gate as local
+development. A newer run cancels an older run for the same PR or branch.
+
+No deployment or account secret is required. CI uses the committed Convex
+generated types and isolated backend tests; it does not regenerate the
+authentication schema, push Convex functions, run migrations, or publish the
+site. Those live checks remain explicit development/release steps. Actions
+have read-only repository permissions and are pinned to commit SHAs.
+
 ## Legacy lyrics migration
 
 Lot 5 keeps `songs.lyricsText` optional while deployments may still contain the
@@ -87,6 +104,22 @@ has been checked.
 Use `--prod` only as an explicit manual addition to the underlying Convex
 command after the development deployment has been migrated and verified. The
 repository command intentionally targets the selected development deployment.
+
+## Catalogue Aggregate backfill
+
+After functions containing the Aggregate components and trigger-wrapped artist
+mutations are deployed, index existing songs, albums, and album tracks with:
+
+```bash
+pnpm --filter @lyrx/backend migrate:catalogue-aggregates
+```
+
+The internal migration processes bounded pages and schedules its continuation
+through the three source tables. It uses `insertIfDoesNotExist`, so rerunning it
+is safe. Deploy the trigger-wrapped mutations before starting the backfill so
+concurrent catalogue writes remain synchronized. The repository command targets
+the selected development deployment unless `--prod` is deliberately supplied
+to the underlying Convex command.
 
 ## Environment policy
 

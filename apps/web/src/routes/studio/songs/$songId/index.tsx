@@ -12,6 +12,10 @@ import {
 import { SongEditor } from "@/features/catalogue/song-editor"
 
 export const Route = createFileRoute("/studio/songs/$songId/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    fromAlbumId:
+      typeof search.fromAlbumId === "string" ? search.fromAlbumId : undefined,
+  }),
   component: EditSongPage,
   errorComponent: CatalogueRouteError,
   notFoundComponent: CatalogueRouteNotFound,
@@ -20,10 +24,14 @@ export const Route = createFileRoute("/studio/songs/$songId/")({
 
 function EditSongPage() {
   const { songId } = Route.useParams()
+  const { fromAlbumId } = Route.useSearch()
   return (
     <PageShell width="wide">
       <BackendRequired>
-        <SongEditor songId={songId as Id<"songs">} />
+        <SongEditor
+          songId={songId as Id<"songs">}
+          returnAlbumId={fromAlbumId}
+        />
       </BackendRequired>
     </PageShell>
   )

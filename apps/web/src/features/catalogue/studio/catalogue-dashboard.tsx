@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router"
+import { getRouteApi, Link, useNavigate } from "@tanstack/react-router"
 import { usePaginatedQuery } from "convex/react"
 import { Disc3, FileMusic, Plus } from "lucide-react"
+import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Button } from "@lyrx/ui/components/button"
@@ -18,27 +19,33 @@ import {
   TabsList,
   TabsTrigger,
 } from "@lyrx/ui/components/tabs"
+import { cn } from "@lyrx/ui/lib/utils"
 
 import { useLocale } from "@/app/locale-provider"
 import { CatalogueListSkeleton } from "@/features/catalogue/shared/catalogue-loading"
 import { AlbumCard, SongCard } from "./catalogue-item-card"
 
+const studioRoute = getRouteApi("/studio/")
+type CatalogueKind = "songs" | "albums"
+type StatusFilter = "all" | "draft" | "published"
+
 export function CatalogueDashboard() {
   const { t } = useLocale()
-  const songs = usePaginatedQuery(
-    api.catalogue.listMySongs,
-    {},
-    { initialNumItems: 24 }
-  )
-  const albums = usePaginatedQuery(
-    api.catalogue.listMyAlbums,
-    {},
-    { initialNumItems: 24 }
-  )
+  const navigate = useNavigate()
+  const { tab } = studioRoute.useSearch()
+  const activeKind: CatalogueKind = tab === "albums" ? "albums" : "songs"
+  const [status, setStatus] = useState<StatusFilter>("all")
+  const queryArgs = status === "all" ? {} : { status }
+  const songs = usePaginatedQuery(api.catalogue.listMySongs, queryArgs, {
+    initialNumItems: 24,
+  })
+  const albums = usePaginatedQuery(api.catalogue.listMyAlbums, queryArgs, {
+    initialNumItems: 24,
+  })
 
   return (
-    <section className="flex flex-col gap-6">
-      <div className="space-y-2">
+    <section className="flex h-full flex-col gap-6">
+      <div className="flex flex-col gap-2">
         <p className="font-mono text-xs font-medium tracking-[0.2em] text-primary uppercase">
           {t("home.eyebrow")}
         </p>
@@ -49,27 +56,41 @@ export function CatalogueDashboard() {
           {t("studio.description")}
         </p>
       </div>
-      <Tabs defaultValue="songs" className="w-full">
+      <Tabs
+        value={activeKind}
+        className="w-full flex-1"
+        onValueChange={(value) =>
+          void navigate({
+            to: "/studio",
+            search: { tab: value === "albums" ? "albums" : "songs" },
+          })
+        }
+      >
         <TabsList
-          variant="line"
-          className="w-full justify-start border-b px-0"
+          className="grid w-full grid-cols-2"
           aria-label={t("studio.title")}
         >
-          <TabsTrigger value="songs">
+          <TabsTrigger
+            value="songs"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground"
+          >
             <FileMusic /> {t("studio.songs")}
           </TabsTrigger>
-          <TabsTrigger value="albums">
+          <TabsTrigger
+            value="albums"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground"
+          >
             <Disc3 /> {t("studio.albums")}
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="songs" className="space-y-4 pt-3">
-          <div className="flex justify-end">
-            <Button asChild>
-              <Link to="/studio/songs/new">
-                <Plus /> {t("studio.newSong")}
-              </Link>
-            </Button>
-          </div>
+
+        <StatusFilters value={status} onChange={setStatus} />
+
+        <TabsContent
+          value="songs"
+          className="flex flex-col gap-4 pt-1 pb-20 sm:pb-0"
+        >
+          <CreateButton kind="song" placement="desktop" />
           <CatalogueListState
             loading={songs.status === "LoadingFirstPage"}
             empty={songs.results.length === 0}
@@ -83,15 +104,13 @@ export function CatalogueDashboard() {
             status={songs.status}
             onLoadMore={() => songs.loadMore(24)}
           />
+          <CreateButton kind="song" placement="mobile" />
         </TabsContent>
-        <TabsContent value="albums" className="space-y-4 pt-3">
-          <div className="flex justify-end">
-            <Button asChild>
-              <Link to="/studio/albums/new">
-                <Plus /> {t("studio.newAlbum")}
-              </Link>
-            </Button>
-          </div>
+        <TabsContent
+          value="albums"
+          className="flex flex-col gap-4 pt-1 pb-20 sm:pb-0"
+        >
+          <CreateButton kind="album" placement="desktop" />
           <CatalogueListState
             loading={albums.status === "LoadingFirstPage"}
             empty={albums.results.length === 0}
@@ -105,9 +124,86 @@ export function CatalogueDashboard() {
             status={albums.status}
             onLoadMore={() => albums.loadMore(24)}
           />
+          <CreateButton kind="album" placement="mobile" />
         </TabsContent>
       </Tabs>
     </section>
+  )
+}
+
+function StatusFilters({
+  onChange,
+  value,
+}: {
+  onChange: (value: StatusFilter) => void
+  value: StatusFilter
+}) {
+  const { t } = useLocale()
+  const options = [
+    { label: t("catalogue.all"), value: "all" },
+    { label: t("catalogue.drafts"), value: "draft" },
+    { label: t("catalogue.publishedPlural"), value: "published" },
+  ] as const
+  return (
+    <div
+      className="flex items-center gap-2 overflow-x-auto border-b py-3"
+      aria-label={t("catalogue.filterByStatus")}
+    >
+      {options.map((option) => (
+        <Button
+          key={option.value}
+          type="button"
+          size="sm"
+          variant={value === option.value ? "secondary" : "outline"}
+          aria-pressed={value === option.value}
+          className={cn(
+            "rounded-full",
+            value === option.value && "font-semibold"
+          )}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </Button>
+      ))}
+    </div>
+  )
+}
+
+function CreateButton({
+  kind,
+  placement,
+}: {
+  kind: "song" | "album"
+  placement: "desktop" | "mobile"
+}) {
+  const { t } = useLocale()
+  const song = kind === "song"
+  return (
+    <Button
+      asChild
+      className={cn(
+        "self-end",
+        placement === "desktop"
+          ? "hidden sm:inline-flex"
+          : "fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20 rounded-full shadow-lg sm:hidden"
+      )}
+    >
+      <Link
+        to={song ? "/studio/songs/new" : "/studio/albums/new"}
+        search={song ? { albumId: undefined } : undefined}
+      >
+        <Plus data-icon="inline-start" />
+        {t(
+          song
+            ? placement === "mobile"
+              ? "studio.newSongShort"
+              : "studio.newSong"
+            : placement === "mobile"
+              ? "studio.newAlbumShort"
+              : "studio.newAlbum"
+        )}
+      </Link>
+    </Button>
   )
 }
 
@@ -124,7 +220,7 @@ function CatalogueListState({
 }) {
   const { t } = useLocale()
   if (loading) return <CatalogueListSkeleton />
-  if (!empty) return <div className="grid gap-4 md:grid-cols-2">{children}</div>
+  if (!empty) return <div className="flex flex-col border-t">{children}</div>
   const song = kind === "song"
   return (
     <Empty className="border">

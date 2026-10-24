@@ -6,6 +6,10 @@ export const emptyAlbumValues: AlbumFormValues = {
   title: "",
   releaseDate: "",
   description: "",
+  primaryLanguage: "",
+  genre: "",
+  otherGenre: "",
+  label: "",
   credits: "",
   trackIds: [],
 }

@@ -1,4 +1,4 @@
-import { useQuery } from "convex/react"
+import { usePaginatedQuery, useQuery } from "convex/react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
@@ -8,7 +8,15 @@ import { useLocale } from "@/app/locale-provider"
 import { CatalogueEditorSkeleton } from "./shared/catalogue-loading"
 import { SongEditorForm } from "./song/song-editor-form"
 
-export function SongEditor({ songId }: { songId?: Id<"songs"> }) {
+export function SongEditor({
+  initialAlbumId,
+  returnAlbumId,
+  songId,
+}: {
+  initialAlbumId?: string
+  returnAlbumId?: string
+  songId?: Id<"songs">
+}) {
   const current = useQuery(api.members.current, {})
   const { t } = useLocale()
 
@@ -24,6 +32,8 @@ export function SongEditor({ songId }: { songId?: Id<"songs"> }) {
   return (
     <SongEditorData
       songId={songId}
+      initialAlbumId={initialAlbumId as Id<"albums"> | undefined}
+      returnAlbumId={returnAlbumId as Id<"albums"> | undefined}
       primaryArtist={current.profile.displayName}
     />
   )
@@ -31,19 +41,49 @@ export function SongEditor({ songId }: { songId?: Id<"songs"> }) {
 
 function SongEditorData({
   primaryArtist,
+  initialAlbumId,
+  returnAlbumId,
   songId,
 }: {
   primaryArtist: string
+  initialAlbumId?: Id<"albums">
+  returnAlbumId?: Id<"albums">
   songId?: Id<"songs">
 }) {
   const detail = useQuery(api.catalogue.getMySong, songId ? { songId } : "skip")
-  if (songId && detail === undefined) return <CatalogueEditorSkeleton />
+  const initialAlbum = useQuery(
+    api.catalogue.getMyAlbum,
+    !songId && initialAlbumId ? { albumId: initialAlbumId } : "skip"
+  )
+  const albums = usePaginatedQuery(
+    api.catalogue.listMyAlbums,
+    {},
+    { initialNumItems: 50 }
+  )
+  if (
+    (songId && detail === undefined) ||
+    (!songId && initialAlbumId && initialAlbum === undefined) ||
+    albums.status === "LoadingFirstPage"
+  )
+    return <CatalogueEditorSkeleton />
+  const albumChoices = [
+    ...(detail?.album ? [detail.album] : []),
+    ...(initialAlbum ? [initialAlbum.album] : []),
+    ...albums.results.filter(
+      (album) =>
+        album._id !== initialAlbum?.album._id &&
+        album._id !== detail?.album?._id
+    ),
+  ]
   return (
     <SongEditorForm
-      key={songId ?? "new"}
+      key={songId ?? initialAlbumId ?? "new"}
       songId={songId}
       primaryArtist={primaryArtist}
       detail={detail ?? undefined}
+      initialAlbum={initialAlbum?.album ?? detail?.album ?? undefined}
+      returnAlbumId={returnAlbumId ?? initialAlbumId}
+      albums={albumChoices}
     />
   )
 }

@@ -74,6 +74,9 @@ lot has started.
 - [x] Lot 5 `pnpm check` passes formatting, lint, TypeScript, 76 tests, and the
       client/SSR production builds. The local standards/specification review and
       Convex review have no unresolved blocking finding.
+- [x] The album-workflow refinement passes `pnpm check` with 81 tests and both
+      production builds. Aggregate backfill and the development Convex push
+      succeeded; desktop and 390×844 browser checks have no console error.
 
 ## Lot history
 
@@ -177,6 +180,131 @@ lot has started.
   les onglets, les curseurs et la boîte de confirmation ont été vérifiés ; le
   contenu n'a pas été supprimé pendant ce contrôle. `pnpm check` passe avec 28
   tests shared, 28 backend et 23 web, ainsi que les builds client et SSR.
+- Extension album post-lot du 2026-10-24, basée sur `a6cca538` : la création
+  d’un morceau choisit explicitement single ou album et peut hériter de la
+  pochette, de la langue, du genre, du label et des crédits généraux, avec une
+  personnalisation champ par champ. Un morceau reste limité à un album. La
+  suppression d’un album conserve les morceaux en matérialisant les valeurs
+  héritées avant de détacher les associations.
+- L’aperçu artiste d’un album expose maintenant les actions Modifier/Supprimer,
+  le rattachement recherché d’un single, la création directe déjà liée, les
+  statuts Brouillon/Publié et une liste de pistes prioritaire. Le réordonnancement
+  accepte le glisser-déposer pointeur/clavier et conserve les boutons haut/bas.
+  La page publique `/albums/$albumId` utilise le même pattern SSR
+  `convexQuery`/`useSuspenseQuery` que les autres données publiques et ne reçoit
+  que les pistes publiées. La publication d’un album exige au moins une piste
+  publiée.
+- Revue locale complète : aucun défaut Standards/Spec bloquant ne reste. La
+  revue Convex a corrigé la compaction des positions après retrait afin
+  d’éviter trous et collisions lors d’un rattachement ultérieur ; les fonctions
+  publiques ont leurs validateurs, les mutations artiste centralisent
+  authentification et propriété, et les listes restent indexées et bornées.
+  Aucun finding Critical ou Important ne reste.
+- `pnpm check` passe avec 28 tests shared, 29 backend et 23 web (80 tests), puis
+  les builds client et SSR. `convex dev --once` a préparé avec succès les
+  fonctions du déploiement de développement. Dans le navigateur intégré et le
+  compte artiste existant, l’album vide a préselectionné son contexte dans le
+  nouveau morceau, enregistré le brouillon `[TEST] Parcours album 2026-10-24`,
+  redirigé vers son aperçu et affiché immédiatement cette piste en position 1
+  avec le statut Brouillon dans l’album.
+- État Git de cette extension : branche `codex/album-workflow`, commit principal
+  `be59773`, corrections de revue `087ac16`; le diff
+  `a6cca538...087ac16` est non vide et constitue la base de revue complète.
+- Raffinement album du 2026-10-24, basé sur `687d75a` : le Studio utilise
+  désormais `@convex-dev/aggregate` pour les listes paginées, les filtres par
+  statut, les compteurs et l’ordre des pistes. Cinq projections nommées sont
+  maintenues transactionnellement par des triggers idempotents, avec un backfill
+  borné et relançable documenté. Le backfill de développement a indexé les cinq
+  morceaux existants puis poursuivi albums et pistes ; la liste a retrouvé
+  l’album et ses quatre morceaux.
+- L’aperçu album suit le design compact desktop/mobile retenu : bouton Publier
+  visible sur un brouillon, menu d’actions, artiste, compteur Aggregate, date et
+  statut, description pleine largeur sur mobile, liste prioritaire et détails
+  après les morceaux. Le propriétaire peut réordonner directement avec
+  glisser-déposer, clavier ou boutons haut/bas également visibles sur mobile.
+  Les retours conservent maintenant leur contexte jusque dans l’aperçu et
+  l’édition d’un morceau ouvert depuis un album.
+- Le Studio présente des onglets explicitement contrastés, les filtres
+  Tous/Brouillons/Publiés, des lignes compactes, un menu mobile et le bouton
+  Créer flottant en vue étroite. La navbar n’a pas été modifiée. La publication
+  artiste ne demande plus une attestation répétée ; cette confirmation reste une
+  responsabilité du futur parcours de proposition fan.
+- Revue locale du diff `687d75a...ad26536` : l’attribut d’état Radix des onglets
+  et l’absence initiale des flèches de réordonnancement sur mobile ont été
+  corrigés. La revue finale Standards/Spec et la revue Convex ne laissent aucun
+  défaut bloquant, Critical ou Important. Les lectures supplémentaires des
+  lignes Studio restent bornées par page et sont acceptées pour conserver les
+  projections publiques minimales.
+- Vérification : `pnpm check` passe avec 28 tests shared, 30 backend et 23 web
+  (81 tests), lint, TypeScript et builds client/SSR. `convex dev --once` a préparé
+  les fonctions du déploiement de développement ; le backfill Aggregate a été
+  exécuté. Le navigateur intégré Codex a vérifié Studio et aperçu album en
+  desktop et à 390×844, les filtres, le bouton Créer flottant, les contrôles
+  d’ordre mobiles et le retour morceau → album, sans erreur console.
+- Ajustement visuel final du Studio : l’action mobile n’est plus fixée au
+  viewport et ne recouvre donc plus le footer. Elle suit maintenant la liste,
+  juste avant le footer, avec le libellé contextuel `+ Morceau` ou `+ Album` ;
+  l’action desktop conserve son libellé complet en haut de la liste. La revue
+  locale ne relève aucun écart Standards/Spec et la revue Convex n’est pas
+  applicable. `pnpm check` reste vert avec 81 tests et les deux variantes ont
+  été contrôlées à largeur mobile dans le navigateur intégré, footer visible.
+- Reprise du formulaire et correctifs du 2026-10-24, base de revue `a62bb8d` :
+  le checkpoint `3ea2ada` est repris puis revu intégralement. Le formulaire de
+  morceau réunit maintenant contexte single/album, titre, artiste et paroles,
+  puis trois volets repliables pour sortie/présentation, crédits/collaborations
+  et écoute. Les valeurs restent présentes après fermeture/réouverture. L’aperçu
+  en lecture seule intégré au formulaire et son composant inutilisé sont retirés ;
+  le rendu de la page du morceau continue de parser le texte canonique.
+- `primaryLanguage` est facultatif dans le schéma, les entrées et les projections
+  publiques. Le champ n’est plus demandé dans l’éditeur de morceau ; les valeurs
+  historiques et l’héritage d’album sont conservés. Les paroles vides ou composées
+  d’espaces sont refusées à la création, à l’édition et à la publication des
+  anciens brouillons. La compatibilité de lecture des anciens enregistrements
+  et le backfill restent inchangés.
+- Le bouton mobile `+ Morceau` / `+ Album` est à nouveau fixe, selon le dernier
+  retour utilisateur. Sur le Studio, la zone principale occupe au moins l’écran
+  sous la navbar : le footer ne se montre qu’en défilant. Un espace mobile en bas
+  du footer évite que son texte soit couvert lorsque le bas de page est atteint.
+  Le menu mobile utilise une variante primaire partagée pour le fond, le texte
+  et l’icône de Publier ; Modifier garde sa variante neutre.
+- Revue locale Standards/Spec et revue `convex:convex-reviewer` : les légendes
+  des groupes de formulaire ont été séparées correctement ; le contrôle des
+  paroles a été ajouté au chemin de publication des anciens brouillons. Aucune
+  violation bloquante, Critical ou Important ne reste. Les mutations gardent
+  leur autorisation artiste/propriétaire ; la projection publique accepte
+  l’absence de langue sans exposer de champ privé.
+- Vérification : `pnpm check` passe avec 28 tests shared, 31 backend et 24 web
+  (83 tests), lint, TypeScript et builds client/SSR. La synchronisation
+  `convex dev --once` du déploiement de développement a confirmé
+  `Convex functions ready!`. Le navigateur intégré a vérifié le nouveau
+  formulaire, la conservation des champs repliés et l’absence d’aperçu/langue.
+  À 390×844, le footer du Studio démarre à 844 px ; en bas de page son texte
+  finit à 764 px et le bouton fixe commence à 796 px, sans recouvrement ni
+  débordement horizontal. Le fond primaire et le contraste texte/icône ont été
+  contrôlés visuellement et via les styles calculés. Les anciennes erreurs HMR
+  ont été distinguées d’un rechargement propre avant le contrôle console final.
+- CI GitHub Actions ajoutée le 2026-10-24 à la demande utilisateur :
+  `.github/workflows/ci.yml` exécute `pnpm install --frozen-lockfile` puis
+  `pnpm check` sur les PR vers `main`, les pushes vers `main` et à la demande.
+  Node 22 et le pnpm du `packageManager` sont utilisés, avec cache des
+  dépendances, annulation des exécutions dépassées, limite de 15 minutes et
+  permissions `contents: read`. Les trois actions sont épinglées sur des
+  commits officiels vérifiés. Aucun secret ni déploiement n’est inclus.
+- Revue locale du workflow : YAML validé, déclencheurs et commande vérifiés,
+  aucun défaut bloquant. Aucun fichier Convex n’est modifié dans cet ajout ;
+  sa revue spécifique est non applicable. L’installation figée et `pnpm check`
+  passent localement (83 tests et builds client/SSR ; résultats Turbo réutilisés
+  pour le code inchangé). La première exécution hébergée sera déclenchée par
+  l’ouverture de la PR `codex/album-workflow` vers `main`, autorisée par
+  l’utilisateur ; son résultat doit être distingué de la validation locale.
+- Les cartes du Studio ouvrent désormais directement l’aperçu sur toute la
+  ligne ; les actions Modifier/Publier et le menu restent isolés du lien, et
+  l’action Aperçu a été retirée des vues desktop et mobile. Les clics directs
+  morceau et album ont été vérifiés dans le navigateur intégré, puis `pnpm
+  check` a repassé avec 81 tests et les builds client/SSR.
+- Les actions de publication sont maintenant différenciées visuellement par
+  leurs icônes : envoi pour Publier et masquage pour Dépublier, dans le bouton
+  desktop comme dans le menu mobile.
 
 ### Lot 4 — Catalogue artiste (complete)
 

@@ -52,7 +52,7 @@ A song can contain:
 
 - title, artwork, primary and guest artists;
 - optional album and album position, release date, description, and context;
-- primary language, optional genre including an “other” value;
+- optional legacy primary language, optional genre including an “other” value;
 - writers, composers, producers, label, and listening links;
 - lyrics entered as one multiline source text. A heading on its own line in
   brackets marks a section, for example `[Couplet 1]`, `[Refrain]` or `[Pont]`.
@@ -60,7 +60,14 @@ A song can contain:
 Unknown credits and metadata remain optional. A song may be a standalone single.
 The raw lyric text is the canonical authoring source and must be retained without
 loss. A parser may derive sections and display lines from it, but this is not an
-array of editable line fields. The normal song page renders lyrics read-only;
+array of editable line fields. Lyrics are required at creation, update, and
+publication, including for historical drafts. Whitespace-only lyrics are rejected
+without normalizing the stored source. The song form presents the single/album
+context, title, primary artist, and lyrics first, followed by collapsed optional
+sections for release/presentation, credits, and listening links. It has no live
+read-only lyrics preview. Primary language is hidden from this form while its
+optional stored field preserves historical values and album inheritance.
+The normal song page renders lyrics read-only;
 lines have no click, annotation, reordering, or individual deletion action.
 
 An artist can create a draft, preview, publish, edit, and unpublish content they
@@ -70,7 +77,21 @@ own. V1 has no artist co-editing.
 
 - Album pages include title, artwork, release date, description, available
   artists/credits, and an ordered list linking to song pages.
-- An artist manages their albums and track order.
+- A song belongs to at most one album. Song creation starts with an explicit
+  choice between a standalone single and an existing album; entering from an
+  album preselects it.
+- Album artwork, language, genre, label, and general credits may be inherited by
+  a track. Each inherited field can be customized on the track. The track keeps
+  its own release date; the album date remains contextual.
+- An artist manages their albums and track order with drag-and-drop plus
+  keyboard-accessible up/down controls. Existing standalone songs can be
+  attached from a searchable selector, or created directly inside the album.
+- Publishing an album requires at least one published track. The artist view
+  shows each track status, while the public album page lists published tracks
+  only.
+- Deleting an album keeps its songs. Values currently inherited from the album
+  are copied onto each affected song before the associations and album are
+  removed.
 - A fan proposal may name an album but never directly modify a public album.
   Administration can correct associations while reviewing the proposal.
 
@@ -87,8 +108,9 @@ own. V1 has no artist co-editing.
   homonyms, versions, or potential duplicates automatically.
 - A self-declared artist cannot claim a fan-created artist page by matching a
   name. Automated claims and co-editing are deferred; disputes go to admin.
-- Artists and fans affirm at submission that they hold the necessary rights or
-  authorization for lyrics and images.
+- Fan proposals require an explicit rights and authorization affirmation at
+  submission. The artist-owned Studio publishes directly; it does not repeat a
+  rights checkbox on every draft or catalogue row.
 
 ## Public discovery and search
 

@@ -3,7 +3,7 @@ import { useMutation } from "convex/react"
 import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
-import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useLocale } from "@/app/locale-provider"
@@ -18,11 +18,15 @@ import type { SongDetail } from "./song-types"
 
 export function useSongEditorController({
   detail,
+  initialAlbum,
   primaryArtist,
+  returnAlbumId,
   songId,
 }: {
   detail?: SongDetail
+  initialAlbum?: Doc<"albums">
   primaryArtist: string
+  returnAlbumId?: Id<"albums">
   songId?: Id<"songs">
 }) {
   const { t } = useLocale()
@@ -31,19 +35,31 @@ export function useSongEditorController({
   const updateSong = useMutation(api.catalogue.updateSong)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [step, setStep] = useState(0)
-  const steps = [
-    t("studio.stepBasics"),
-    t("studio.stepCredits"),
-    t("studio.stepLyrics"),
-  ]
 
   const form = useAppForm({
     defaultValues: detail
       ? songValuesFromDetail(detail)
-      : emptySongValues(primaryArtist),
+      : emptySongValues(primaryArtist, initialAlbum),
     onSubmit: async ({ value }) => {
       setError(null)
+      if (value.releaseType === "album" && !value.albumId) {
+        setError(t("studio.chooseAlbum"))
+        document.getElementById("albumId")?.focus()
+        return
+      }
+      const requiredFields: Array<[string, string, string]> = [
+        ["title", value.title, t("studio.songTitle")],
+        ["primaryArtist", value.primaryArtist, t("studio.primaryArtist")],
+        ["lyricsText", value.lyricsText, t("studio.lyricsEditor")],
+      ]
+      const missing = requiredFields.find(
+        ([, fieldValue]) => !fieldValue.trim()
+      )
+      if (missing) {
+        setError(t("studio.requiredField", { field: missing[2] }))
+        document.getElementById(missing[0])?.focus()
+        return
+      }
       setSaving(true)
       try {
         const input = toSongMutationInput(value)
@@ -54,6 +70,7 @@ export function useSongEditorController({
         await navigate({
           to: "/studio/songs/$songId/preview",
           params: { songId: savedSongId },
+          search: { fromAlbumId: returnAlbumId },
         })
       } catch (caught) {
         const message = getErrorMessage(caught, t)
@@ -65,51 +82,10 @@ export function useSongEditorController({
     },
   })
 
-  async function saveCurrentChanges() {
-    if (!songId) return
-    setError(null)
-    setSaving(true)
-    try {
-      await updateSong({
-        songId,
-        ...toSongMutationInput(form.state.values),
-      })
-      toast.success(t("catalogue.saved"))
-    } catch (caught) {
-      const message = getErrorMessage(caught, t)
-      setError(message)
-      toast.error(t("catalogue.saveError"), { description: message })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function nextStep() {
-    if (step === 0) {
-      for (const name of [
-        "title",
-        "primaryArtist",
-        "primaryLanguage",
-      ] as const) {
-        const errors = await form.validateField(name, "blur")
-        if (errors.length > 0) {
-          document.getElementById(name)?.focus()
-          return
-        }
-      }
-    }
-    setStep((current) => Math.min(steps.length - 1, current + 1))
-  }
-
   return {
     error,
     form,
-    nextStep,
-    previousStep: () => setStep((current) => Math.max(0, current - 1)),
-    saveCurrentChanges,
     saving,
     setError,
-    step,
-    steps,
   }
 }

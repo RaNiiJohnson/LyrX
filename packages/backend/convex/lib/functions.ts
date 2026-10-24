@@ -5,6 +5,7 @@ import {
 } from "convex-helpers/server/customFunctions"
 
 import { mutation, query } from "../_generated/server"
+import { catalogueAggregateTriggers } from "../catalogueAggregates"
 import {
   requireActiveArtist,
   requireActiveMember,
@@ -48,7 +49,10 @@ export const artistQuery = customQuery(
 
 export const artistMutation = customMutation(
   mutation,
-  customCtx(async (ctx) => ({
-    member: await requireActiveArtist(ctx),
-  }))
+  customCtx(async (ctx) =>
+    catalogueAggregateTriggers.wrapDB({
+      ...ctx,
+      member: await requireActiveArtist(ctx),
+    })
+  )
 )

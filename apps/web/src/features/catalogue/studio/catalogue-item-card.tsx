@@ -1,20 +1,26 @@
 import { Link } from "@tanstack/react-router"
 import type { FunctionReturnType } from "convex/server"
+import {
+  Disc3,
+  EyeOff,
+  FileMusic,
+  MoreHorizontal,
+  Pencil,
+  Send,
+} from "lucide-react"
 
 import type { api } from "@lyrx/backend/convex/_generated/api"
 import type { Doc } from "@lyrx/backend/convex/_generated/dataModel"
-import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
+import { Alert, AlertDescription } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@lyrx/ui/components/card"
-import { Checkbox } from "@lyrx/ui/components/checkbox"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@lyrx/ui/components/dropdown-menu"
 
 import { useLocale } from "@/app/locale-provider"
 import { usePublicationControl } from "./use-publication-control"
@@ -25,15 +31,15 @@ type SongSummary = FunctionReturnType<
 
 export function SongCard({ song }: { song: SongSummary }) {
   return (
-    <CatalogueItemCard kind="song" item={song} subtitle={song.primaryArtist} />
+    <CatalogueItemRow kind="song" item={song} subtitle={song.primaryArtist} />
   )
 }
 
 export function AlbumCard({ album }: { album: Doc<"albums"> }) {
-  return <CatalogueItemCard kind="album" item={album} />
+  return <CatalogueItemRow kind="album" item={album} />
 }
 
-function CatalogueItemCard({
+function CatalogueItemRow({
   kind,
   item,
   subtitle,
@@ -54,66 +60,93 @@ function CatalogueItemCard({
   const params = kind === "song" ? { songId: item._id } : { albumId: item._id }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <CardTitle>{item.title}</CardTitle>
-            {subtitle ? <CardDescription>{subtitle}</CardDescription> : null}
-          </div>
-          <StatusBadge status={item.status} />
+    <article className="relative flex min-w-0 flex-col border-b py-3 last:border-b-0">
+      <Link
+        to={previewTo}
+        params={params}
+        aria-label={item.title}
+        className="absolute inset-0 z-0 rounded-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+      />
+      <div className="pointer-events-none relative z-10 flex min-w-0 items-center gap-3">
+        <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground sm:size-14">
+          {kind === "song" ? <FileMusic /> : <Disc3 />}
         </div>
-      </CardHeader>
-      {item.status === "draft" || publication.error ? (
-        <CardContent>
-          <div className="space-y-4">
-            {item.status === "draft" ? (
-              <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
-                <Checkbox
-                  checked={publication.rightsConfirmed}
-                  onCheckedChange={(checked) =>
-                    publication.setRightsConfirmed(checked === true)
-                  }
-                />
-                <span>{t("catalogue.rightsConfirmation")}</span>
-              </label>
-            ) : null}
-            {publication.error ? (
-              <Alert variant="destructive">
-                <AlertTitle>{t("catalogue.saveError")}</AlertTitle>
-                <AlertDescription>{publication.error}</AlertDescription>
-              </Alert>
-            ) : null}
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">{item.title}</p>
+          {subtitle ? (
+            <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
+          ) : null}
+          <div className="mt-1 sm:hidden">
+            <StatusBadge status={item.status} />
           </div>
-        </CardContent>
+        </div>
+
+        <div className="pointer-events-auto hidden items-center gap-2 sm:flex">
+          <StatusBadge status={item.status} />
+          <Button asChild variant="outline" size="sm">
+            <Link to={editTo} params={params}>
+              <Pencil data-icon="inline-start" /> {t("catalogue.edit")}
+            </Link>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={item.status === "draft" ? "default" : "secondary"}
+            disabled={publication.pending}
+            onClick={() => void publication.changeStatus()}
+          >
+            {item.status === "draft" ? (
+              <Send data-icon="inline-start" />
+            ) : (
+              <EyeOff data-icon="inline-start" />
+            )}
+            {item.status === "draft"
+              ? t("catalogue.publish")
+              : t("catalogue.unpublish")}
+          </Button>
+        </div>
+
+        <div className="pointer-events-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="sm:hidden"
+                aria-label={t("catalogue.moreActions")}
+              >
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                  <Link to={editTo} params={params}>
+                    <Pencil /> {t("catalogue.edit")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant={item.status === "draft" ? "primary" : "default"}
+                  disabled={publication.pending}
+                  onSelect={() => void publication.changeStatus()}
+                >
+                  {item.status === "draft" ? <Send /> : <EyeOff />}
+                  {item.status === "draft"
+                    ? t("catalogue.publish")
+                    : t("catalogue.unpublish")}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      {publication.error ? (
+        <Alert variant="destructive" className="relative z-10 mt-2">
+          <AlertDescription>{publication.error}</AlertDescription>
+        </Alert>
       ) : null}
-      <CardFooter className="flex flex-wrap gap-2">
-        <Button asChild variant="outline" size="sm">
-          <Link to={editTo} params={params}>
-            {t("catalogue.edit")}
-          </Link>
-        </Button>
-        <Button asChild variant="ghost" size="sm">
-          <Link to={previewTo} params={params}>
-            {t("catalogue.preview")}
-          </Link>
-        </Button>
-        <Button
-          type="button"
-          variant={item.status === "draft" ? "default" : "secondary"}
-          size="sm"
-          disabled={
-            publication.pending ||
-            (item.status === "draft" && !publication.rightsConfirmed)
-          }
-          onClick={() => void publication.changeStatus()}
-        >
-          {item.status === "draft"
-            ? t("catalogue.publish")
-            : t("catalogue.unpublish")}
-        </Button>
-      </CardFooter>
-    </Card>
+    </article>
   )
 }
 

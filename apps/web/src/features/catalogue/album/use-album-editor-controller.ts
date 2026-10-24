@@ -15,7 +15,7 @@ import {
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage } from "@/lib/errors"
 import { emptyAlbumValues } from "./album-form-options"
-import type { AlbumDetail } from "./album-types"
+import type { AlbumDetail, AlbumFormValues } from "./album-types"
 
 export function useAlbumEditorController({
   albumId,
@@ -29,22 +29,32 @@ export function useAlbumEditorController({
   const createAlbum = useMutation(api.catalogue.createAlbum)
   const updateAlbum = useMutation(api.catalogue.updateAlbum)
   const [error, setError] = useState<string | null>(null)
+  const defaultValues: AlbumFormValues = detail
+    ? {
+        title: detail.album.title,
+        releaseDate: dateInputFromTimestamp(detail.album.releaseDate),
+        description: detail.album.description ?? "",
+        primaryLanguage: detail.album.primaryLanguage ?? "",
+        genre: detail.album.genre ?? "",
+        otherGenre: detail.album.otherGenre ?? "",
+        label: detail.album.label ?? "",
+        credits: detail.album.credits.join("\n"),
+        trackIds: detail.tracks.map(({ song }) => song._id),
+      }
+    : emptyAlbumValues
   const form = useAppForm({
-    defaultValues: detail
-      ? {
-          title: detail.album.title,
-          releaseDate: dateInputFromTimestamp(detail.album.releaseDate),
-          description: detail.album.description ?? "",
-          credits: detail.album.credits.join("\n"),
-          trackIds: detail.tracks.map(({ song }) => song._id),
-        }
-      : emptyAlbumValues,
+    defaultValues,
     onSubmit: async ({ value }) => {
       setError(null)
       const input = {
         title: value.title,
         releaseDate: timestampFromDateInput(value.releaseDate),
         description: value.description || undefined,
+        primaryLanguage: value.primaryLanguage || undefined,
+        genre: value.genre || undefined,
+        otherGenre:
+          value.genre === "other" ? value.otherGenre || undefined : undefined,
+        label: value.label || undefined,
         credits: namesFromTextarea(value.credits),
       }
       try {

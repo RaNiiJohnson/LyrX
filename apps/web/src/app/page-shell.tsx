@@ -38,9 +38,11 @@ import { ThemeMenu } from "./theme-menu"
 
 export function PageShell({
   children,
+  footerBelowFold = false,
   width = "narrow",
 }: {
   children: ReactNode
+  footerBelowFold?: boolean
   width?: "narrow" | "wide"
 }) {
   const { t } = useLocale()
@@ -84,6 +86,7 @@ export function PageShell({
       <main
         className={cn(
           "mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8",
+          footerBelowFold && "min-h-[calc(100svh-4.5rem)]",
           width === "wide" ? "max-w-6xl" : "max-w-2xl"
         )}
       >
@@ -91,7 +94,12 @@ export function PageShell({
       </main>
 
       <footer className="border-t">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:px-6">
+        <div
+          className={cn(
+            "mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:px-6",
+            footerBelowFold && "pb-20 sm:pb-6"
+          )}
+        >
           <p>
             © {new Date().getFullYear()} {PRODUCT_NAME}
           </p>
