@@ -16,6 +16,65 @@ its remote branch was deleted by the user. Its history below is retained as
 completed evidence; T1 neither reopens lot 5 nor starts the fan-proposals lot.
 No PR is authorized for T1; request explicit authorization before creating one.
 
+### Authorized T1 artwork UX follow-up
+
+The user's next annotations authorize a same-branch refinement, reviewed from
+`17bcefa`: hide the optimization explanation, add direct owner-only pencil
+controls to song/album preview artwork, and offer artwork selection on both
+creation and editing forms. This is not a reopening of lot 5 or the start of
+lot 6. Implementation and verification are in progress for this follow-up.
+
+#### Quota checkpoint — 24 October 2026
+
+The user reported their quota running out; save locally and stop here. This
+follow-up is **not yet declared complete**. Stay on
+`codex/catalogue-refactor-image-uploads`; no push, PR, merge or lot 6.
+
+Implemented since `17bcefa`:
+
+- Removed optimization explanations from artwork/avatar/banner helper text;
+  catalogue forms show format/size help once instead of twice.
+- Added shared `CatalogueArtwork` with an accessible pencil/add button, pending
+  spinner and file chooser. Only the artist song/album previews pass its edit
+  action; public/read-only views get no upload control. Navbar unchanged.
+- Both creation forms now offer artwork selection with local preview/removal;
+  existing editor uploads remain immediate. `useArtworkSelection` revokes blob
+  URLs on replacement/unmount. Compression and server ownership remain intact.
+- `saveCatalogueDraft` remembers the created id before uploading. An image
+  failure leaves the form and values in place with a partial-success message;
+  retry updates the same draft. Custom song artwork overrides album-artwork
+  inheritance; successful existing-song uploads also clear that form flag.
+- Five save/retry tests and five SSR artwork-control tests were added.
+  `pnpm check` completed with **109 passing tests**, typechecks and production
+  builds. It reported 11 `require-await` warnings in new test mocks; those
+  mocks were corrected to explicit Promise returns afterward. The final gate
+  has **not** been rerun on that correction yet.
+
+Browser evidence so far (authenticated in-app account, development only):
+
+- New-song form shows the picker and no optimization explanation. A corrupt
+  JPEG at `/tmp/lyrx-t1-invalid.jpg` produced the partial-success error without
+  clearing the typed title/lyrics or leaving the form.
+- Selecting `/tmp/lyrx-artwork-ux-fixture.png` and saving again succeeded and
+  opened the private `[TEST T1 UX] Pochette création` preview at
+  `/studio/songs/kd7c9mkyedta9az1x74m8znbn98gwf4z/preview`. The preview exposes
+  `Modifier la pochette`. The fixture is a generated non-personal 1800×1200 PNG.
+- No test draft was published or deleted. No avatar/banner or unrelated user
+  content was changed in this follow-up.
+
+Still required before completion:
+
+1. Rerun `pnpm check` after the warning correction and review the complete
+   follow-up diff from `17bcefa` locally (including untracked/new files).
+2. Exercise the pencil upload itself on the test song, and create a dedicated
+   test album with a selected cover; test album pencil/empty-cover behavior.
+3. Check existing edit-form upload behavior, mobile layout/keyboard access,
+   console and no overflow; verify no duplicate after the failed-image retry.
+4. Confirm useful error/retry states and public read-only controls remain absent.
+   No Convex source changed in this follow-up, so its extra Convex review is N/A;
+   the earlier T1 backend review remains recorded below.
+5. Update completion evidence and save a final local commit. Do not create a PR.
+
 ### T1 implementation and verification
 
 - Fixed review point: merged `main` at `b9b5c4d`. The primary agent reviewed
@@ -684,5 +743,8 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Implement the approved Lot 5 only. The writing notebook with local audio and
-the Genius-style sharing-card refinement remain proposal-only.
+Finish only the authorized T1 artwork UX follow-up on
+`codex/catalogue-refactor-image-uploads`. Lot 5 remains merged and closed;
+lot 6 has not started. No push, PR or merge is authorized. The writing notebook
+with local audio and the Genius-style sharing-card refinement remain
+proposal-only.

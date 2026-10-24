@@ -143,6 +143,20 @@ Store only the optimized file. Do not retain originals or create derivatives.
 Server MIME/size validation, short-lived intents, ownership checks, replacement
 and orphan cleanup remain mandatory even when a client bypasses compression.
 
+Artwork selection is available on new and existing song/album forms. New entries
+keep the selected file and its preview local until a draft is saved; only then
+can the upload intent bind to that owned resource. Remember the saved draft id
+before uploading, so a failed image can be retried without duplicate creation.
+Keep the form values and explain partial success instead of navigating away.
+Local preview URLs are revoked on replacement or unmount. Choosing custom song
+artwork disables album-artwork inheritance for that save.
+
+Artist-only preview pages expose a labelled pencil over the cover (or empty
+placeholder), reusing the same upload pipeline for immediate replacement. The
+public read-only song/album views have no artwork-edit controls. Compression is
+an implementation detail: show format/size constraints once, not optimization
+explanations or duplicate helper text. The navbar remains unchanged.
+
 ## Catalogue aggregate decisions
 
 1. `@convex-dev/aggregate@0.3.4` owns the artist catalogue projections used for

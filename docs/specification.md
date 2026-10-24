@@ -73,6 +73,14 @@ lines have no click, annotation, reordering, or individual deletion action.
 An artist can create a draft, preview, publish, edit, and unpublish content they
 own. V1 has no artist co-editing.
 
+Artwork can be selected while creating or editing a song or album. New drafts
+upload their selected image after the owned resource is saved; an image failure
+must retain that draft and form values so retrying does not create duplicates.
+Artist preview pages also offer direct cover replacement through a labelled
+pencil button, including when no cover exists. Public read-only pages do not
+expose this control. Image optimization runs silently; only useful format/size
+constraints and actionable errors are displayed.
+
 ## Albums
 
 - Album pages include title, artwork, release date, description, available

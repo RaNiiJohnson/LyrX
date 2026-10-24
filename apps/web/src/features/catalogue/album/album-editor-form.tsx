@@ -9,7 +9,6 @@ import { Card, CardContent } from "@lyrx/ui/components/card"
 import { FieldGroup } from "@lyrx/ui/components/field"
 
 import { useLocale } from "@/app/locale-provider"
-import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
 import { CatalogueArtworkCard } from "@/features/catalogue/shared/catalogue-artwork-card"
 import { AlbumMetadataFields } from "./album-metadata-fields"
 import { AlbumTrackFields } from "./album-track-fields"
@@ -31,10 +30,6 @@ export function AlbumEditorForm({
 }) {
   const { t } = useLocale()
   const controller = useAlbumEditorController({ albumId, detail })
-  const { pending, uploadArtwork } = useCatalogueArtworkUpload(
-    albumId ? { kind: "album", id: albumId } : undefined,
-    controller.setError
-  )
 
   return (
     <section className="flex flex-col gap-6">
@@ -66,20 +61,23 @@ export function AlbumEditorForm({
           </div>
         ) : null}
       </div>
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight">
           {albumId ? t("studio.albumEditTitle") : t("studio.albumNewTitle")}
         </h1>
         <p className="text-muted-foreground">{t("studio.description")}</p>
       </div>
-      {detail ? (
-        <CatalogueArtworkCard
-          artworkUrl={detail.artworkUrl}
-          inputId="album-artwork"
-          pending={pending}
-          onSelect={(file) => void uploadArtwork(file)}
-        />
-      ) : null}
+      <controller.form.Subscribe selector={(state) => state.isSubmitting}>
+        {(submitting) => (
+          <CatalogueArtworkCard
+            artworkUrl={controller.artworkPreviewUrl}
+            inputId="album-artwork"
+            pending={controller.artworkPending || submitting}
+            selectedFile={controller.selectedArtwork}
+            onSelect={controller.selectArtwork}
+          />
+        )}
+      </controller.form.Subscribe>
       <Card>
         <CardContent className="pt-6">
           <form
@@ -109,7 +107,9 @@ export function AlbumEditorForm({
                 ) : null}
               </FieldGroup>
               <div className="flex justify-end">
-                <controller.form.SubmitButton disabled={pending}>
+                <controller.form.SubmitButton
+                  disabled={controller.artworkPending}
+                >
                   {t("common.save")}
                 </controller.form.SubmitButton>
               </div>

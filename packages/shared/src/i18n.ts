@@ -19,8 +19,12 @@ const frenchMessages = {
   "common.save": "Enregistrer",
   "catalogue.add": "Ajouter",
   "catalogue.artwork": "Pochette",
-  "catalogue.artworkDescription":
-    "JPEG, PNG ou WebP, 10 Mo maximum. L’image est optimisée avant l’envoi.",
+  "catalogue.artworkDescription": "JPEG, PNG ou WebP, 10 Mo maximum.",
+  "catalogue.editArtwork": "Modifier la pochette",
+  "catalogue.addArtwork": "Ajouter une pochette",
+  "catalogue.clearArtworkSelection": "Retirer la sélection",
+  "catalogue.artworkSavePartial":
+    "Le brouillon est enregistré, mais pas sa pochette. Réessayez ou retirez l’image sélectionnée pour continuer sans l’envoyer.",
   "catalogue.artworkUpdated": "Pochette mise à jour",
   "catalogue.created": "Brouillon créé",
   "catalogue.deleted": "Morceau supprimé",
@@ -267,12 +271,10 @@ const frenchMessages = {
   "profile.addLink": "Ajouter un lien",
   "profile.artistIdentity": "Identité artiste",
   "profile.avatar": "Avatar",
-  "profile.avatarDescription":
-    "JPEG, PNG ou WebP, 5 Mo maximum. L’image est optimisée avant l’envoi.",
+  "profile.avatarDescription": "JPEG, PNG ou WebP, 5 Mo maximum.",
   "profile.avatarUpdated": "Avatar mis à jour",
   "profile.banner": "Bannière",
-  "profile.bannerDescription":
-    "JPEG, PNG ou WebP, 10 Mo maximum. L’image est optimisée avant l’envoi.",
+  "profile.bannerDescription": "JPEG, PNG ou WebP, 10 Mo maximum.",
   "profile.bannerUpdated": "Bannière mise à jour",
   "profile.bio": "Bio",
   "profile.customLinkLabel": "Libellé du lien {{number}}",
@@ -465,8 +467,12 @@ const englishMessages = {
   "common.save": "Save",
   "catalogue.add": "Add",
   "catalogue.artwork": "Artwork",
-  "catalogue.artworkDescription":
-    "JPEG, PNG, or WebP, up to 10 MB. The image is optimized before upload.",
+  "catalogue.artworkDescription": "JPEG, PNG, or WebP, up to 10 MB.",
+  "catalogue.editArtwork": "Change artwork",
+  "catalogue.addArtwork": "Add artwork",
+  "catalogue.clearArtworkSelection": "Clear selection",
+  "catalogue.artworkSavePartial":
+    "The draft is saved, but its artwork is not. Retry or clear the selected image to continue without uploading it.",
   "catalogue.artworkUpdated": "Artwork updated",
   "catalogue.created": "Draft created",
   "catalogue.deleted": "Song deleted",
@@ -706,12 +712,10 @@ const englishMessages = {
   "profile.addLink": "Add a link",
   "profile.artistIdentity": "Artist identity",
   "profile.avatar": "Avatar",
-  "profile.avatarDescription":
-    "JPEG, PNG, or WebP, up to 5 MB. The image is optimized before upload.",
+  "profile.avatarDescription": "JPEG, PNG, or WebP, up to 5 MB.",
   "profile.avatarUpdated": "Avatar updated",
   "profile.banner": "Banner",
-  "profile.bannerDescription":
-    "JPEG, PNG, or WebP, up to 10 MB. The image is optimized before upload.",
+  "profile.bannerDescription": "JPEG, PNG, or WebP, up to 10 MB.",
   "profile.bannerUpdated": "Banner updated",
   "profile.bio": "Bio",
   "profile.customLinkLabel": "Link {{number}} label",

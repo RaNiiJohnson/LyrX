@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
@@ -14,6 +14,11 @@ import {
 import { songValuesFromDetail } from "@/features/catalogue/lib/song-values"
 import { getErrorMessage } from "@/lib/errors"
 import { useAppForm } from "@/lib/app-form"
+import {
+  useArtworkSelection,
+  useCatalogueArtworkUpload,
+} from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
+import { saveCatalogueDraft } from "@/features/catalogue/lib/save-catalogue-draft"
 import type { SongDetail } from "./song-types"
 
 export function useSongEditorController({
@@ -35,6 +40,12 @@ export function useSongEditorController({
   const updateSong = useMutation(api.catalogue.songs.updateSong)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const draft = useRef({ id: songId })
+  const artwork = useArtworkSelection()
+  const { pending: artworkPending, uploadArtwork } = useCatalogueArtworkUpload(
+    songId ? { kind: "song", id: songId } : undefined,
+    setError
+  )
 
   const form = useAppForm({
     defaultValues: detail
@@ -62,14 +73,29 @@ export function useSongEditorController({
       }
       setSaving(true)
       try {
-        const input = toSongMutationInput(value)
-        const savedSongId = songId
-          ? await updateSong({ songId, ...input }).then(() => songId)
-          : await createSong(input)
+        const input = toSongMutationInput(
+          artwork.file ? { ...value, inheritArtwork: false } : value
+        )
+        const saved = await saveCatalogueDraft(
+          draft.current,
+          (id) =>
+            id
+              ? updateSong({ songId: id, ...input }).then(() => id)
+              : createSong(input),
+          artwork.file
+            ? (id) => uploadArtwork(artwork.file, { kind: "song", id })
+            : undefined
+        )
+        if (!saved.artworkSaved) {
+          setError((message) =>
+            `${t("catalogue.artworkSavePartial")} ${message ?? ""}`.trim()
+          )
+          return
+        }
         toast.success(songId ? t("catalogue.saved") : t("catalogue.created"))
         await navigate({
           to: "/studio/songs/$songId/preview",
-          params: { songId: savedSongId },
+          params: { songId: saved.id },
           search: { fromAlbumId: returnAlbumId },
         })
       } catch (caught) {
@@ -87,5 +113,15 @@ export function useSongEditorController({
     form,
     saving,
     setError,
+    artworkPending,
+    selectedArtwork: artwork.file,
+    artworkPreviewUrl: artwork.previewUrl ?? detail?.artworkUrl,
+    selectArtwork: (file: File | undefined) => {
+      if (songId)
+        void uploadArtwork(file).then((uploaded) => {
+          if (uploaded) form.setFieldValue("inheritArtwork", false)
+        })
+      else artwork.select(file)
+    },
   }
 }
