@@ -2,6 +2,47 @@
 
 ## Active lot
 
+### Deletion/redirection flash correction — 25 October 2026
+
+Resumed and implemented on `codex/account-self-deletion`; the paused checkpoint
+below is historical and superseded by this correction. Lot 6 remains separate.
+
+- Reproduced the actual intermediate DOM states with React DOM, `happy-dom`,
+  deferred mutations/navigation and reactive query invalidation. Before the fix,
+  three account cases displayed `Profil indisponible`/`Compte suspendu`; two
+  catalogue cases reached a `NOT_FOUND` error boundary before navigation.
+- Song/album previews now suspend only their deleted-resource detail subscription
+  during deletion and keep the existing neutral skeleton until navigation. Real
+  mutation failures restore the subscription and visible error feedback. Missing
+  resources outside a deletion still reach the normal error boundary. Navigation
+  failure after confirmed deletion falls back to full document navigation rather
+  than resubscribing to an already-deleted resource. Album-track deletion retains
+  its parent-album return destination.
+- Account deletion state now lives above the profile's auth-dependent rendering.
+  The safe current-member query remains reactive, but its anonymous/suspended
+  transition cannot replace the form with an error or unmount the deletion
+  controller before native success/navigation. Failures restore the profile and
+  actionable dialog feedback. A completed deletion remains locked until leaving;
+  no artificial timeout or global error suppression was added.
+- The primary agent locally reviewed all follow-up changes from `0b43973`,
+  including the test-only dependency/lockfile checkpoint, production callers and
+  interaction regressions. No completion review was delegated. No backend file
+  changed in this follow-up, so a new Convex review/deployment is not applicable;
+  the original account-deletion backend review remains recorded below.
+- Verification: 13 new DOM regression cases cover the transient frames, deferred
+  navigation, real failure/retry, normal missing-resource errors and full-document
+  fallback. `pnpm check` passes formatting, lint, TypeScript, **164 tests**
+  (29 shared, 42 backend, 93 web), and production client/SSR builds.
+- The user independently tested song and album deletion and confirmed that the
+  flash no longer appears. The agent checked the current Fan profile's native
+  confirmation and cancellation without submitting deletion or saving any form.
+  Browser proof: `/tmp/lyrx-deletion-flash-profile-proof.png` (unchanged profile,
+  not evidence of a live account deletion). The account transition is verified
+  through the isolated DOM tests, not a destructive real-account test.
+- No account/resource was deleted by the agent, and no push, PR, merge or next lot
+  was performed. Resume lot 6 only after user approval, with its required community
+  cascade extension and Fan/admin validation still pending.
+
 ### Paused checkpoint — deletion/redirection flash, 25 October 2026
 
 The user requested a quota stop. Stay on `codex/account-self-deletion`;

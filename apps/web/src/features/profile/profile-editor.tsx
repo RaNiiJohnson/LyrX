@@ -46,7 +46,18 @@ function OptionalLabel() {
 
 export function ProfileEditor() {
   const { t } = useLocale()
+  const [leaving, setLeaving] = useState(false)
   const current = useQuery(api.members.current, {})
+  // Keep the deletion controller mounted while auth revocation invalidates the
+  // profile. Only the form region changes until the full navigation completes.
+  if (leaving) {
+    return (
+      <div className="flex flex-col gap-6">
+        <ProfileEditorSkeleton />
+        <AccountDeletion onPendingChange={setLeaving} />
+      </div>
+    )
+  }
   if (current === undefined) return <ProfileEditorSkeleton />
   if (current.state === "suspended") {
     return (
@@ -57,7 +68,7 @@ export function ProfileEditor() {
             {t("profile.suspendedDescription")}
           </AlertDescription>
         </Alert>
-        <AccountDeletion />
+        <AccountDeletion onPendingChange={setLeaving} />
       </div>
     )
   }
@@ -70,14 +81,16 @@ export function ProfileEditor() {
             <Link to="/onboarding">{t("profile.unavailableDescription")}</Link>
           </AlertDescription>
         </Alert>
-        {current.state !== "anonymous" ? <AccountDeletion /> : null}
+        {current.state !== "anonymous" ? (
+          <AccountDeletion onPendingChange={setLeaving} />
+        ) : null}
       </div>
     )
   }
   return (
     <div className="flex flex-col gap-6">
       <ReadyProfileEditor current={current} />
-      <AccountDeletion />
+      <AccountDeletion onPendingChange={setLeaving} />
     </div>
   )
 }

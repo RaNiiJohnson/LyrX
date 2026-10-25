@@ -43,7 +43,11 @@ const errorKeys: Record<
   failed: "account.deleteFailed",
 }
 
-export function AccountDeletion() {
+export function AccountDeletion({
+  onPendingChange,
+}: {
+  onPendingChange?: (pending: boolean) => void
+}) {
   const { t } = useLocale()
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<MessageKey | null>(null)
@@ -56,6 +60,7 @@ export function AccountDeletion() {
     onSubmit: async ({ value }) => {
       if (operationPending.current) return
       operationPending.current = true
+      onPendingChange?.(true)
       setError(null)
       const outcome = await deleteConfirmedAccount(
         { ...value, confirmationWord },
@@ -65,22 +70,29 @@ export function AccountDeletion() {
           redirect: () => window.location.assign("/"),
         }
       )
-      if (outcome !== "deleted") setError(errorKeys[outcome])
-      operationPending.current = false
+      if (outcome !== "deleted") {
+        setError(errorKeys[outcome])
+        operationPending.current = false
+        onPendingChange?.(false)
+      }
     },
   })
 
   async function reauthenticate() {
     if (operationPending.current) return
     operationPending.current = true
+    onPendingChange?.(true)
     setReauthPending(true)
     const success = await signOutForAccountDeletion({
       signOut: () => authClient.signOut(),
       redirect: () => window.location.assign("/auth/sign-in"),
     })
-    if (!success) setError("account.deleteReauthFailed")
-    operationPending.current = false
-    setReauthPending(false)
+    if (!success) {
+      setError("account.deleteReauthFailed")
+      operationPending.current = false
+      setReauthPending(false)
+      onPendingChange?.(false)
+    }
   }
 
   return (
