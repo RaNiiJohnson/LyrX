@@ -91,6 +91,21 @@ not duplicated as trust decisions in clients.
     storage-backed capability must extend that registry and its preservation
     tests before release; otherwise the global sweep must be replaced with a
     capability-scoped ownership record.
+14. Self-deletion uses Better Auth's native `deleteUser` endpoint and its
+    password/fresh-session protection. The component's transactional user
+    `onDelete` trigger derives `issuer|subject`, matching Convex
+    `tokenIdentifier`, then persists an identity revocation marker, suspends
+    the member and schedules a durable cascade job. HTTP before/after-delete
+    hooks are not used for application cleanup: they are separate calls.
+15. `accounts/deletion.ts` cleans at most 25 dependent rows per batch (one song
+    parent at a time), preserving Catalogue Aggregate triggers and consulting
+    the exhaustive storage claim registry before deleting an owned file.
+    Each batch and its continuation commit together. A five-minute cron resumes
+    stalled jobs after failure; no public arbitrary-member deletion exists.
+    The whole Better Auth deletion spans several adapter calls and the content
+    cascade is eventual, not one giant atomic transaction. Revocation markers
+    prevent signed but unexpired JWTs from onboarding or writing again; member
+    state reads treat them as anonymous. New signup uses a new auth identity.
 
 ## Catalogue module boundary (technical lot T1)
 

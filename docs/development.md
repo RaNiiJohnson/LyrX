@@ -159,6 +159,33 @@ it does not delete documents, lyrics, artwork, track positions or Aggregate
 projection keys. It is internal, bounded and safe to rerun. Do not add `--prod`
 without a separately authorized production migration.
 
+## Account deletion verification and recovery
+
+Self-deletion is available in `/profile` through the native Better Auth client.
+Use isolated tests for destructive verification; never delete an existing live
+account just to manufacture evidence. Browser-check the warning, typed
+confirmation, keyboard focus and cancellation without pressing the final
+confirmation. The owner can then choose to delete their own account.
+
+`accountDeletionJobs` records the current cleanup phase and `updatedAt`.
+The five-minute recovery cron resumes jobs unchanged for at least five minutes.
+For an operator-authorized recovery on the selected development deployment:
+
+```bash
+pnpm --filter @lyrx/backend exec convex run accounts/deletion:resumeStalledJobs '{}'
+```
+
+This internal operation only resumes existing jobs; it cannot select another
+member to delete. Job disappearance means physical application cleanup completed.
+`accountDeletions` retains only the old authentication identity and request time
+so an unexpired JWT cannot resurrect the account. Never remove this marker to
+work around an authorization failure. Unregistered raw uploads are handled by
+the existing global grace-period sweep, not guessed from a client-supplied id.
+Storage URLs or previously downloaded copies cannot be recalled.
+
+Lot 6 is checkpointed separately. Extend this cascade to its community tables
+when that branch is resumed, before claiming account deletion covers that domain.
+
 ## Environment policy
 
 Copy a package's `.env.example` only when that package documents the values it

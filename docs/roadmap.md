@@ -36,6 +36,12 @@ and [progress](progress.md). Lot 6 community lyrics were separately authorized
 on 25 October 2026, replacing the former admin-approved proposal direction.
 A new PR still requires the user's explicit authorization.
 
+Before finishing lot 6, the user authorized a separate account prerequisite:
+self-service Better Auth deletion with resumable cascade cleanup. It is isolated
+on `codex/account-self-deletion`; the unfinished lot 6 implementation is saved
+at `1298ef1`. Resume that branch only after this prerequisite, and extend the
+cascade to the community domain before closing lot 6. Lot 5 and T1 stay closed.
+
 Lots 2–12 stabilize the web and shared backend before Expo. Search follows the
 public content model so its visibility rules are testable. Notebook excerpts and
 sharing both depend on a source-text snapshot. Visual-card generation waits

@@ -21,4 +21,15 @@ describe("interface messages", () => {
     expect(isSupportedLocale("en")).toBe(true)
     expect(isSupportedLocale("mg")).toBe(false)
   })
+
+  it("shows the exact account-deletion confirmation word in both languages", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const word = UI_MESSAGES[locale]["account.deleteConfirmationWord"]
+      const label = formatMessage(locale, "account.deleteConfirmationLabel", {
+        word,
+      })
+      expect(label).toContain(word)
+      expect(label).not.toContain("{word}")
+    }
+  })
 })

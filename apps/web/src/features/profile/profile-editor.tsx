@@ -33,6 +33,7 @@ import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
 import { prepareImageForUpload } from "@/lib/image-upload"
 import { useLocale } from "@/app/locale-provider"
+import { AccountDeletion } from "@/features/account/account-deletion"
 
 function OptionalLabel() {
   const { t } = useLocale()
@@ -49,23 +50,36 @@ export function ProfileEditor() {
   if (current === undefined) return <ProfileEditorSkeleton />
   if (current.state === "suspended") {
     return (
-      <Alert variant="destructive">
-        <AlertTitle>{t("home.suspendedTitle")}</AlertTitle>
-        <AlertDescription>{t("profile.suspendedDescription")}</AlertDescription>
-      </Alert>
+      <div className="flex flex-col gap-6">
+        <Alert variant="destructive">
+          <AlertTitle>{t("home.suspendedTitle")}</AlertTitle>
+          <AlertDescription>
+            {t("profile.suspendedDescription")}
+          </AlertDescription>
+        </Alert>
+        <AccountDeletion />
+      </div>
     )
   }
   if (current.state !== "ready") {
     return (
-      <Alert>
-        <AlertTitle>{t("profile.unavailableTitle")}</AlertTitle>
-        <AlertDescription>
-          <Link to="/onboarding">{t("profile.unavailableDescription")}</Link>
-        </AlertDescription>
-      </Alert>
+      <div className="flex flex-col gap-6">
+        <Alert>
+          <AlertTitle>{t("profile.unavailableTitle")}</AlertTitle>
+          <AlertDescription>
+            <Link to="/onboarding">{t("profile.unavailableDescription")}</Link>
+          </AlertDescription>
+        </Alert>
+        {current.state !== "anonymous" ? <AccountDeletion /> : null}
+      </div>
     )
   }
-  return <ReadyProfileEditor current={current} />
+  return (
+    <div className="flex flex-col gap-6">
+      <ReadyProfileEditor current={current} />
+      <AccountDeletion />
+    </div>
+  )
 }
 
 function ReadyProfileEditor({
