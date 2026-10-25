@@ -2,6 +2,176 @@
 
 ## Active lot
 
+### Deletion/redirection flash correction — 25 October 2026
+
+Resumed and implemented on `codex/account-self-deletion`; the paused checkpoint
+below is historical and superseded by this correction. Lot 6 remains separate.
+
+- Reproduced the actual intermediate DOM states with React DOM, `happy-dom`,
+  deferred mutations/navigation and reactive query invalidation. Before the fix,
+  three account cases displayed `Profil indisponible`/`Compte suspendu`; two
+  catalogue cases reached a `NOT_FOUND` error boundary before navigation.
+- Song/album previews now suspend only their deleted-resource detail subscription
+  during deletion and keep the existing neutral skeleton until navigation. Real
+  mutation failures restore the subscription and visible error feedback. Missing
+  resources outside a deletion still reach the normal error boundary. Navigation
+  failure after confirmed deletion falls back to full document navigation rather
+  than resubscribing to an already-deleted resource. Album-track deletion retains
+  its parent-album return destination.
+- Account deletion state now lives above the profile's auth-dependent rendering.
+  The safe current-member query remains reactive, but its anonymous/suspended
+  transition cannot replace the form with an error or unmount the deletion
+  controller before native success/navigation. Failures restore the profile and
+  actionable dialog feedback. A completed deletion remains locked until leaving;
+  no artificial timeout or global error suppression was added.
+- The primary agent locally reviewed all follow-up changes from `0b43973`,
+  including the test-only dependency/lockfile checkpoint, production callers and
+  interaction regressions. No completion review was delegated. No backend file
+  changed in this follow-up, so a new Convex review/deployment is not applicable;
+  the original account-deletion backend review remains recorded below.
+- Verification: 13 new DOM regression cases cover the transient frames, deferred
+  navigation, real failure/retry, normal missing-resource errors and full-document
+  fallback. `pnpm check` passes formatting, lint, TypeScript, **164 tests**
+  (29 shared, 42 backend, 93 web), and production client/SSR builds.
+- The user independently tested song and album deletion and confirmed that the
+  flash no longer appears. The agent checked the current Fan profile's native
+  confirmation and cancellation without submitting deletion or saving any form.
+  Browser proof: `/tmp/lyrx-deletion-flash-profile-proof.png` (unchanged profile,
+  not evidence of a live account deletion). The account transition is verified
+  through the isolated DOM tests, not a destructive real-account test.
+- No account/resource was deleted by the agent, and no push, PR, merge or next lot
+  was performed. Resume lot 6 only after user approval, with its required community
+  cascade extension and Fan/admin validation still pending.
+
+### Paused checkpoint — deletion/redirection flash, 25 October 2026
+
+The user requested a quota stop. Stay on `codex/account-self-deletion`;
+the completed account-deletion implementation is saved at `0b43973`.
+The newly reported flash correction is **not implemented or verified yet**.
+
+- Scope: remove the transient error/unavailable message when deleting a song,
+  album or account, without hiding real failures. No PR, push or next lot.
+- Read-only inspection found that `ReadySongPreview` and `ReadyAlbumPreview`
+  keep their `getMySong`/`getMyAlbum` subscriptions active while awaiting delete
+  and navigation. Those server reads throw `NOT_FOUND` after deletion; Convex
+  rethrows inside `useQuery` before later rendering guards. For account deletion,
+  `ProfileEditor` can switch to suspended/anonymous/unavailable while its nested
+  deletion dialog awaits native success and full navigation.
+- These are code-inspection findings, not a completed reproduction. First build
+  a deterministic failing interaction test: deferred deletion, reactive query
+  invalidation before resolution, then delayed navigation. Assert no error frame;
+  also assert real deletion failures remain visible and normal missing-resource
+  errors are not globally suppressed.
+- Added test-only `happy-dom` to `apps/web/package.json` and the lockfile so
+  React DOM interaction tests can exercise the actual state updates. No product
+  code changed, no regression test was written, and checks have not been rerun
+  for this checkpoint. The earlier 151-test gate applies to `0b43973` only.
+- Candidate direction to validate after the red test: set deletion state before
+  subscribing, pass `"skip"` to the affected query while deleting, retain a neutral
+  pending view through navigation, and restore subscriptions on real failure.
+  Account state must live above the profile branch so auth invalidation cannot
+  unmount its deletion controller prematurely. Do not add a timed error delay.
+- No live resource/account was deleted or modified during this investigation.
+  The browser was reported at `/onboarding` when the user paused; obtain fresh
+  browser state on resumption. Lot 6 remains separately saved at `1298ef1`.
+
+**Current priority — self-service account deletion** (25 October 2026), on
+`codex/account-self-deletion`, based on `541b610`. The user explicitly requested
+this prerequisite before continuing the Fan test journey. Implement native
+Better Auth self-deletion with irreversible confirmation and resumable cascade
+cleanup of owned publications, profiles and images. Do not delete the user's
+live account during verification. Lot 6 is saved separately at `1298ef1` and
+is not being closed or replaced by this prerequisite.
+
+**Lot 6 — Community fan lyrics and report moderation** was authorized on
+25 October 2026. Work starts on `codex/community-fan-lyrics` from merged
+`main` at `80ade32` (T1, PR #2). The user's local product/specification/roadmap
+updates are retained and supersede the former private-proposal approval flow.
+
+Implementation plan:
+
+1. Add a separate community domain with server-enforced Fan publication and
+   immutable session-derived attribution. Never write official catalogue rows
+   from this flow or expose an artist claim/replacement operation.
+2. Add Fan authoring, public reading and visible contributor credit. Keep lyrics
+   required and warn about likely title/artist duplicates without auto-merging.
+3. Add private reports and administrator-only report resolution with a reason
+   and audit record. Reporting alone does not hide content; only a subsequent
+   moderation decision changes public visibility.
+4. Verify Fan/Artist/Admin, cross-account and suspension boundaries, publication,
+   report idempotency and hide/remove visibility. Run the local review gate,
+   root checks, development Convex deployment and relevant browser checks.
+
+No push, PR, merge, production deployment or lot 7 is authorized.
+
+### Lot 6 implementation checkpoint — 25 October 2026
+
+The community domain, Fan editor/public reader, private report queue and
+post-report administrator decisions are implemented but the lot is **not
+closed**. `pnpm check` passes with 129 tests (28 shared, 47 backend, 54 web),
+TypeScript, lint and production builds. Development Convex deployment and the
+anonymous empty-list read succeeded. Browser checks reached the empty public
+list; the available account is Artist, not Fan. Full Fan and administrator
+browser journeys and the final local completion review remain outstanding.
+No live contribution was published and no account role was modified for testing.
+
+The user then requested self-service Better Auth account deletion **before**
+switching to a Fan account to finish lot 6 validation. Save this implementation
+on `codex/community-fan-lyrics`; do not declare it complete or create a PR.
+Account deletion is a separately authorized prerequisite. When resuming lot 6,
+extend its deletion cleanup to the new community tables before closure.
+
+### Account-deletion prerequisite — 25 October 2026
+
+- Implemented separately on `codex/account-self-deletion` from `541b610`.
+  Native Better Auth self-deletion is enabled; no public application mutation
+  accepts a member id for deletion. Its transactional user trigger resolves the
+  same issuer/subject key as Convex and records revocation, suspension and a
+  durable cleanup job. HTTP auth deletion is multi-call and cleanup is eventual,
+  not presented as a single atomic operation.
+- The indexed cascade removes owned songs, legacy sections/lines, album tracks,
+  albums, profiles, upload intents and registered image claims in bounded batches.
+  Catalogue Aggregate triggers stay active. It preserves other members and any
+  file still referenced elsewhere. A five-minute recovery cron resumes stalled
+  jobs. Unregistered uploads retain the existing global grace-period sweep.
+- Unexpired JWTs cannot write or repeat onboarding after deletion. A minimal
+  auth-id/time tombstone remains, without email or publication content. Internal
+  suspension controls cannot reactivate a pending-deletion member. New signups
+  with the same email use a fresh identity; old content is not restored.
+- `/profile` offers deletion to ready Fan/Artist, suspended, onboarding and
+  unverified signed-in users. A typed `SUPPRIMER`/`DELETE` confirmation is required;
+  the password is optional for a fresh session, including Google-only accounts.
+  Errors remain localized and actionable; freshness failures offer native sign-out
+  then sign-in. Full navigation occurs only after confirmed native success.
+- The primary agent reviewed the entire diff locally from `541b610`, including
+  new files, schema, generated API, tests and documentation. No completion review
+  was delegated. The Convex review checked server-derived identity, stale JWTs,
+  internal-only cleanup, bounded indexed reads, transactional Aggregate updates,
+  scheduler retries and cross-account storage claims. Corrections included
+  blocking internal reactivation of a deleted identity and the confirmation-word
+  translation interpolation. No unresolved blocking standards/specification or
+  Critical/Important Convex findings remain.
+- `pnpm check` passes formatting, lint, TypeScript, **151 tests** (29 shared,
+  42 backend, 80 web) and production client/SSR builds. Tests include native
+  HTTP deletion/password/freshness, auth session/account removal, old-token
+  rejection, same-email new identity, 27-resource and 51-line/52-section
+  cascades, image claim preservation, Aggregate coherence and stalled-job retry.
+  Development-only `convex dev --once` succeeds; no production deployment.
+- Browser checks on the authenticated Artist profile at 390×844 and 1280×900
+  verify warnings, confirmation disabled/enabled behavior, optional password,
+  default Cancel focus and cancellation. Mobile document width remains 390 px
+  (358 px dialog), with no horizontal overflow. The desktop screenshot is
+  `/tmp/lyrx-account-deletion-proof.png`. A stale development bundle required a
+  local Vite restart; transient HMR locale-provider errors were observed and are
+  not claimed as a production fix. No final deletion, sign-out, profile save,
+  role change or test publication was performed on the real account.
+- The user's standing permission to use useful coordinated sub-agents is now
+  recorded in `AGENTS.md`, without changing the primary-only review gate.
+  No push, PR or merge was performed. Lot 6 remains checkpointed, not complete;
+  its community cleanup extension and real Fan/admin journeys are still pending.
+
+## Completed T1 history
+
 **Technical lot T1 — Catalogue backend modules and image upload optimization**
 was authorized on 24 October 2026 and is complete locally. Work is isolated on
 `codex/catalogue-refactor-image-uploads`, based on merged `main` at `b9b5c4d`.
@@ -13,8 +183,10 @@ The implementation reference is
 
 **Lot 5 is merged and closed.** PR #1 was merged into `main` at `b9b5c4d` and
 its remote branch was deleted by the user. Its history below is retained as
-completed evidence; T1 neither reopens lot 5 nor starts the fan-proposals lot.
-No PR is authorized for T1; request explicit authorization before creating one.
+completed evidence; T1 neither reopens lot 5 nor starts the lot 6 community-lyrics
+lot.
+The user subsequently authorized PR #2, then merged it at `80ade32`. The
+earlier local-only statements below describe their historical checkpoints.
 
 ### Authorized T1 artwork UX follow-up
 
@@ -804,8 +976,10 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Await user direction after the completed local T1 delivery on
-`codex/catalogue-refactor-image-uploads`. Lot 5 remains merged and closed;
-lot 6 has not started. No push, PR or merge is authorized. The writing notebook
-with local audio and the Genius-style sharing-card refinement remain
-proposal-only.
+Let the user choose whether to delete their own account through `/profile` and
+create a Fan account. Then resume lot 6 from `codex/community-fan-lyrics` at
+`1298ef1`, incorporate this prerequisite and extend cascade cleanup to its
+community tables before final review and real Fan/admin validation. Lot 5 and T1
+remain merged and closed. Artist claim/replacement remains future scope. No push,
+PR or merge is authorized. The writing notebook with local audio and the
+Genius-style sharing-card refinement remain proposal-only.

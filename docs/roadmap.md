@@ -16,7 +16,7 @@ authoritative throughout delivery.
 | 4. Artist catalogue and albums | Artists draft, preview, publish, edit, unpublish, and order their own songs/albums | Ownership, lifecycle, stable-line, and album-order tests |
 | 5. Web structure and lyric entry | Route-owned screens and data loading, feature-oriented web code, and one-textarea lyric authoring | Route/SSR/auth regression checks, raw-text/parser tests, and production build |
 | T1. Catalogue modules and image upload optimization | Domain-oriented Convex catalogue and optimized avatar/banner/artwork uploads | Ownership/lifecycle/Aggregate regressions, image-processing checks, root gate and browser smoke test |
-| 6. Fan proposals and admin validation | Fans submit private songs/artwork; admins accept or refuse once with a reason | Privacy and idempotent moderation tests |
+| 6. Community fan lyrics and report moderation | Fans publish attributed community lyrics without pre-approval; admins moderate only after reports | Attribution, public visibility, report/hide/remove, and cross-account authorization tests |
 | 7. Public pages and discovery | Public artist, album, and song pages plus recent/popular discovery | Visibility, pagination, ranking, and external-player checks |
 | 8. Catalogue and lyrics search | Search published titles, artists, albums, genres, and supported lyrics terms with excerpts | Search capability/limit tests and no-private-data proof |
 | 9. Likes, comments, reports | Idempotent song likes, flat comments, deletion, reports, and admin intervention | Concurrency and moderation tests |
@@ -30,10 +30,17 @@ authoritative throughout delivery.
 ## Dependency notes
 
 Lot 5 is merged and closed on `main` (`b9b5c4d`, PR #1). Technical lot T1 is
-an independently authorized maintenance lot after it and before lot 6. Its scope
+also merged and closed (`80ade32`, PR #2). Its scope
 is recorded in [the Hallohallo research](research/hallohallo-patterns-for-lyrx.md)
-and [progress](progress.md). T1 does not authorize fan proposals or a PR; a new
-PR requires the user's explicit authorization.
+and [progress](progress.md). Lot 6 community lyrics were separately authorized
+on 25 October 2026, replacing the former admin-approved proposal direction.
+A new PR still requires the user's explicit authorization.
+
+Before finishing lot 6, the user authorized a separate account prerequisite:
+self-service Better Auth deletion with resumable cascade cleanup. It is isolated
+on `codex/account-self-deletion`; the unfinished lot 6 implementation is saved
+at `1298ef1`. Resume that branch only after this prerequisite, and extend the
+cascade to the community domain before closing lot 6. Lot 5 and T1 stay closed.
 
 Lots 2–12 stabilize the web and shared backend before Expo. Search follows the
 public content model so its visibility rules are testable. Notebook excerpts and

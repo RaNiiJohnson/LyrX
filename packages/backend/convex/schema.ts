@@ -14,6 +14,32 @@ import {
 } from "./model"
 
 export default defineSchema({
+  // Minimal permanent revocation marker: an unexpired JWT must not recreate a
+  // deleted account. New sign-ups receive a different authentication identity.
+  accountDeletions: defineTable({
+    authUserId: v.string(),
+    requestedAt: v.number(),
+  }).index("by_auth_user_id", ["authUserId"]),
+
+  accountDeletionJobs: defineTable({
+    memberId: v.id("members"),
+    phase: v.union(
+      v.literal("songs"),
+      v.literal("tracks"),
+      v.literal("albums"),
+      v.literal("profiles"),
+      v.literal("artistProfiles"),
+      v.literal("profileIntents"),
+      v.literal("catalogueIntents"),
+      v.literal("profileImages"),
+      v.literal("catalogueImages"),
+      v.literal("member")
+    ),
+    updatedAt: v.number(),
+  })
+    .index("by_member_id", ["memberId"])
+    .index("by_updated_at", ["updatedAt"]),
+
   members: defineTable({
     authUserId: v.string(),
     email: v.string(),
@@ -63,7 +89,7 @@ export default defineSchema({
     kind: profileImageKindValidator,
     createdAt: v.number(),
     expiresAt: v.number(),
-  }),
+  }).index("by_member_id", ["memberId"]),
 
   profileImages: defineTable({
     memberId: v.id("members"),
@@ -168,7 +194,9 @@ export default defineSchema({
     storageId: v.optional(v.id("_storage")),
     createdAt: v.number(),
     expiresAt: v.number(),
-  }).index("by_storage_id", ["storageId"]),
+  })
+    .index("by_storage_id", ["storageId"])
+    .index("by_owner_member_id", ["ownerMemberId"]),
 
   catalogueImages: defineTable({
     ownerMemberId: v.id("members"),

@@ -62,12 +62,15 @@ function ReadySongPreview({
   fromAlbumId?: Id<"albums">
   songId: Id<"songs">
 }) {
-  const detail = useQuery(api.catalogue.read.getMySong, { songId })
+  const [deleting, setDeleting] = useState(false)
+  const detail = useQuery(
+    api.catalogue.read.getMySong,
+    deleting ? "skip" : { songId }
+  )
   const { t } = useLocale()
   const navigate = useNavigate()
   const deleteSong = useMutation(api.catalogue.songs.deleteSong)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [artworkError, setArtworkError] = useState<string | null>(null)
   const artwork = useCatalogueArtworkUpload(
     { kind: "song", id: songId },
@@ -79,7 +82,15 @@ function ReadySongPreview({
     setDeleting(true)
     try {
       await deleteSong({ songId })
-      toast.success(t("catalogue.deleted"))
+    } catch (caught) {
+      toast.error(t("catalogue.saveError"), {
+        description: getErrorMessage(caught, t),
+      })
+      setDeleting(false)
+      return
+    }
+    toast.success(t("catalogue.deleted"))
+    try {
       if (fromAlbumId) {
         await navigate({
           to: "/studio/albums/$albumId/preview",
@@ -88,11 +99,14 @@ function ReadySongPreview({
       } else {
         await navigate({ to: "/studio", search: { tab: "songs" } })
       }
-    } catch (caught) {
-      toast.error(t("catalogue.saveError"), {
-        description: getErrorMessage(caught, t),
-      })
-      setDeleting(false)
+    } catch {
+      // The resource is already deleted: never resubscribe to its detail when
+      // client navigation fails. Fall back to a fresh document at the target.
+      window.location.assign(
+        fromAlbumId
+          ? `/studio/albums/${encodeURIComponent(fromAlbumId)}/preview`
+          : "/studio?tab=songs"
+      )
     }
   }
 

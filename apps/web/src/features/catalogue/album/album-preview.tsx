@@ -125,7 +125,11 @@ function ReadyAlbumPreview({
   albumId: Id<"albums">
   artistName: string
 }) {
-  const detail = useQuery(api.catalogue.read.getMyAlbum, { albumId })
+  const [deleting, setDeleting] = useState(false)
+  const detail = useQuery(
+    api.catalogue.read.getMyAlbum,
+    deleting ? "skip" : { albumId }
+  )
   const songs = usePaginatedQuery(
     api.catalogue.read.listMySongs,
     {},
@@ -137,7 +141,6 @@ function ReadyAlbumPreview({
   const navigate = useNavigate()
   const { locale, t } = useLocale()
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [selectorOpen, setSelectorOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -217,13 +220,18 @@ function ReadyAlbumPreview({
     setDeleting(true)
     try {
       await deleteAlbum({ albumId })
-      toast.success(t("studio.albumDeleted"))
-      await navigate({ to: "/studio", search: { tab: "albums" } })
     } catch (caught) {
       toast.error(t("catalogue.saveError"), {
         description: getErrorMessage(caught, t),
       })
       setDeleting(false)
+      return
+    }
+    toast.success(t("studio.albumDeleted"))
+    try {
+      await navigate({ to: "/studio", search: { tab: "albums" } })
+    } catch {
+      window.location.assign("/studio?tab=albums")
     }
   }
 

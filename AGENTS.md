@@ -15,6 +15,8 @@ Read [docs/product.md](docs/product.md),
 - Never commit secrets or claim an external integration was verified without evidence.
 - Never use `rm -rf`; move unwanted files to Trash with `trash`.
 - Preserve unrelated user and agent changes.
+- Use sub-agents when useful, with explicit ownership and coordinated edits;
+  the mandatory lot-completion review remains the primary agent's responsibility.
 
 For work under `packages/backend/convex/`, read the current Convex project
 guidelines before editing functions or schemas.

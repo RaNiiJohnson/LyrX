@@ -40,11 +40,22 @@ delivery status and proof remain in [progress.md](progress.md).
 - Profiles include a unique handle, display name, avatar, and bio. Artist
   profiles add banner, presentation, songs, albums, optional Instagram,
   Facebook, TikTok, YouTube and Spotify links, plus labeled custom links.
-- Reading and search are public. Publishing, proposals, likes, comments, and
+- Reading and search are public. Publishing, community contributions, likes, comments, and
   saved passages require an account.
 - Administrator is a distinct server-assigned role. Bootstrap the first admin
   without a hard-coded secret or public self-promotion path.
 - Suspended users are rejected by server-side authorization, not only hidden UI.
+- Any signed-in user may delete their own account through Better Auth from the
+  profile settings, with an explicit irreversible confirmation. Better Auth
+  requires a fresh session or a verified current password. The server derives
+  the identity; no client-selected member can be deleted through this flow.
+- Account deletion immediately withdraws the member's public profile and
+  publications and blocks further writes, including from an unexpired JWT.
+  Durable, bounded cleanup then deletes owned publications, legacy lyrics,
+  album associations, profile records, upload intents and owned image claims.
+  Files still referenced by another account are preserved. A minimal revoked
+  auth-identity marker remains; content and email are not retained in it.
+  Signing up again with the same email creates a new identity, not a restoration.
 
 ## Songs, credits, and lyrics
 
@@ -104,25 +115,28 @@ the creation/editing forms.
 - Deleting an album keeps its songs. Values currently inherited from the album
   are copied onto each affected song before the associations and album are
   removed.
-- A fan proposal may name an album but never directly modify a public album.
-  Administration can correct associations while reviewing the proposal.
+- A fan contribution may reference an album but never directly modify a public
+  album. Administration can correct associations while handling a report.
 
-## Fan proposals
+## Community fan lyrics
 
-- A fan may propose a complete song with credited artist, title, lyrics,
-  fan-uploaded artwork, available metadata, and links.
-- Proposals have `draft`, `pending`, `accepted`, or `rejected` status. Drafts and
-  pending/rejected proposals, including private artwork, are visible only to the
-  author and authorized administrators. Rejections display their reason.
-- Acceptance publishes once, credits the contributor, and does not transfer the
-  credited artist identity to that contributor.
-- Before creation, search for obvious title/artist matches and warn. Never merge
-  homonyms, versions, or potential duplicates automatically.
-- A self-declared artist cannot claim a fan-created artist page by matching a
-  name. Automated claims and co-editing are deferred; disputes go to admin.
-- Fan proposals require an explicit rights and authorization affirmation at
-  submission. The artist-owned Studio publishes directly; it does not repeat a
-  rights checkbox on every draft or catalogue row.
+- A fan may publish a community lyric contribution directly, without waiting
+  for administrator approval. The server requires the authenticated member to
+  have the `fan` role, records that fan as the immutable author, and rejects a
+  client-selected contributor identity.
+- A community contribution is public after publication unless it is hidden or
+  removed following a report. Reports create a moderation record; they do not
+  turn ordinary publication into a pre-approval queue.
+- A fan contribution cannot directly modify an artist-owned official song,
+  album, artist profile, credits, or artwork. It is a separate community
+  contribution, even when it references an existing artist or song.
+- Before publication, search for obvious title/artist matches and warn. Never
+  merge homonyms, versions, or potential duplicates automatically.
+- A fan must be visibly credited as the contributor. A future feature may let
+  the artist claim a contribution and replace it with an official version; that
+  claim/replacement workflow is not part of this lot.
+- The artist-owned Studio publishes official catalogue content directly. It does
+  not depend on the fan contribution workflow or administrator pre-approval.
 
 ## Public discovery and search
 
@@ -136,7 +150,7 @@ the creation/editing forms.
 - The implemented UI must describe the real Convex search behavior, especially
   for Malagasy and multi-word text; do not promise exact phrase search unless it
   is actually supported.
-- Drafts, rejected or hidden content, and private proposals never enter public
+- Drafts, hidden or removed content, and private notebooks never enter public
   lists or search. Lists, search, and comments paginate or load incrementally.
 
 ## Song interactions
@@ -194,8 +208,8 @@ the creation/editing forms.
 
 The V1 web dashboard supports:
 
-- pending proposal preview, single acceptance or rejection with a reason;
-- authorized inspection of drafts/proposals;
+- authorized inspection of reported community lyrics and other content;
+- hiding or removing a reported community contribution with a reason;
 - reports about songs, profiles, and comments;
 - hiding or unpublishing content and suspending accounts;
 - correcting metadata and artist/album associations;
@@ -207,16 +221,18 @@ drafts to personalize, not certifications of legal compliance.
 
 ## Data, authorization, concurrency, and cost
 
-- Separate accounts, profiles/artist identities, songs, albums, proposals,
+- Separate accounts, profiles/artist identities, songs, albums, community
+  contributions,
   likes, comments, notebooks, and moderation records.
-- Every Convex function enforces ownership, proposal/notebook privacy,
+- Every Convex function enforces ownership, contribution/notebook privacy,
   administration, suspension, and public visibility. A hidden button is not
   authorization.
-- Likes, proposal acceptance, and derived counters remain coherent under
+- Likes, moderation actions, and derived counters remain coherent under
   duplicate clicks and concurrent requests.
 - Validate image type, format, and size. Document text/operation limits and add
   reasonable spam protection.
-- Private proposal images must not be distributed through public URLs.
+- Hidden or removed community content must not be returned by public readers
+  or duplicate-match queries. Reports and moderation reasons remain private.
 - Prefer indexed, bounded, paginated queries. Do not rescan the full catalogue
   for each home-page render.
 
@@ -225,8 +241,8 @@ drafts to personalize, not certifications of legal compliance.
 Tests and real-path checks must cover:
 
 - artist/fan/admin authorization, server-side admin assignment, suspension;
-- direct artist publishing versus private fan proposals;
-- accept/reject without duplicate publication or private-data leakage;
+- direct artist publishing versus attributed public fan contributions;
+- report/hide/remove without duplicate publication or private-data leakage;
 - raw lyric-text round trips, parsing, and snapshot excerpts across lyric
   edits/removal;
 - idempotent/concurrent likes;
