@@ -107,6 +107,36 @@ not duplicated as trust decisions in clients.
     prevent signed but unexpired JWTs from onboarding or writing again; member
     state reads treat them as anonymous. New signup uses a new auth identity.
 
+## Community domain boundary (lot 6)
+
+`convex/community/` is independent of the artist catalogue. `write.ts` publishes
+and edits Fan-owned contributions through `fanMutation`; `read.ts` owns public
+projections, private author pagination and bounded duplicate warnings.
+`moderation.ts` accepts private reports from active members and permits only
+administrators to resolve an existing report with a reason. `model.ts` defines
+the shared domain validators; `values.ts` centralizes text bounds, visibility
+and rate limits. These functions never write official songs/albums or use the
+artist mutation seam.
+
+Public queries project only published content by active, verified members with
+a profile. First-publication time stays stable across edits. Concurrent publish
+retries use the author's indexed request identifier; edits and moderation check
+the reviewed revision. Reports alone do not change visibility. Hide/remove
+prevent the original contribution from being edited back into public view;
+report decisions are audited transactionally and duplicate resolutions are
+idempotent. Artist claim/replacement and general discovery search are deferred.
+
+Account cleanup guards its final `member` phase with indexed, bounded community
+cleanup, including old jobs already at that phase. It removes owned contributions
+only after their reports/decisions are gone. Other authors' private audit history
+survives with deleted member references anonymized and reporter text replaced;
+moderation status is never restored by account deletion.
+
+Web routes own the `/community` public/Fan screens and `/admin/community` report
+screens; private data is not prefetched in public loaders. TanStack Form and
+shadcn primitives provide required lyrics, duplicate confirmation, accessible
+report/moderation forms and French/English feedback.
+
 ## Catalogue module boundary (technical lot T1)
 
 Catalogue capabilities live together under `packages/backend/convex/catalogue/`:

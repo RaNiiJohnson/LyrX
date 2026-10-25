@@ -127,7 +127,7 @@ function MyContributionList() {
       ) : (
         <>
           {list.results.length === 0 ? (
-            <CommunityEmpty />
+            <CommunityEmpty kind="mine" />
           ) : (
             list.results.map((row) => (
               <Card key={row._id}>
@@ -180,13 +180,25 @@ function MyContributionList() {
   )
 }
 
-export function CommunityEmpty() {
+export function CommunityEmpty({
+  kind = "public",
+}: {
+  kind?: "public" | "mine" | "reports"
+}) {
   const { t } = useLocale()
   return (
     <Empty>
       <EmptyHeader>
         <EmptyTitle>{t("community.empty")}</EmptyTitle>
-        <EmptyDescription>{t("community.emptyDescription")}</EmptyDescription>
+        <EmptyDescription>
+          {t(
+            kind === "reports"
+              ? "community.emptyReportsDescription"
+              : kind === "mine"
+                ? "community.emptyMineDescription"
+                : "community.emptyDescription"
+          )}
+        </EmptyDescription>
       </EmptyHeader>
     </Empty>
   )

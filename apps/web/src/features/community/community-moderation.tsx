@@ -40,7 +40,7 @@ export function CommunityModeration() {
   )
 }
 function ReportList() {
-  const { t } = useLocale()
+  const { locale, t } = useLocale()
   const [status, setStatus] = useState<"open" | "resolved">("open")
   const reports = usePaginatedQuery(
     api.community.moderation.listReports,
@@ -69,7 +69,7 @@ function ReportList() {
       {reports.status === "LoadingFirstPage" ? (
         <CommunityLoading />
       ) : reports.results.length === 0 ? (
-        <CommunityEmpty />
+        <CommunityEmpty kind="reports" />
       ) : (
         reports.results.map((report) => (
           <Card key={report._id}>
@@ -83,7 +83,9 @@ function ReportList() {
                 </Link>
               </CardTitle>
               <CardDescription>
-                {new Date(report.createdAt).toLocaleDateString()}
+                {new Date(report.createdAt).toLocaleDateString(locale, {
+                  timeZone: "UTC",
+                })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -130,13 +132,16 @@ function ReportDetail({
   const [error, setError] = useState<string | null>(null),
     [confirmOpen, setConfirmOpen] = useState(false)
   const confirmed = useRef(false)
+  const operationPending = useRef(false)
   const form = useAppForm({
     defaultValues: { action: "dismiss", reason: "" },
     onSubmit: async ({ value }) => {
+      if (operationPending.current) return
       if (value.action === "remove" && !confirmed.current) {
         setConfirmOpen(true)
         return
       }
+      operationPending.current = true
       setError(null)
       try {
         await resolve({
@@ -154,6 +159,7 @@ function ReportDetail({
       } catch (caught) {
         setError(getErrorMessage(caught, t))
       } finally {
+        operationPending.current = false
         confirmed.current = false
       }
     },
@@ -219,6 +225,8 @@ function ReportDetail({
         <form
           onSubmit={(event) => {
             event.preventDefault()
+            if (operationPending.current) return
+            confirmed.current = false
             void form.handleSubmit()
           }}
         >
@@ -243,7 +251,23 @@ function ReportDetail({
                   />
                 )}
               </form.AppField>
-              <form.AppField name="reason">
+              <form.AppField
+                name="reason"
+                validators={{
+                  onChange: ({ value }) =>
+                    value.trim()
+                      ? undefined
+                      : t("studio.requiredField", {
+                          field: t("community.reason"),
+                        }),
+                  onSubmit: ({ value }) =>
+                    value.trim()
+                      ? undefined
+                      : t("studio.requiredField", {
+                          field: t("community.reason"),
+                        }),
+                }}
+              >
                 {(field) => (
                   <field.TextareaField
                     id="moderationReason"
@@ -273,6 +297,7 @@ function ReportDetail({
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
+                if (operationPending.current) return
                 confirmed.current = true
                 void form.handleSubmit()
               }}

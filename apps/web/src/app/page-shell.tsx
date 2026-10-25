@@ -64,7 +64,7 @@ export function PageShell({
               </span>
             </Link>
 
-            <nav aria-label={t("navigation.menu")} className="hidden md:flex">
+            <nav aria-label={t("navigation.menu")} className="hidden lg:flex">
               <Button asChild variant="ghost" size="sm">
                 <Link to="/">{t("navigation.home")}</Link>
               </Button>
@@ -122,12 +122,12 @@ function ConfiguredAccountNavigation() {
       <>
         <div
           aria-label={t("common.loadingAccount")}
-          className="hidden items-center gap-2 md:flex"
+          className="hidden items-center gap-2 lg:flex"
         >
           <Skeleton className="h-7 w-20" />
           <Skeleton className="h-7 w-24" />
         </div>
-        <Skeleton className="size-8 rounded-lg md:hidden" />
+        <Skeleton className="size-8 rounded-lg lg:hidden" />
       </>
     )
   }
@@ -151,7 +151,7 @@ function ConfiguredAccountNavigation() {
     <>
       <nav
         aria-label={t("navigation.account")}
-        className="hidden items-center gap-1 md:flex"
+        className="hidden items-center gap-1 lg:flex"
       >
         {current.state === "ready" && current.member.role === "artist" ? (
           <Button asChild variant="ghost" size="sm">
@@ -197,7 +197,7 @@ function AnonymousAccountNavigation() {
     <>
       <nav
         aria-label={t("navigation.account")}
-        className="hidden items-center gap-1 md:flex"
+        className="hidden items-center gap-1 lg:flex"
       >
         <Button asChild variant="ghost" size="sm">
           <Link to="/auth/sign-in">{t("navigation.signIn")}</Link>
@@ -235,13 +235,13 @@ function MobileNavigation({
         <Button
           variant="outline"
           size="icon"
-          className="md:hidden"
+          className="lg:hidden"
           aria-label={t("navigation.openMenu")}
         >
           <Menu aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 md:hidden">
+      <DropdownMenuContent align="end" className="w-56 lg:hidden">
         <DropdownMenuLabel>{PRODUCT_NAME}</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>

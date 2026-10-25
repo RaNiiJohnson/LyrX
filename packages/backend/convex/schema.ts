@@ -245,7 +245,9 @@ export default defineSchema({
 
   communityReports: defineTable({
     contributionId: v.id("communityContributions"),
-    reporterMemberId: v.id("members"),
+    // Anonymized when the reporter deletes their account; the report stays
+    // attached to another author's contribution and moderation history.
+    reporterMemberId: v.optional(v.id("members")),
     reportedRevision: v.number(),
     reason: v.string(),
     status: reportStatus,
@@ -256,15 +258,19 @@ export default defineSchema({
       "reporterMemberId",
       "reportedRevision",
     ])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_reporter_member_id", ["reporterMemberId"]),
 
   communityModeration: defineTable({
     reportId: v.id("communityReports"),
     contributionId: v.id("communityContributions"),
-    moderatorMemberId: v.id("members"),
+    moderatorMemberId: v.optional(v.id("members")),
     reviewedRevision: v.number(),
     action: moderationAction,
     reason: v.string(),
     createdAt: v.number(),
-  }).index("by_report_id", ["reportId"]),
+  })
+    .index("by_report_id", ["reportId"])
+    .index("by_contribution_id", ["contributionId"])
+    .index("by_moderator_member_id", ["moderatorMemberId"]),
 })

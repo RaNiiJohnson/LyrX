@@ -16,7 +16,11 @@ const frenchMessages = {
   "community.saved": "Contribution enregistrée",
   "community.empty": "Aucun contenu à afficher",
   "community.emptyDescription":
-    "Les contributions et les signalements apparaîtront ici lorsqu’ils seront disponibles.",
+    "Les paroles communautaires publiées apparaîtront ici.",
+  "community.emptyMineDescription":
+    "Vous n’avez pas encore publié de contribution communautaire.",
+  "community.emptyReportsDescription":
+    "Aucun signalement ne correspond à ce statut.",
   "community.loadMore": "Voir la suite",
   "community.fanOnly": "Compte Fan requis",
   "community.adminOnly": "Accès administrateur requis",
@@ -545,8 +549,10 @@ const englishMessages = {
   "community.albumReference": "Album reference",
   "community.saved": "Contribution saved",
   "community.empty": "Nothing to display",
-  "community.emptyDescription":
-    "Contributions and reports will appear here when available.",
+  "community.emptyDescription": "Published community lyrics will appear here.",
+  "community.emptyMineDescription":
+    "You have not published any community contributions yet.",
+  "community.emptyReportsDescription": "No reports match this status.",
   "community.loadMore": "Load more",
   "community.fanOnly": "Fan account required",
   "community.adminOnly": "Administrator access required",

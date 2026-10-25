@@ -140,6 +140,7 @@ describe("community fan lyrics", () => {
     })
     const snapshot = await t.run((ctx) => ctx.db.get("songs", official))
     const id = await fan.client.mutation(api.community.write.publish, input())
+    const { requestId: _requestId, ...communityValue } = input()
     await expect(
       fan.client.mutation(api.catalogue.songs.updateSong, {
         songId: official,
@@ -155,11 +156,11 @@ describe("community fan lyrics", () => {
     ).rejects.toThrow("ARTIST_REQUIRED")
     await expect(
       artist.client.mutation(api.community.write.update, {
-        ...input(),
+        ...communityValue,
         contributionId: id,
         expectedRevision: 1,
       })
-    ).rejects.toThrow()
+    ).rejects.toThrow("FAN_REQUIRED")
     expect(await t.run((ctx) => ctx.db.get("songs", official))).toEqual(
       snapshot
     )
@@ -232,6 +233,15 @@ describe("community fan lyrics", () => {
       other.client.query(api.community.read.getMine, { contributionId: id })
     ).rejects.toThrow("NOT_FOUND")
     const { requestId: _requestId, ...value } = input()
+    const forgedUpdate = {
+      ...value,
+      contributionId: id,
+      expectedRevision: 1,
+      authorMemberId: other.memberId,
+    }
+    await expect(
+      owner.client.mutation(api.community.write.update, forgedUpdate)
+    ).rejects.toThrow("authorMemberId")
     await expect(
       other.client.mutation(api.community.write.update, {
         ...value,
@@ -397,6 +407,40 @@ describe("community fan lyrics", () => {
       ).rejects.toThrow("REPORT_RESOLVED")
     }
   )
+
+  it("cannot moderate without an existing report or accept a client-selected contribution", async () => {
+    const t = backend(),
+      owner = await member(t, "unreported-author"),
+      admin = await member(t, "unreported-admin", "artist", true)
+    const contributionId = await owner.client.mutation(
+      api.community.write.publish,
+      input()
+    )
+    const reportId = await admin.client.mutation(
+      api.community.moderation.report,
+      { contributionId, reason: "Temporary report fixture" }
+    )
+    await t.run((ctx) => ctx.db.delete("communityReports", reportId))
+    const decision = {
+      reportId,
+      action: "hide" as const,
+      reason: "Review requires a report",
+      expectedRevision: 1,
+    }
+    await expect(
+      admin.client.mutation(api.community.moderation.resolve, decision)
+    ).rejects.toThrow("NOT_FOUND")
+    const forgedDecision = { ...decision, contributionId }
+    await expect(
+      admin.client.mutation(api.community.moderation.resolve, forgedDecision)
+    ).rejects.toThrow("contributionId")
+    expect(
+      await t.query(api.community.read.getPublished, { contributionId })
+    ).not.toBeNull()
+    expect(
+      await t.run((ctx) => ctx.db.query("communityModeration").take(1))
+    ).toEqual([])
+  })
 
   it("dismisses reports without changing public content and detects stale moderation", async () => {
     const t = backend(),

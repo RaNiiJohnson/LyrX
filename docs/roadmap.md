@@ -38,9 +38,13 @@ A new PR still requires the user's explicit authorization.
 
 Before finishing lot 6, the user authorized a separate account prerequisite:
 self-service Better Auth deletion with resumable cascade cleanup. It is isolated
-on `codex/account-self-deletion`; the unfinished lot 6 implementation is saved
-at `1298ef1`. Resume that branch only after this prerequisite, and extend the
-cascade to the community domain before closing lot 6. Lot 5 and T1 stay closed.
+on `codex/account-self-deletion`, completed with the redirect-flash fix at
+`3da2c3e`. The user has now authorized resuming `codex/community-fan-lyrics`;
+local merge `66b5d9f` integrates that prerequisite. The earlier checkpoint
+`1298ef1` is historical. Community cleanup and the final verification/review
+gate belong to this resumed lot. Lot 6 is now complete locally with Fan/admin
+browser evidence and 208 passing tests; no PR/push is authorized. Lot 7 awaits
+approval. Lot 5 and T1 stay closed.
 
 Lots 2–12 stabilize the web and shared backend before Expo. Search follows the
 public content model so its visibility rules are testable. Notebook excerpts and

@@ -8,6 +8,7 @@ import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { FieldGroup } from "@lyrx/ui/components/field"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { toast } from "@lyrx/ui/lib/toast"
 import { useLocale } from "@/app/locale-provider"
 import { SongReadOnly } from "@/features/catalogue/song/song-read-only"
@@ -72,7 +73,13 @@ function ReportForm({
 }) {
   const current = useQuery(api.members.current, {})
   const { t } = useLocale()
-  if (current?.state !== "ready")
+  if (current === undefined)
+    return (
+      <div role="status" aria-label={t("common.loadingAccount")}>
+        <Skeleton className="h-5 w-64 max-w-full" />
+      </div>
+    )
+  if (current.state !== "ready")
     return (
       <p className="text-sm text-muted-foreground">
         <Link to="/auth/sign-in" className="underline">
