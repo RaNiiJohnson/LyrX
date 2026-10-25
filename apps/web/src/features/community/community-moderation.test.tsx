@@ -12,6 +12,10 @@ const mocks = vi.hoisted(() => ({
   resolve: vi.fn<(...args: Array<unknown>) => Promise<void>>(),
   success: vi.fn(),
   revision: 7,
+  status: "published",
+  decision: null as null | { action: string; reason: string },
+  latestRestoration: null as null | { reason: string },
+  restore: vi.fn<(...args: Array<unknown>) => Promise<void>>(),
 }))
 
 vi.mock("convex/react", async () => {
@@ -29,12 +33,16 @@ vi.mock("convex/react", async () => {
               title: "Reported lyric",
               primaryArtist: "Credited artist",
               lyricsText: "Reported lyric text",
-              status: "published",
+              status: mocks.status,
               revision: mocks.revision,
             },
-            decision: null,
+            decision: mocks.decision,
+            latestRestoration: mocks.latestRestoration,
           },
-    useMutation: () => mocks.resolve,
+    useMutation: (reference: Parameters<typeof getFunctionName>[0]) =>
+      getFunctionName(reference) === "community/moderation:restore"
+        ? mocks.restore
+        : mocks.resolve,
     usePaginatedQuery: () => ({ results: [], status: "Exhausted" }),
   }
 })
@@ -116,6 +124,10 @@ beforeEach(async () => {
   mocks.resolve.mockReset().mockResolvedValue(undefined)
   mocks.success.mockReset()
   mocks.revision = 7
+  mocks.status = "published"
+  mocks.decision = null
+  mocks.latestRestoration = null
+  mocks.restore.mockReset().mockResolvedValue(undefined)
   const container = document.createElement("div")
   document.body.append(container)
   root = createRoot(container)
@@ -138,6 +150,136 @@ afterEach(async () => {
 })
 
 describe("community moderation interaction", () => {
+  async function hiddenContribution() {
+    mocks.status = "hidden"
+    mocks.decision = { action: "hide", reason: "Original hide reason remains" }
+    await flush(() =>
+      root.render(
+        <LocaleProvider>
+          <CommunityReport reportId={reportId} />
+        </LocaleProvider>
+      )
+    )
+  }
+
+  it("offers restoration for a hidden contribution while preserving the original decision", async () => {
+    await hiddenContribution()
+    expect(document.body.textContent).toContain("Original hide reason remains")
+    expect(
+      document.querySelector<HTMLTextAreaElement>("#restorationReason")
+        ?.required
+    ).toBe(true)
+    await flush(() => button("Rendre public").click())
+    expect(mocks.restore).not.toHaveBeenCalled()
+    await fillReason("   \n  ")
+    await flush(() =>
+      document
+        .querySelector("form")
+        ?.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true })
+        )
+    )
+    expect(mocks.restore).not.toHaveBeenCalled()
+    expect(document.querySelector('[aria-invalid="true"]')).not.toBeNull()
+  })
+
+  it("restores with report, revision, reason and a stable request identity while preventing double submissions", async () => {
+    await hiddenContribution()
+    const operation = deferred()
+    mocks.restore.mockReturnValueOnce(operation.promise)
+    await fillReason("Reviewed the correction; restore visibility")
+    await flush(() => button("Rendre public").click())
+    expect(mocks.restore).toHaveBeenCalledExactlyOnceWith({
+      reportId,
+      expectedRevision: 7,
+      reason: "Reviewed the correction; restore visibility",
+      requestId: expect.any(String),
+    })
+    const requestId = (
+      mocks.restore.mock.calls[0]?.[0] as { requestId: string }
+    ).requestId
+    expect(requestId).not.toHaveLength(0)
+    expect(button("Rendre public").disabled).toBe(true)
+    await flush(() =>
+      document
+        .querySelector("form")
+        ?.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true })
+        )
+    )
+    expect(mocks.restore).toHaveBeenCalledOnce()
+    await act(async () => {
+      operation.reject(new Error("REVISION_CONFLICT"))
+      await operation.promise.catch(() => undefined)
+    })
+    expect(document.body.textContent).toContain(
+      "Le contenu a changé. Rechargez la page avant de réessayer."
+    )
+    expect(
+      document.querySelector<HTMLTextAreaElement>("#restorationReason")?.value
+    ).toBe("Reviewed the correction; restore visibility")
+    await flush(() => button("Rendre public").click())
+    expect(mocks.restore).toHaveBeenCalledTimes(2)
+    expect(mocks.restore.mock.calls[1]?.[0]).toEqual({
+      reportId,
+      expectedRevision: 7,
+      reason: "Reviewed the correction; restore visibility",
+      requestId,
+    })
+    expect(document.body.textContent).toContain("Visibilité publique rétablie")
+    expect(document.body.textContent).toContain("Original hide reason remains")
+    expect(document.querySelector("#restorationReason")).toBeNull()
+  })
+
+  it("shows the latest restoration reason without removing the original hide reason", async () => {
+    mocks.decision = { action: "hide", reason: "Original hide reason" }
+    mocks.latestRestoration = { reason: "New restoration reason" }
+    await flush(() =>
+      root.render(
+        <LocaleProvider>
+          <CommunityReport reportId={reportId} />
+        </LocaleProvider>
+      )
+    )
+    expect(document.body.textContent).toContain("Original hide reason")
+    expect(document.body.textContent).toContain("New restoration reason")
+    expect(document.querySelector("#restorationReason")).toBeNull()
+  })
+
+  it("uses a fresh restoration identity after a new moderation context", async () => {
+    await hiddenContribution()
+    await fillReason("First deliberate restoration")
+    await flush(() => button("Rendre public").click())
+    const first = mocks.restore.mock.calls[0]?.[0] as { requestId: string }
+    mocks.revision = 8
+    await hiddenContribution()
+    expect(
+      document.querySelector<HTMLTextAreaElement>("#restorationReason")?.value
+    ).toBe("")
+    await fillReason("Second deliberate restoration")
+    await flush(() => button("Rendre public").click())
+    const second = mocks.restore.mock.calls[1]?.[0] as {
+      requestId: string
+      expectedRevision: number
+    }
+    expect(second.requestId).not.toBe(first.requestId)
+    expect(second.expectedRevision).toBe(8)
+  })
+
+  it("never offers restore for removed content", async () => {
+    mocks.status = "removed"
+    mocks.decision = { action: "remove", reason: "Removed after review" }
+    await flush(() =>
+      root.render(
+        <LocaleProvider>
+          <CommunityReport reportId={reportId} />
+        </LocaleProvider>
+      )
+    )
+    expect(document.querySelector("#restorationReason")).toBeNull()
+    expect(document.body.textContent).not.toContain("Rendre public")
+  })
+
   it("requires a reason before native submission", async () => {
     const textarea = document.querySelector<HTMLTextAreaElement>(
       'textarea[name="reason"]'

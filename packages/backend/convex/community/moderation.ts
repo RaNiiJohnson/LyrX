@@ -8,6 +8,7 @@ import schema from "../schema"
 import { moderationAction, reportStatus } from "./model"
 import {
   boundedText,
+  activeContributor,
   fail,
   limiter,
   publicSummary,
@@ -21,6 +22,8 @@ export const report = memberMutation({
     const row = await ctx.db.get("communityContributions", args.contributionId)
     if (!row || !(await publicSummary(ctx, row)))
       fail("NOT_FOUND", "Public contribution not found.")
+    if (row.authorMemberId === ctx.member._id)
+      fail("SELF_REPORT_FORBIDDEN", "You cannot report your own contribution.")
     const reason = boundedText(args.reason, 1000, "Report reason")
     const previous = await ctx.db
       .query("communityReports")
@@ -68,6 +71,7 @@ export const getReport = adminQuery({
     report: schema.doc("communityReports"),
     contribution: schema.doc("communityContributions"),
     decision: v.union(v.null(), schema.doc("communityModeration")),
+    latestRestoration: v.union(v.null(), schema.doc("communityRestorations")),
   }),
   handler: async (ctx, args) => {
     const record = await ctx.db.get("communityReports", args.reportId)
@@ -81,7 +85,85 @@ export const getReport = adminQuery({
       .query("communityModeration")
       .withIndex("by_report_id", (q) => q.eq("reportId", record._id))
       .unique()
-    return { report: record, contribution, decision }
+    const latestRestoration = await ctx.db
+      .query("communityRestorations")
+      .withIndex("by_report_id", (q) => q.eq("reportId", record._id))
+      .order("desc")
+      .first()
+    return { report: record, contribution, decision, latestRestoration }
+  },
+})
+
+export const restore = adminMutation({
+  args: {
+    reportId: v.id("communityReports"),
+    reason: v.string(),
+    expectedRevision: v.number(),
+    requestId: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const record = await ctx.db.get("communityReports", args.reportId)
+    if (!record) fail("NOT_FOUND", "Report not found.")
+    const reason = boundedText(args.reason, 1000, "Restoration reason")
+    const requestId = boundedText(args.requestId, 100, "Request identifier")
+    const previous = await ctx.db
+      .query("communityRestorations")
+      .withIndex("by_report_id_and_request_id", (q) =>
+        q.eq("reportId", record._id).eq("requestId", requestId)
+      )
+      .unique()
+    if (previous) return null
+    const row = await ctx.db.get(
+      "communityContributions",
+      record.contributionId
+    )
+    if (!row) fail("NOT_FOUND", "Reported contribution not found.")
+    const decision = await ctx.db
+      .query("communityModeration")
+      .withIndex("by_report_id", (q) => q.eq("reportId", record._id))
+      .unique()
+    if (
+      record.status !== "resolved" ||
+      decision?.action !== "hide" ||
+      row.status !== "hidden"
+    )
+      fail(
+        "RESTORATION_FORBIDDEN",
+        "Only a contribution hidden after this report can be restored."
+      )
+    const author = await ctx.db.get("members", row.authorMemberId)
+    const deletion = author
+      ? await ctx.db
+          .query("accountDeletions")
+          .withIndex("by_auth_user_id", (q) =>
+            q.eq("authUserId", author.authUserId)
+          )
+          .unique()
+      : null
+    if (deletion || !(await activeContributor(ctx, row.authorMemberId)))
+      fail("RESTORATION_FORBIDDEN", "The contribution author is unavailable.")
+    if (row.revision !== args.expectedRevision)
+      fail(
+        "REVISION_CONFLICT",
+        "The contribution changed. Reload before restoring."
+      )
+    const now = Date.now()
+    await ctx.db.insert("communityRestorations", {
+      reportId: record._id,
+      contributionId: row._id,
+      moderatorMemberId: ctx.member._id,
+      reviewedRevision: row.revision,
+      requestId,
+      reason,
+      createdAt: now,
+    })
+    await ctx.db.patch("communityContributions", row._id, {
+      status: "published",
+      revision: row.revision + 1,
+      updatedAt: now,
+    })
+    return null
   },
 })
 

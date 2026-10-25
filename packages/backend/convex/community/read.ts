@@ -10,6 +10,7 @@ import {
   activeContributor,
   fail,
   publicSummary,
+  publicMetadata,
   publicValidator,
   summaryValidator,
   validatePageSize,
@@ -44,6 +45,7 @@ export const getPublished = query({
     return summary
       ? {
           ...summary,
+          ...publicMetadata(row),
           lyricsText: row.lyricsText,
           ...(row.albumTitle ? { albumTitle: row.albumTitle } : {}),
           revision: row.revision,
@@ -69,12 +71,19 @@ export const listMine = fanQuery({
 
 export const getMine = fanQuery({
   args: { contributionId: v.id("communityContributions") },
-  returns: schema.doc("communityContributions"),
+  returns: schema.doc("communityContributions").extend({
+    artworkUrl: v.union(v.string(), v.null()),
+  }),
   handler: async (ctx, args) => {
     const row = await ctx.db.get("communityContributions", args.contributionId)
     if (!row || row.authorMemberId !== ctx.member._id)
       fail("NOT_FOUND", "Contribution not found.")
-    return row
+    return {
+      ...row,
+      artworkUrl: row.artworkStorageId
+        ? await ctx.storage.getUrl(row.artworkStorageId)
+        : null,
+    }
   },
 })
 

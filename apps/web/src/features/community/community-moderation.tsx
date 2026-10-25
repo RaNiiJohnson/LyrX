@@ -115,7 +115,7 @@ export function CommunityReport({
 function ReportData({ reportId }: { reportId: Id<"communityReports"> }) {
   const detail = useQuery(api.community.moderation.getReport, { reportId })
   if (detail === undefined) return <CommunityLoading />
-  return <ReportDetail reportId={reportId} detail={detail} />
+  return <ReportDetail key={reportId} reportId={reportId} detail={detail} />
 }
 type ReportDetailData = NonNullable<
   ReturnType<typeof useQuery<typeof api.community.moderation.getReport>>
@@ -285,6 +285,20 @@ function ReportDetail({
           </form.AppForm>
         </form>
       )}
+      {detail.latestRestoration ? (
+        <Alert role="status">
+          <AlertTitle>{t("community.restored")}</AlertTitle>
+          <AlertDescription>{detail.latestRestoration.reason}</AlertDescription>
+        </Alert>
+      ) : null}
+      {detail.contribution.status === "hidden" &&
+      detail.decision?.action === "hide" ? (
+        <RestorationForm
+          key={`${reportId}:${detail.contribution.revision}`}
+          reportId={reportId}
+          revision={detail.contribution.revision}
+        />
+      ) : null}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -308,5 +322,111 @@ function ReportDetail({
         </AlertDialogContent>
       </AlertDialog>
     </section>
+  )
+}
+
+function RestorationForm({
+  reportId,
+  revision,
+}: {
+  reportId: Id<"communityReports">
+  revision: number
+}) {
+  const { t } = useLocale()
+  const restore = useMutation(api.community.moderation.restore)
+  const operation = useRef<{ requestId: string; reason: string } | null>(null)
+  const pending = useRef(false)
+  const [error, setError] = useState<string | null>(null)
+  const [restored, setRestored] = useState(false)
+  const form = useAppForm({
+    defaultValues: { reason: "" },
+    onSubmit: async ({ value }) => {
+      if (pending.current || restored) return
+      pending.current = true
+      setError(null)
+      if (!operation.current || operation.current.reason !== value.reason)
+        operation.current = {
+          requestId: crypto.randomUUID(),
+          reason: value.reason,
+        }
+      try {
+        await restore({
+          reportId,
+          reason: value.reason,
+          expectedRevision: revision,
+          requestId: operation.current.requestId,
+        })
+        setRestored(true)
+        operation.current = null
+        toast.success(t("community.restored"))
+      } catch (caught) {
+        setError(getErrorMessage(caught, t))
+      } finally {
+        pending.current = false
+      }
+    },
+  })
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("community.restore")}</CardTitle>
+        <CardDescription>{t("community.restoreDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {restored ? (
+          <Alert role="status">
+            <AlertTitle>{t("community.restored")}</AlertTitle>
+          </Alert>
+        ) : (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              if (!pending.current) void form.handleSubmit()
+            }}
+          >
+            <form.AppForm>
+              <FieldGroup>
+                {error ? (
+                  <Alert variant="destructive">
+                    <AlertTitle>{t("error.unexpected")}</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                ) : null}
+                <form.AppField
+                  name="reason"
+                  validators={{
+                    onSubmit: ({ value }) =>
+                      value.trim()
+                        ? undefined
+                        : t("studio.requiredField", {
+                            field: t("community.reason"),
+                          }),
+                    onChange: ({ value }) =>
+                      value.trim()
+                        ? undefined
+                        : t("studio.requiredField", {
+                            field: t("community.reason"),
+                          }),
+                  }}
+                >
+                  {(field) => (
+                    <field.TextareaField
+                      id="restorationReason"
+                      label={t("community.reason")}
+                      required
+                      maxLength={1000}
+                      rows={3}
+                    />
+                  )}
+                </form.AppField>
+                <form.SubmitButton className="self-start">
+                  {t("community.restore")}
+                </form.SubmitButton>
+              </FieldGroup>
+            </form.AppForm>
+          </form>
+        )}
+      </CardContent>
+    </Card>
   )
 }

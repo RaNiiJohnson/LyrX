@@ -12,6 +12,7 @@ import { internalMutation, query } from "./_generated/server"
 import { memberMutation, verifiedMutation } from "./lib/functions"
 import { findMemberByIdentity } from "./lib/authz"
 import { deleteOwnedProfileImageIfUnreferenced } from "./lib/profileImages"
+import { storageIsClaimed } from "./catalogue/artwork"
 import {
   normalizeEmail,
   normalizeHandle,
@@ -392,7 +393,8 @@ export const saveProfileImage = memberMutation({
       (ownership &&
         (ownership.memberId !== ctx.member._id ||
           ownership.kind !== args.kind)) ||
-      attachedToAnotherMember
+      attachedToAnotherMember ||
+      (!ownership && (await storageIsClaimed(ctx, args.storageId)))
     ) {
       throw new ConvexError({
         code: "PROFILE_IMAGE_FORBIDDEN",

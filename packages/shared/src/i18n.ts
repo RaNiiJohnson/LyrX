@@ -14,6 +14,18 @@ const frenchMessages = {
   "community.contributedBy": "Partagé par",
   "community.albumReference": "Album de référence",
   "community.saved": "Contribution enregistrée",
+  "community.artworkSavePartial":
+    "La contribution est déjà publique, mais sa pochette n’a pas été enregistrée. Réessayez ou retirez l’image sélectionnée pour continuer sans elle.",
+  "community.retryArtwork": "Réessayer la pochette",
+  "community.options": "Options de la contribution",
+  "community.selfReportForbidden":
+    "Vous ne pouvez pas signaler votre propre contribution.",
+  "community.restore": "Rendre public",
+  "community.restoreDescription":
+    "Rétablissez la visibilité publique de cette contribution masquée en indiquant un motif. La décision initiale reste conservée.",
+  "community.restored": "Visibilité publique rétablie",
+  "community.notRestorable":
+    "Seule une contribution masquée dont l’auteur est actif peut être rendue publique.",
   "community.empty": "Aucun contenu à afficher",
   "community.emptyDescription":
     "Les paroles communautaires publiées apparaîtront ici.",
@@ -548,6 +560,17 @@ const englishMessages = {
   "community.contributedBy": "Shared by",
   "community.albumReference": "Album reference",
   "community.saved": "Contribution saved",
+  "community.artworkSavePartial":
+    "The contribution is already public, but its artwork was not saved. Retry or clear the selected image to continue without it.",
+  "community.retryArtwork": "Retry artwork",
+  "community.options": "Contribution options",
+  "community.selfReportForbidden": "You cannot report your own contribution.",
+  "community.restore": "Restore public visibility",
+  "community.restoreDescription":
+    "Restore public visibility of this hidden contribution with a reason. The original decision remains recorded.",
+  "community.restored": "Public visibility restored",
+  "community.notRestorable":
+    "Only a hidden contribution with an active author can be made public again.",
   "community.empty": "Nothing to display",
   "community.emptyDescription": "Published community lyrics will appear here.",
   "community.emptyMineDescription":

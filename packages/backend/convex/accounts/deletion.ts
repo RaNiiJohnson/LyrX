@@ -69,6 +69,17 @@ async function cleanCommunityBatch(ctx: MutationCtx, owner: Id<"members">) {
     .withIndex("by_author_member_id", (q) => q.eq("authorMemberId", owner))
     .first()
   if (contribution) {
+    const restorations = await ctx.db
+      .query("communityRestorations")
+      .withIndex("by_contribution_id", (q) =>
+        q.eq("contributionId", contribution._id)
+      )
+      .take(BATCH_SIZE)
+    if (restorations.length) {
+      for (const restoration of restorations)
+        await ctx.db.delete("communityRestorations", restoration._id)
+      return true
+    }
     const decisions = await ctx.db
       .query("communityModeration")
       .withIndex("by_contribution_id", (q) =>
@@ -96,6 +107,27 @@ async function cleanCommunityBatch(ctx: MutationCtx, owner: Id<"members">) {
     return true
   }
 
+  const intents = await ctx.db
+    .query("communityArtworkUploadIntents")
+    .withIndex("by_author_member_id", (q) => q.eq("authorMemberId", owner))
+    .take(BATCH_SIZE)
+  if (intents.length) {
+    for (const intent of intents)
+      await ctx.db.delete("communityArtworkUploadIntents", intent._id)
+    return true
+  }
+  const images = await ctx.db
+    .query("communityImages")
+    .withIndex("by_author_member_id", (q) => q.eq("authorMemberId", owner))
+    .take(BATCH_SIZE)
+  if (images.length) {
+    for (const image of images) {
+      await ctx.db.delete("communityImages", image._id)
+      await removeUnclaimedFile(ctx, image.storageId)
+    }
+    return true
+  }
+
   const reports = await ctx.db
     .query("communityReports")
     .withIndex("by_reporter_member_id", (q) => q.eq("reporterMemberId", owner))
@@ -117,6 +149,19 @@ async function cleanCommunityBatch(ctx: MutationCtx, owner: Id<"members">) {
   if (decisions.length) {
     for (const decision of decisions)
       await ctx.db.patch("communityModeration", decision._id, {
+        moderatorMemberId: undefined,
+      })
+    return true
+  }
+  const restorations = await ctx.db
+    .query("communityRestorations")
+    .withIndex("by_moderator_member_id", (q) =>
+      q.eq("moderatorMemberId", owner)
+    )
+    .take(BATCH_SIZE)
+  if (restorations.length) {
+    for (const restoration of restorations)
+      await ctx.db.patch("communityRestorations", restoration._id, {
         moderatorMemberId: undefined,
       })
     return true

@@ -4,7 +4,8 @@ import { ConvexError, v, type Infer } from "convex/values"
 import { components } from "../_generated/api"
 import type { Doc, Id } from "../_generated/dataModel"
 import type { QueryCtx } from "../_generated/server"
-import { contributionInput } from "./model"
+import { validatedSong } from "../catalogue/values"
+import { contributionInput, contributionMetadata } from "./model"
 
 export function fail(code: string, message: string): never {
   throw new ConvexError({ code, message })
@@ -30,7 +31,11 @@ export function validatePageSize(options: { numItems: number }) {
 }
 
 const inputValidator = v.object(contributionInput)
-export function validatedContribution(input: Infer<typeof inputValidator>) {
+export function validatedContribution(
+  input: Infer<typeof inputValidator>,
+  previous?: Doc<"communityContributions">,
+  clear?: { genre?: boolean; releaseDate?: boolean }
+) {
   if (
     !input.lyricsText.trim() ||
     input.lyricsText.length > MAX_LYRICS_TEXT_LENGTH
@@ -39,7 +44,42 @@ export function validatedContribution(input: Infer<typeof inputValidator>) {
       "INVALID_LYRICS",
       `Lyrics are required and must not exceed ${MAX_LYRICS_TEXT_LENGTH} characters.`
     )
+  // Old clients omit these new optional fields; do not erase existing metadata.
+  const merged = { ...previous, ...input }
+  for (const key of Object.keys(contributionMetadata) as Array<
+    keyof typeof contributionMetadata
+  >) {
+    if (input[key] === undefined && previous?.[key] !== undefined)
+      Object.assign(merged, { [key]: previous[key] })
+  }
+  if (input.genre !== undefined && input.genre !== "other")
+    merged.otherGenre = input.otherGenre
+  // The form sends empty optional text explicitly so users can clear it.
+  // Keep rejecting a nonempty custom genre paired with a different genre.
+  if (merged.genre !== "other" && !merged.otherGenre?.trim())
+    merged.otherGenre = undefined
+  if (clear?.genre) {
+    merged.genre = undefined
+    merged.otherGenre = undefined
+  }
+  if (clear?.releaseDate) merged.releaseDate = undefined
+  const song = validatedSong({
+    ...merged,
+    guestArtists: merged.guestArtists ?? [],
+    writers: merged.writers ?? [],
+    composers: merged.composers ?? [],
+    producers: merged.producers ?? [],
+    listeningLinks: merged.listeningLinks ?? [],
+  })
   return {
+    ...song,
+    releaseDate: song.releaseDate,
+    description: song.description,
+    context: song.context,
+    genre: song.genre,
+    otherGenre: song.otherGenre,
+    label: song.label,
+    additionalCredits: song.additionalCredits,
     title: boundedText(input.title, 160, "Title"),
     primaryArtist: boundedText(input.primaryArtist, 120, "Primary artist"),
     lyricsText: input.lyricsText,
@@ -75,8 +115,10 @@ export const summaryValidator = v.object({
   primaryArtist: v.string(),
   firstPublishedAt: v.number(),
   contributor: contributorValidator,
+  artworkUrl: v.union(v.string(), v.null()),
 })
 export const publicValidator = v.object({
+  ...contributionMetadata,
   ...summaryValidator.fields,
   lyricsText: v.string(),
   albumTitle: v.optional(v.string()),
@@ -112,6 +154,26 @@ export async function publicSummary(
         primaryArtist: row.primaryArtist,
         firstPublishedAt: row.firstPublishedAt,
         contributor,
+        artworkUrl: row.artworkStorageId
+          ? await ctx.storage.getUrl(row.artworkStorageId)
+          : null,
       }
     : null
+}
+
+export function publicMetadata(row: Doc<"communityContributions">) {
+  return {
+    guestArtists: row.guestArtists,
+    releaseDate: row.releaseDate,
+    description: row.description,
+    context: row.context,
+    genre: row.genre,
+    otherGenre: row.otherGenre,
+    writers: row.writers,
+    composers: row.composers,
+    producers: row.producers,
+    label: row.label,
+    additionalCredits: row.additionalCredits,
+    listeningLinks: row.listeningLinks,
+  }
 }

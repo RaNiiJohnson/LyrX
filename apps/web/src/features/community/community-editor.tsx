@@ -2,7 +2,8 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import { useConvex, useMutation, useQuery } from "convex/react"
 import { useRef, useState } from "react"
 import { api } from "@lyrx/backend/convex/_generated/api"
-import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import type { FunctionReturnType } from "convex/server"
 import { MAX_LYRICS_TEXT_LENGTH } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Button } from "@lyrx/ui/components/button"
@@ -13,13 +14,30 @@ import {
   CardContent,
   CardFooter,
 } from "@lyrx/ui/components/card"
-import { FieldGroup } from "@lyrx/ui/components/field"
+import { FieldGroup, FieldSet } from "@lyrx/ui/components/field"
 import { toast } from "@lyrx/ui/lib/toast"
 import { useLocale } from "@/app/locale-provider"
 import { useAppForm } from "@/lib/app-form"
-import { getErrorMessage } from "@/lib/errors"
-import { OptionalLabel } from "@/features/catalogue/shared/optional-label"
+import { getErrorMessage, localizedUiError } from "@/lib/errors"
+import { useArtworkSelection } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
+import { CatalogueArtworkCard } from "@/features/catalogue/shared/catalogue-artwork-card"
 import { CommunityAccess, CommunityLoading } from "./community-access"
+import { CommunityEditorMetadata } from "./community-editor-metadata"
+import {
+  communityFormOptions,
+  communityValuesFromDetail,
+  toCommunityMutationInput,
+} from "./community-editor-values"
+import {
+  saveCommunityContribution,
+  type CommunitySaveState,
+} from "./community-editor-save"
+import {
+  uploadCommunityArtwork,
+  type CommunityArtworkAttempt,
+} from "./community-artwork-upload"
+
+type CommunityDetail = FunctionReturnType<typeof api.community.read.getMine>
 
 export function CommunityEditor({
   contributionId,
@@ -51,15 +69,32 @@ function EditorData({
     )
   return <EditorForm key={contributionId ?? "new"} detail={detail} />
 }
-function EditorForm({ detail }: { detail?: Doc<"communityContributions"> }) {
+function EditorForm({ detail }: { detail?: CommunityDetail }) {
   const { t } = useLocale(),
     client = useConvex(),
     navigate = useNavigate()
   const publish = useMutation(api.community.write.publish),
     update = useMutation(api.community.write.update)
+  const generateUploadUrl = useMutation(
+    api.community.artwork.generateArtworkUploadUrl
+  )
+  const saveArtwork = useMutation(api.community.artwork.saveArtwork)
+  const artwork = useArtworkSelection()
+  const artworkAttempt = useRef<CommunityArtworkAttempt>({})
+  const [defaultValues] = useState(() => communityValuesFromDetail(detail))
+  const saved = useRef<CommunitySaveState<Id<"communityContributions">>>({
+    id: detail?._id,
+    revision: detail?.revision,
+    signature: detail
+      ? JSON.stringify(toCommunityMutationInput(defaultValues))
+      : undefined,
+  })
   const requestId = useRef<string | null>(null),
+    publishSignature = useRef<string | null>(null),
     confirmed = useRef<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [artworkFailed, setArtworkFailed] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [matches, setMatches] = useState<{
     signature: string
     rows: Array<{
@@ -70,49 +105,141 @@ function EditorForm({ detail }: { detail?: Doc<"communityContributions"> }) {
     }>
   } | null>(null)
   const form = useAppForm({
-    defaultValues: {
-      title: detail?.title ?? "",
-      primaryArtist: detail?.primaryArtist ?? "",
-      lyricsText: detail?.lyricsText ?? "",
-      albumTitle: detail?.albumTitle ?? "",
-    },
+    ...communityFormOptions,
+    defaultValues,
     onSubmit: async ({ value }) => {
       setError(null)
-      const signature = JSON.stringify(value)
+      if (!value.lyricsText.trim()) {
+        setError(t("studio.lyricsRequired"))
+        return
+      }
+      const input = toCommunityMutationInput(value)
+      const signature = JSON.stringify(input)
+      const selectedArtwork = artwork.file
+      let artworkReconciled = false
+      setSaving(true)
       try {
-        if (confirmed.current !== signature) {
+        // A storage id means the last failure may have followed a committed
+        // attachment. Confirm that exact claim before editing at a newer revision.
+        if (
+          selectedArtwork &&
+          artworkAttempt.current.storageId &&
+          artworkAttempt.current.file === selectedArtwork &&
+          saved.current.id &&
+          saved.current.revision !== undefined
+        ) {
+          const expectedRevision = saved.current.revision + 1
+          await uploadCommunityArtwork(
+            selectedArtwork,
+            saved.current.id,
+            generateUploadUrl,
+            saveArtwork,
+            artworkAttempt.current
+          )
+          const persisted = await client.query(api.community.read.getMine, {
+            contributionId: saved.current.id,
+          })
+          if (persisted.revision !== expectedRevision)
+            throw localizedUiError(t("community.revisionConflict"))
+          saved.current.revision = expectedRevision
+          artworkReconciled = true
+          artwork.select(undefined)
+          setArtworkFailed(false)
+        }
+        if (
+          saved.current.signature !== signature &&
+          confirmed.current !== signature
+        ) {
           const rows = (
             await client.query(api.community.read.findMatches, {
               title: value.title,
               primaryArtist: value.primaryArtist,
             })
-          ).filter((row) => row.id !== detail?._id)
+          ).filter((row) => row.id !== saved.current.id)
           if (rows.length) {
             setMatches({ signature, rows })
             return
           }
         }
-        const input = { ...value, albumTitle: value.albumTitle || undefined }
-        let id = detail?._id
-        if (detail)
-          await update({
-            ...input,
-            contributionId: detail._id,
-            expectedRevision: detail.revision,
-          })
-        else {
-          requestId.current ??= crypto.randomUUID()
-          id = await publish({ ...input, requestId: requestId.current })
-        }
-        if (id) {
-          toast.success(t("community.saved"))
-          await navigate({
-            to: "/community/$contributionId",
-            params: { contributionId: id },
-          })
-        }
+        let uploading = false
+        const id = await saveCommunityContribution(
+          saved.current,
+          signature,
+          async (existingId, revision) => {
+            if (existingId && revision !== undefined) {
+              await update({
+                ...input,
+                clearGenre: !value.genre,
+                clearReleaseDate: !value.releaseDate,
+                contributionId: existingId,
+                expectedRevision: revision,
+              })
+              return { id: existingId, revision: revision + 1 }
+            }
+            requestId.current ??= crypto.randomUUID()
+            publishSignature.current ??= signature
+            const publishedId = await publish({
+              ...input,
+              requestId: requestId.current,
+            })
+            saved.current.id = publishedId
+            const persisted = await client.query(api.community.read.getMine, {
+              contributionId: publishedId,
+            })
+            if (persisted.revision !== 1)
+              throw localizedUiError(t("community.revisionConflict"))
+            saved.current.revision = persisted.revision
+            if (publishSignature.current !== signature) {
+              await update({
+                ...input,
+                clearGenre: !value.genre,
+                clearReleaseDate: !value.releaseDate,
+                contributionId: publishedId,
+                expectedRevision: persisted.revision,
+              })
+              return { id: publishedId, revision: persisted.revision + 1 }
+            }
+            return {
+              id: publishedId,
+              revision: persisted.revision,
+            }
+          },
+          selectedArtwork && !artworkReconciled
+            ? async (savedId) => {
+                uploading = true
+                try {
+                  await uploadCommunityArtwork(
+                    selectedArtwork,
+                    savedId,
+                    generateUploadUrl,
+                    saveArtwork,
+                    artworkAttempt.current
+                  )
+                  artwork.select(undefined)
+                  setArtworkFailed(false)
+                } catch (caught) {
+                  setArtworkFailed(true)
+                  setError(
+                    `${t("community.artworkSavePartial")} ${getErrorMessage(caught, t)}`
+                  )
+                  throw caught
+                }
+              }
+            : undefined
+        ).catch((caught) => {
+          if (uploading) return undefined
+          throw caught
+        })
+        if (!id) return
+        toast.success(t("community.saved"))
+        await navigate({
+          to: "/community/$contributionId",
+          params: { contributionId: id },
+        })
       } catch (caught) {
         setError(getErrorMessage(caught, t))
+      } finally {
+        setSaving(false)
       }
     },
   })
@@ -127,6 +254,13 @@ function EditorForm({ detail }: { detail?: Doc<"communityContributions"> }) {
       <p className="text-muted-foreground">
         {t("community.publishDescription")}
       </p>
+      <CatalogueArtworkCard
+        artworkUrl={artwork.previewUrl ?? detail?.artworkUrl}
+        inputId="community-artwork"
+        pending={saving}
+        selectedFile={artwork.file}
+        onSelect={artwork.select}
+      />
       <form
         onSubmit={(event) => {
           event.preventDefault()
@@ -146,54 +280,48 @@ function EditorForm({ detail }: { detail?: Doc<"communityContributions"> }) {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               ) : null}
-              <FieldGroup>
-                <form.AppField name="title">
-                  {(field) => (
-                    <field.TextField
-                      label={t("studio.songTitle")}
-                      maxLength={160}
-                      required
-                    />
-                  )}
-                </form.AppField>
-                <form.AppField name="primaryArtist">
-                  {(field) => (
-                    <field.TextField
-                      label={t("studio.primaryArtist")}
-                      maxLength={120}
-                      required
-                    />
-                  )}
-                </form.AppField>
-                <form.AppField
-                  name="lyricsText"
-                  validators={{
-                    onBlur: ({ value }) =>
-                      value.trim() ? undefined : t("studio.lyricsRequired"),
-                  }}
-                >
-                  {(field) => (
-                    <field.TextareaField
-                      label={t("studio.lyricsEditor")}
-                      placeholder={t("studio.lyricsEditorPlaceholder")}
-                      description={t("studio.lyricsEditorDescription")}
-                      maxLength={MAX_LYRICS_TEXT_LENGTH}
-                      required
-                      rows={18}
-                      className="min-h-80 resize-y leading-7"
-                    />
-                  )}
-                </form.AppField>
-                <form.AppField name="albumTitle">
-                  {(field) => (
-                    <field.TextField
-                      label={t("community.albumReference")}
-                      labelExtra={<OptionalLabel />}
-                      maxLength={160}
-                    />
-                  )}
-                </form.AppField>
-              </FieldGroup>
+              <FieldSet disabled={saving}>
+                <FieldGroup>
+                  <form.AppField name="title">
+                    {(field) => (
+                      <field.TextField
+                        label={t("studio.songTitle")}
+                        maxLength={160}
+                        required
+                      />
+                    )}
+                  </form.AppField>
+                  <form.AppField name="primaryArtist">
+                    {(field) => (
+                      <field.TextField
+                        label={t("studio.primaryArtist")}
+                        maxLength={120}
+                        required
+                      />
+                    )}
+                  </form.AppField>
+                  <form.AppField
+                    name="lyricsText"
+                    validators={{
+                      onBlur: ({ value }) =>
+                        value.trim() ? undefined : t("studio.lyricsRequired"),
+                    }}
+                  >
+                    {(field) => (
+                      <field.TextareaField
+                        label={t("studio.lyricsEditor")}
+                        placeholder={t("studio.lyricsEditorPlaceholder")}
+                        description={t("studio.lyricsEditorDescription")}
+                        maxLength={MAX_LYRICS_TEXT_LENGTH}
+                        required
+                        rows={18}
+                        className="min-h-80 resize-y leading-7"
+                      />
+                    )}
+                  </form.AppField>
+                  <CommunityEditorMetadata form={form} />
+                </FieldGroup>
+              </FieldSet>
               {matches ? (
                 <Alert>
                   <AlertTitle>{t("community.matches")}</AlertTitle>
@@ -232,8 +360,14 @@ function EditorForm({ detail }: { detail?: Doc<"communityContributions"> }) {
               ) : null}
             </CardContent>
             <CardFooter className="justify-end">
-              <form.SubmitButton>
-                {t(detail ? "common.save" : "community.publish")}
+              <form.SubmitButton disabled={saving}>
+                {t(
+                  artworkFailed && artwork.file
+                    ? "community.retryArtwork"
+                    : detail
+                      ? "common.save"
+                      : "community.publish"
+                )}
               </form.SubmitButton>
             </CardFooter>
           </Card>

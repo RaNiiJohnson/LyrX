@@ -2,6 +2,15 @@
 
 ## Active lot
 
+### Lot 6 follow-up checkpoint — 25 October 2026
+
+The user requested a quota-safe pause after the reporting/restoration/Fan artwork
+follow-up. Implementation and live Fan/admin checks are recorded in
+[the resumption checkpoint](lot6-community-followup.md). Final full-diff review,
+responsive checks and the root handoff gate remain pending; do not present this
+follow-up as complete or start lot 7. The completed original lot 6 below remains
+historical evidence, not verification of these new changes.
+
 ### Lot 6 completed locally — Community Fan lyrics, 25 October 2026
 
 The user authorized resumption after switching the browser to a Fan account.

@@ -26,6 +26,8 @@ describe("localized error messages", () => {
     ["NOT_FOUND", "error.catalogueNotFound"],
     ["CATALOGUE_INVARIANT", "error.catalogueUnavailable"],
     ["SONG_ALREADY_IN_ALBUM", "error.songAlreadyInAlbum"],
+    ["SELF_REPORT_FORBIDDEN", "community.selfReportForbidden"],
+    ["RESTORATION_FORBIDDEN", "community.notRestorable"],
   ] as const)("translates catalogue code %s", (code, key) => {
     expect(getErrorMessage({ data: { code } }, translate)).toBe(
       `translated:${key}`

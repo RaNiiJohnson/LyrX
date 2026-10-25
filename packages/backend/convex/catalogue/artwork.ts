@@ -97,15 +97,7 @@ export const registerArtworkUpload = artistMutation({
         "INVALID_UPLOAD_INTENT",
         "This upload authorization is invalid or expired."
       )
-    const reservedIntent = await ctx.db
-      .query("catalogueImageUploadIntents")
-      .withIndex("by_storage_id", (q) => q.eq("storageId", args.storageId))
-      .first()
-    const claimedImage = await ctx.db
-      .query("catalogueImages")
-      .withIndex("by_storage_id", (q) => q.eq("storageId", args.storageId))
-      .first()
-    if (reservedIntent || claimedImage)
+    if (await storageIsClaimed(ctx, args.storageId))
       bad("IMAGE_ALREADY_ATTACHED", "This image is already reserved.")
     const metadata = await ctx.db.system.get("_storage", args.storageId)
     if (!metadata || !isValidCatalogueImageMetadata(metadata, intent.createdAt))
@@ -144,7 +136,8 @@ export async function deleteArtworkIfUnused(
     .unique()
   if (!song && !album) {
     await ctx.db.delete("catalogueImages", owner._id)
-    await ctx.storage.delete(storageId)
+    if (!(await storageIsClaimed(ctx, storageId)))
+      await ctx.storage.delete(storageId)
   }
 }
 
@@ -254,54 +247,74 @@ export const expireArtworkUploadIntent = internalMutation({
 })
 
 export async function storageIsClaimed(
-  ctx: MutationCtx,
+  ctx: Pick<MutationCtx, "db">,
   storageId: Id<"_storage">,
   ignoredIntentId?: Id<"catalogueImageUploadIntents">
 ) {
   // This is the single exhaustive claim registry for the global storage sweep.
   // Any new table that persists a StorageId must be added here before release.
-  const [catalogueImage, profileImage, song, album, profile, artistProfile] =
-    await Promise.all([
-      ctx.db
-        .query("catalogueImages")
-        .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
-        .first(),
-      ctx.db
-        .query("profileImages")
-        .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
-        .first(),
-      ctx.db
-        .query("songs")
-        .withIndex("by_artwork_storage_id", (q) =>
-          q.eq("artworkStorageId", storageId)
-        )
-        .first(),
-      ctx.db
-        .query("albums")
-        .withIndex("by_artwork_storage_id", (q) =>
-          q.eq("artworkStorageId", storageId)
-        )
-        .first(),
-      ctx.db
-        .query("profiles")
-        .withIndex("by_avatar_storage_id", (q) =>
-          q.eq("avatarStorageId", storageId)
-        )
-        .first(),
-      ctx.db
-        .query("artistProfiles")
-        .withIndex("by_banner_storage_id", (q) =>
-          q.eq("bannerStorageId", storageId)
-        )
-        .first(),
-    ])
+  const [
+    catalogueImage,
+    profileImage,
+    song,
+    album,
+    profile,
+    artistProfile,
+    communityImage,
+    contribution,
+  ] = await Promise.all([
+    ctx.db
+      .query("catalogueImages")
+      .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
+      .first(),
+    ctx.db
+      .query("profileImages")
+      .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
+      .first(),
+    ctx.db
+      .query("songs")
+      .withIndex("by_artwork_storage_id", (q) =>
+        q.eq("artworkStorageId", storageId)
+      )
+      .first(),
+    ctx.db
+      .query("albums")
+      .withIndex("by_artwork_storage_id", (q) =>
+        q.eq("artworkStorageId", storageId)
+      )
+      .first(),
+    ctx.db
+      .query("profiles")
+      .withIndex("by_avatar_storage_id", (q) =>
+        q.eq("avatarStorageId", storageId)
+      )
+      .first(),
+    ctx.db
+      .query("artistProfiles")
+      .withIndex("by_banner_storage_id", (q) =>
+        q.eq("bannerStorageId", storageId)
+      )
+      .first(),
+    ctx.db
+      .query("communityImages")
+      .withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
+      .first(),
+    ctx.db
+      .query("communityContributions")
+      .withIndex("by_artwork_storage_id", (q) =>
+        q.eq("artworkStorageId", storageId)
+      )
+      .first(),
+  ])
   if (
     catalogueImage ||
     profileImage ||
     song ||
     album ||
     profile ||
-    artistProfile
+    artistProfile ||
+    communityImage ||
+    contribution
   )
     return true
   const registeredIntent = await ctx.db

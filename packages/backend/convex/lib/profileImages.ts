@@ -1,6 +1,7 @@
 import type { Id } from "../_generated/dataModel"
 import type { MutationCtx } from "../_generated/server"
 import type { ProfileImageKind } from "../model"
+import { storageIsClaimed } from "../catalogue/artwork"
 
 export async function deleteOwnedProfileImageIfUnreferenced(
   ctx: Pick<MutationCtx, "db" | "storage">,
@@ -37,6 +38,7 @@ export async function deleteOwnedProfileImageIfUnreferenced(
   if (attachedProfile || attachedArtistProfile) return false
 
   await ctx.db.delete("profileImages", ownership._id)
-  await ctx.storage.delete(args.storageId)
+  if (!(await storageIsClaimed(ctx, args.storageId)))
+    await ctx.storage.delete(args.storageId)
   return true
 }

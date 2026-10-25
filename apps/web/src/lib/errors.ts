@@ -14,6 +14,8 @@ const ERROR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   CONTRIBUTION_MODERATED: "community.moderated",
   REVISION_CONFLICT: "community.revisionConflict",
   REPORT_RESOLVED: "community.reportResolved",
+  SELF_REPORT_FORBIDDEN: "community.selfReportForbidden",
+  RESTORATION_FORBIDDEN: "community.notRestorable",
   HANDLE_TAKEN: "error.handleTaken",
   CATALOGUE_INVARIANT: "error.catalogueUnavailable",
   IMAGE_ALREADY_ATTACHED: "error.invalidImage",

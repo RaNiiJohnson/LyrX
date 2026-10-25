@@ -38,6 +38,8 @@ export const update = fanMutation({
     ...contributionInput,
     contributionId: v.id("communityContributions"),
     expectedRevision: v.number(),
+    clearGenre: v.optional(v.boolean()),
+    clearReleaseDate: v.optional(v.boolean()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -54,7 +56,10 @@ export const update = fanMutation({
         "REVISION_CONFLICT",
         "The contribution changed. Reload before saving."
       )
-    const input = validatedContribution(args)
+    const input = validatedContribution(args, row, {
+      genre: args.clearGenre,
+      releaseDate: args.clearReleaseDate,
+    })
     await limiter.limit(ctx, "communityEdit", {
       key: ctx.member._id,
       throws: true,
@@ -62,6 +67,7 @@ export const update = fanMutation({
     await ctx.db.patch("communityContributions", row._id, {
       ...input,
       albumTitle: input.albumTitle,
+      ...(args.clearGenre ? { genre: undefined, otherGenre: undefined } : {}),
       revision: row.revision + 1,
       updatedAt: Date.now(),
     })

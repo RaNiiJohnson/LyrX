@@ -225,6 +225,7 @@ export default defineSchema({
 
   communityContributions: defineTable({
     ...contributionInput,
+    artworkStorageId: v.optional(v.id("_storage")),
     authorMemberId: v.id("members"),
     requestId: v.string(),
     status: contributionStatus,
@@ -233,6 +234,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_author_member_id", ["authorMemberId"])
+    .index("by_artwork_storage_id", ["artworkStorageId"])
     .index("by_author_member_id_and_request_id", [
       "authorMemberId",
       "requestId",
@@ -273,4 +275,37 @@ export default defineSchema({
     .index("by_report_id", ["reportId"])
     .index("by_contribution_id", ["contributionId"])
     .index("by_moderator_member_id", ["moderatorMemberId"]),
+
+  communityRestorations: defineTable({
+    reportId: v.id("communityReports"),
+    contributionId: v.id("communityContributions"),
+    moderatorMemberId: v.optional(v.id("members")),
+    reviewedRevision: v.number(),
+    requestId: v.string(),
+    reason: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_report_id", ["reportId"])
+    .index("by_report_id_and_request_id", ["reportId", "requestId"])
+    .index("by_contribution_id", ["contributionId"])
+    .index("by_moderator_member_id", ["moderatorMemberId"]),
+
+  communityArtworkUploadIntents: defineTable({
+    authorMemberId: v.id("members"),
+    contributionId: v.id("communityContributions"),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+  })
+    .index("by_author_member_id", ["authorMemberId"])
+    .index("by_contribution_id", ["contributionId"]),
+
+  communityImages: defineTable({
+    authorMemberId: v.id("members"),
+    contributionId: v.id("communityContributions"),
+    storageId: v.id("_storage"),
+    createdAt: v.number(),
+  })
+    .index("by_author_member_id", ["authorMemberId"])
+    .index("by_contribution_id", ["contributionId"])
+    .index("by_storage_id", ["storageId"]),
 })

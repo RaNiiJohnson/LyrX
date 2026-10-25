@@ -24,6 +24,7 @@ import type * as catalogue_songs from "../catalogue/songs.js";
 import type * as catalogue_tracks from "../catalogue/tracks.js";
 import type * as catalogue_values from "../catalogue/values.js";
 import type * as catalogueAggregates from "../catalogueAggregates.js";
+import type * as community_artwork from "../community/artwork.js";
 import type * as community_model from "../community/model.js";
 import type * as community_moderation from "../community/moderation.js";
 import type * as community_read from "../community/read.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   "catalogue/tracks": typeof catalogue_tracks;
   "catalogue/values": typeof catalogue_values;
   catalogueAggregates: typeof catalogueAggregates;
+  "community/artwork": typeof community_artwork;
   "community/model": typeof community_model;
   "community/moderation": typeof community_moderation;
   "community/read": typeof community_read;

@@ -11,14 +11,21 @@ import { CommunityReader } from "./community-reader"
 type DisplayState = {
   locale: SupportedLocale
   account:
-    undefined | { state: string; member?: { role: string; isAdmin: boolean } }
+    | undefined
+    | {
+        state: string
+        member?: { role: string; isAdmin: boolean }
+        profile?: { handle: string }
+      }
   reports: Array<{ _id: string; createdAt: number; reason: string }>
+  readOnly: ReturnType<typeof vi.fn<(props: unknown) => void>>
 }
 
 const state = vi.hoisted<DisplayState>(() => ({
   locale: "fr",
   account: undefined,
   reports: [],
+  readOnly: vi.fn(),
 }))
 
 vi.mock("@/app/locale-provider", () => ({
@@ -50,7 +57,10 @@ vi.mock("@tanstack/react-query", () => ({
   }),
 }))
 vi.mock("@/features/catalogue/song/song-read-only", () => ({
-  SongReadOnly: () => <article>Shared lyric content</article>,
+  SongReadOnly: (props: unknown) => {
+    state.readOnly(props)
+    return <article>Shared lyric content</article>
+  },
 }))
 
 const contributionId = "contribution" as Id<"communityContributions">
@@ -61,8 +71,10 @@ describe("community display states", () => {
     state.account = {
       state: "ready",
       member: { role: "fan", isAdmin: false },
+      profile: { handle: "another-fan" },
     }
     state.reports = []
+    state.readOnly.mockClear()
     vi.restoreAllMocks()
   })
 
@@ -142,23 +154,58 @@ describe("community display states", () => {
     expect(html).not.toContain("<form")
   })
 
-  it("shows the sign-in action when the report account query is anonymous", () => {
+  it("offers anonymous reporting only through the top options menu", () => {
     state.account = { state: "anonymous" }
     const html = renderToStaticMarkup(
       <CommunityReader contributionId={contributionId} />
     )
-    expect(html).toContain(formatMessage("fr", "community.signInToReport"))
+    expect(html).toContain(formatMessage("fr", "community.options"))
+    expect(html).not.toContain(formatMessage("fr", "community.signInToReport"))
     expect(html).not.toContain('aria-label="Chargement du compte"')
     expect(html).not.toContain("<form")
   })
 
-  it("shows the report form for a ready member without replacing the public lyric", () => {
+  it("keeps the report form closed for a ready reader until they open options", () => {
     const html = renderToStaticMarkup(
       <CommunityReader contributionId={contributionId} />
     )
     expect(html).toContain("Shared lyric content")
-    expect(html).toContain('id="reportReason"')
+    expect(html).toContain(formatMessage("fr", "community.options"))
+    expect(html).not.toContain('id="reportReason"')
     expect(html).not.toContain(formatMessage("fr", "community.signInToReport"))
     expect(html).not.toContain('aria-label="Chargement du compte"')
+  })
+
+  it("never offers reporting on the current author's own contribution", () => {
+    state.account = {
+      state: "ready",
+      member: { role: "fan", isAdmin: false },
+      profile: { handle: "contributor" },
+    }
+    const html = renderToStaticMarkup(
+      <CommunityReader contributionId={contributionId} />
+    )
+    expect(html).toContain("Shared lyric content")
+    expect(html).not.toContain(formatMessage("fr", "community.options"))
+    expect(html).not.toContain(formatMessage("fr", "community.report"))
+    expect(html).not.toContain("<form")
+  })
+
+  it("supplies safe empty optional arrays for legacy public contributions", () => {
+    renderToStaticMarkup(<CommunityReader contributionId={contributionId} />)
+    expect(state.readOnly).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({
+          artworkUrl: null,
+          song: expect.objectContaining({
+            guestArtists: [],
+            composers: [],
+            producers: [],
+            writers: [],
+            listeningLinks: [],
+          }),
+        }),
+      })
+    )
   })
 })

@@ -124,6 +124,133 @@ async function drain(
 }
 
 describe("community account-deletion dependents", () => {
+  it("cleans artwork and restoration batches while preserving foreign files and anonymized restoration history", async () => {
+    vi.useFakeTimers()
+    try {
+      const t = backend()
+      const owner = await member(t, "artwork-owner")
+      const other = await member(t, "artwork-other")
+      const owned = await contribution(t, owner, "owned-artwork")
+      const foreign = await contribution(t, other, "foreign-artwork")
+      const ownAudit = await reportAndDecision(t, owned, other, other)
+      const foreignAudit = await reportAndDecision(t, foreign, other, other)
+      const storageIds = await t.run(async (ctx) => {
+        const ids: Array<Id<"_storage">> = []
+        for (let n = 0; n < 27; n++) {
+          const storageId = await ctx.storage.store(new Blob([`image-${n}`]))
+          ids.push(storageId)
+          await ctx.db.insert("communityImages", {
+            authorMemberId: owner,
+            contributionId: owned,
+            storageId,
+            createdAt: n,
+          })
+          await ctx.db.insert("communityArtworkUploadIntents", {
+            authorMemberId: owner,
+            contributionId: owned,
+            createdAt: n,
+            expiresAt: Date.now() + 600_000,
+          })
+          for (const [contributionId, reportId, moderatorMemberId] of [
+            [owned, ownAudit.reportId, other],
+            [foreign, foreignAudit.reportId, owner],
+          ] as const)
+            await ctx.db.insert("communityRestorations", {
+              contributionId,
+              reportId,
+              moderatorMemberId,
+              requestId: `restore-${n}`,
+              reason: "Recorded restoration reason",
+              reviewedRevision: n + 1,
+              createdAt: n,
+            })
+        }
+        await ctx.db.patch("communityContributions", owned, {
+          artworkStorageId: ids[1],
+        })
+        // Unexpected foreign references must preserve bytes, not delete them.
+        await ctx.db.patch("communityContributions", foreign, {
+          artworkStorageId: ids[0],
+        })
+        return ids
+      })
+      const foreignIntent = await t.run((ctx) =>
+        ctx.db.insert("communityArtworkUploadIntents", {
+          authorMemberId: other,
+          contributionId: foreign,
+          createdAt: 1,
+          expiresAt: Date.now() + 600_000,
+        })
+      )
+      await t.run((ctx) => beginAccountDeletion(ctx, "issuer|artwork-owner"))
+      const job = await jobFor(t, owner)
+      for (let step = 0; step < 20; step++) {
+        if ((await jobFor(t, owner)).phase === "member") break
+        await t.mutation(internal.accounts.deletion.processBatch, {
+          jobId: job._id,
+        })
+      }
+      await t.mutation(internal.accounts.deletion.processBatch, {
+        jobId: job._id,
+      })
+      expect(
+        await t.run((ctx) =>
+          ctx.db
+            .query("communityRestorations")
+            .withIndex("by_contribution_id", (q) =>
+              q.eq("contributionId", owned)
+            )
+            .take(30)
+        )
+      ).toHaveLength(2)
+      await drain(t, job._id)
+      await t.run(async (ctx) => {
+        expect(await ctx.db.get("communityContributions", owned)).toBeNull()
+        expect(await ctx.db.get("members", owner)).toBeNull()
+        expect(
+          await ctx.db.get("communityContributions", foreign)
+        ).toMatchObject({
+          status: "published",
+          authorMemberId: other,
+          artworkStorageId: storageIds[0],
+        })
+        expect(
+          await ctx.db.get("communityArtworkUploadIntents", foreignIntent)
+        ).not.toBeNull()
+        expect(
+          await ctx.db
+            .query("communityArtworkUploadIntents")
+            .withIndex("by_author_member_id", (q) =>
+              q.eq("authorMemberId", owner)
+            )
+            .take(30)
+        ).toEqual([])
+        expect(await ctx.db.query("communityImages").take(30)).toEqual([])
+        const restorations = await ctx.db
+          .query("communityRestorations")
+          .take(60)
+        expect(restorations).toHaveLength(27)
+        for (const row of restorations) {
+          expect(row).not.toHaveProperty("moderatorMemberId")
+          expect(row).toMatchObject({
+            contributionId: foreign,
+            reason: "Recorded restoration reason",
+          })
+        }
+        const preservedStorage = storageIds[0]
+        if (!preservedStorage) throw new Error("Missing preserved test image")
+        expect(
+          await ctx.db.system.get("_storage", preservedStorage)
+        ).not.toBeNull()
+        for (const id of storageIds.slice(1))
+          expect(await ctx.db.system.get("_storage", id)).toBeNull()
+      })
+      await t.finishAllScheduledFunctions(() => vi.runAllTimers())
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it("withdraws immediately and deletes more than one batch of owned publications and their reports/decisions without touching another author", async () => {
     vi.useFakeTimers()
     try {
