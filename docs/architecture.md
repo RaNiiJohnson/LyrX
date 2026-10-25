@@ -184,8 +184,9 @@ never a full-width square at a narrow breakpoint.
    `internal.catalogue.aggregates.backfill` mutation. It advances through songs,
    albums, and album tracks in scheduled batches without unbounded collection.
 4. Artist Studio publication is an ownership-authorized action and no longer
-   records a per-item rights confirmation. A future fan proposal flow retains
-   its own explicit affirmation and separate server authorization.
+   records a per-item rights confirmation. Community Fan publication uses a
+   separate role-authorized domain, not the artist mutation seam or an
+   administrator approval queue.
 
 Operational setup and the evidence boundary are documented in
 [authentication.md](authentication.md).

@@ -2,6 +2,46 @@
 
 ## Active lot
 
+**Lot 6 — Community fan lyrics and report moderation** was authorized on
+25 October 2026. Work starts on `codex/community-fan-lyrics` from merged
+`main` at `80ade32` (T1, PR #2). The user's local product/specification/roadmap
+updates are retained and supersede the former private-proposal approval flow.
+
+Implementation plan:
+
+1. Add a separate community domain with server-enforced Fan publication and
+   immutable session-derived attribution. Never write official catalogue rows
+   from this flow or expose an artist claim/replacement operation.
+2. Add Fan authoring, public reading and visible contributor credit. Keep lyrics
+   required and warn about likely title/artist duplicates without auto-merging.
+3. Add private reports and administrator-only report resolution with a reason
+   and audit record. Reporting alone does not hide content; only a subsequent
+   moderation decision changes public visibility.
+4. Verify Fan/Artist/Admin, cross-account and suspension boundaries, publication,
+   report idempotency and hide/remove visibility. Run the local review gate,
+   root checks, development Convex deployment and relevant browser checks.
+
+No push, PR, merge, production deployment or lot 7 is authorized.
+
+### Lot 6 implementation checkpoint — 25 October 2026
+
+The community domain, Fan editor/public reader, private report queue and
+post-report administrator decisions are implemented but the lot is **not
+closed**. `pnpm check` passes with 129 tests (28 shared, 47 backend, 54 web),
+TypeScript, lint and production builds. Development Convex deployment and the
+anonymous empty-list read succeeded. Browser checks reached the empty public
+list; the available account is Artist, not Fan. Full Fan and administrator
+browser journeys and the final local completion review remain outstanding.
+No live contribution was published and no account role was modified for testing.
+
+The user then requested self-service Better Auth account deletion **before**
+switching to a Fan account to finish lot 6 validation. Save this implementation
+on `codex/community-fan-lyrics`; do not declare it complete or create a PR.
+Account deletion is a separately authorized prerequisite. When resuming lot 6,
+extend its deletion cleanup to the new community tables before closure.
+
+## Completed T1 history
+
 **Technical lot T1 — Catalogue backend modules and image upload optimization**
 was authorized on 24 October 2026 and is complete locally. Work is isolated on
 `codex/catalogue-refactor-image-uploads`, based on merged `main` at `b9b5c4d`.
@@ -13,8 +53,10 @@ The implementation reference is
 
 **Lot 5 is merged and closed.** PR #1 was merged into `main` at `b9b5c4d` and
 its remote branch was deleted by the user. Its history below is retained as
-completed evidence; T1 neither reopens lot 5 nor starts the fan-proposals lot.
-No PR is authorized for T1; request explicit authorization before creating one.
+completed evidence; T1 neither reopens lot 5 nor starts the lot 6 community-lyrics
+lot.
+The user subsequently authorized PR #2, then merged it at `80ade32`. The
+earlier local-only statements below describe their historical checkpoints.
 
 ### Authorized T1 artwork UX follow-up
 
@@ -804,8 +846,8 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Await user direction after the completed local T1 delivery on
-`codex/catalogue-refactor-image-uploads`. Lot 5 remains merged and closed;
-lot 6 has not started. No push, PR or merge is authorized. The writing notebook
+Deliver only the authorized lot 6 on `codex/community-fan-lyrics`, following the
+plan above. Lot 5 and T1 remain merged and closed. Artist claim/replacement
+remains future scope. No push, PR or merge is authorized. The writing notebook
 with local audio and the Genius-style sharing-card refinement remain
 proposal-only.
