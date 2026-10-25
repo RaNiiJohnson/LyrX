@@ -253,7 +253,7 @@ export const expireArtworkUploadIntent = internalMutation({
   },
 })
 
-async function storageIsClaimed(
+export async function storageIsClaimed(
   ctx: MutationCtx,
   storageId: Id<"_storage">,
   ignoredIntentId?: Id<"catalogueImageUploadIntents">

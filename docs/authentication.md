@@ -126,6 +126,23 @@ server authorization rather than this bootstrap path.
 
 ## Verification boundary
 
+### Self-service deletion
+
+The account owner can start irreversible deletion from `/profile`. The native
+Better Auth endpoint keeps its fresh-session/current-password checks. Google-only
+accounts leave the password blank and sign in again if the session is too old.
+An explicit reauthentication action signs out before returning to sign-in.
+The UI confirms deletion only after Better Auth reports its final success.
+
+The local component's user-deletion trigger revokes the app identity and starts
+the resumable publication/profile/image cascade. See the architecture decisions
+and [recovery procedure](development.md#account-deletion-verification-and-recovery).
+Isolated HTTP tests cover native deletion, wrong password, expired freshness,
+session/account removal and stale-JWT rejection. Browser verification opens and
+cancels the confirmation only: no real user's account was deleted by the agent.
+
+### Historical lot 2 evidence
+
 The repository now proves a successful push to a real development deployment,
 live anonymous and capability queries, installed Better Auth and Resend
 components, schema generation, TypeScript, production bundling, and in-memory

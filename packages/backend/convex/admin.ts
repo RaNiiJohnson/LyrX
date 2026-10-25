@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values"
 
 import { internalMutation } from "./_generated/server"
 import { normalizeEmail } from "./lib/validation"
+import { isDeletedIdentity } from "./lib/authz"
 
 export const bootstrapFirstAdmin = internalMutation({
   args: { email: v.string() },
@@ -44,6 +45,13 @@ export const setAccountSuspension = internalMutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const member = await ctx.db.get("members", args.memberId)
+    if (!member || (await isDeletedIdentity(ctx, member.authUserId))) {
+      throw new ConvexError({
+        code: "ACCOUNT_UNAVAILABLE",
+        message: "This account is unavailable or pending deletion.",
+      })
+    }
     await ctx.db.patch("members", args.memberId, {
       status: args.suspended ? "suspended" : "active",
       updatedAt: Date.now(),

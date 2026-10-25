@@ -5,9 +5,18 @@ import type { DataModel, Doc } from "../_generated/dataModel"
 
 type DatabaseCtx = GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
 
+export async function isDeletedIdentity(ctx: DatabaseCtx, authUserId: string) {
+  return Boolean(
+    await ctx.db
+      .query("accountDeletions")
+      .withIndex("by_auth_user_id", (q) => q.eq("authUserId", authUserId))
+      .unique()
+  )
+}
+
 export async function requireVerifiedIdentity(ctx: DatabaseCtx) {
   const identity = await ctx.auth.getUserIdentity()
-  if (!identity) {
+  if (!identity || (await isDeletedIdentity(ctx, identity.tokenIdentifier))) {
     throw new ConvexError({
       code: "UNAUTHENTICATED",
       message: "Sign-in is required.",
@@ -24,7 +33,9 @@ export async function requireVerifiedIdentity(ctx: DatabaseCtx) {
 
 export async function findMemberByIdentity(ctx: DatabaseCtx) {
   const identity = await ctx.auth.getUserIdentity()
-  if (!identity) return null
+  if (!identity || (await isDeletedIdentity(ctx, identity.tokenIdentifier))) {
+    return null
+  }
 
   const member = await ctx.db
     .query("members")

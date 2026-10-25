@@ -55,6 +55,33 @@ const frenchMessages = {
   "community.revisionConflict":
     "Le contenu a changé. Rechargez la page avant de réessayer.",
   "community.reportResolved": "Ce signalement a déjà été traité.",
+  "account.deleteTitle": "Supprimer le compte",
+  "account.deleteDescription":
+    "Supprimez définitivement votre compte, votre profil, vos publications et leurs images. Cette action est irréversible.",
+  "account.deleteAction": "Supprimer mon compte",
+  "account.deleteConfirmTitle": "Supprimer définitivement votre compte ?",
+  "account.deleteConfirmDescription":
+    "Votre profil et toutes vos publications, y compris les brouillons, morceaux, paroles et albums, seront retirés du public immédiatement. Leur suppression définitive et celle des images associées se poursuivront en arrière-plan. Aucun retour en arrière n’est possible. Vous pourrez ensuite créer un nouveau compte avec la même adresse email.",
+  "account.deleteConfirmationWord": "SUPPRIMER",
+  "account.deleteConfirmationLabel": "Saisissez {{word}} pour confirmer",
+  "account.deleteConfirmationRequired":
+    "Saisissez le mot de confirmation exactement comme indiqué.",
+  "account.deletePassword": "Mot de passe actuel",
+  "account.deletePasswordHelp":
+    "Vous pouvez confirmer avec votre mot de passe. Si vous utilisez uniquement Google, laissez ce champ vide. Sans mot de passe, une connexion récente est nécessaire.",
+  "account.deleteConfirmAction": "Supprimer définitivement",
+  "account.deleteErrorTitle": "Suppression non confirmée",
+  "account.deleteReauthRequired":
+    "Une connexion récente est nécessaire. Déconnectez-vous puis reconnectez-vous avant de réessayer, ou confirmez avec votre mot de passe actuel.",
+  "account.deleteReauthAction": "Me reconnecter",
+  "account.deleteReauthFailed":
+    "La déconnexion a échoué. Réessayez de vous reconnecter. La suppression du compte n’a pas été lancée.",
+  "account.deleteInvalidPassword":
+    "Le mot de passe actuel est incorrect. Votre compte n’a pas été supprimé.",
+  "account.deleteNoPasswordAccount":
+    "Ce compte n’a pas de mot de passe. Laissez le champ vide et utilisez une connexion récente avec votre fournisseur habituel.",
+  "account.deleteFailed":
+    "La suppression n’a pas pu être confirmée. Rechargez la page pour vérifier l’état de votre compte avant de réessayer.",
   "common.admin": "Administrateur",
   "common.artist": "Artiste",
   "common.back": "Retour",
@@ -558,6 +585,33 @@ const englishMessages = {
   "community.revisionConflict":
     "The content changed. Reload the page before retrying.",
   "community.reportResolved": "This report has already been resolved.",
+  "account.deleteTitle": "Delete account",
+  "account.deleteDescription":
+    "Permanently delete your account, profile, publications and their images. This cannot be undone.",
+  "account.deleteAction": "Delete my account",
+  "account.deleteConfirmTitle": "Permanently delete your account?",
+  "account.deleteConfirmDescription":
+    "Your profile and all your publications, including drafts, songs, lyrics and albums, will become publicly unavailable immediately. Permanent deletion of this data and its associated images will continue in the background. This cannot be undone. You can then create a new account with the same email address.",
+  "account.deleteConfirmationWord": "DELETE",
+  "account.deleteConfirmationLabel": "Type {{word}} to confirm",
+  "account.deleteConfirmationRequired":
+    "Type the confirmation word exactly as shown.",
+  "account.deletePassword": "Current password",
+  "account.deletePasswordHelp":
+    "You can confirm with your password. If you only use Google, leave this blank. Without a password, a recent sign-in is required.",
+  "account.deleteConfirmAction": "Delete permanently",
+  "account.deleteErrorTitle": "Deletion not confirmed",
+  "account.deleteReauthRequired":
+    "A recent sign-in is required. Sign out and sign in again before retrying, or confirm with your current password.",
+  "account.deleteReauthAction": "Sign in again",
+  "account.deleteReauthFailed":
+    "Sign-out failed. Try signing in again. Account deletion has not been started.",
+  "account.deleteInvalidPassword":
+    "Your current password is incorrect. Your account has not been deleted.",
+  "account.deleteNoPasswordAccount":
+    "This account has no password. Leave the field blank and sign in recently with your usual provider.",
+  "account.deleteFailed":
+    "Deletion could not be confirmed. Reload the page to check your account status before retrying.",
   "common.admin": "Administrator",
   "common.artist": "Artist",
   "common.back": "Back",

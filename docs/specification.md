@@ -45,6 +45,17 @@ delivery status and proof remain in [progress.md](progress.md).
 - Administrator is a distinct server-assigned role. Bootstrap the first admin
   without a hard-coded secret or public self-promotion path.
 - Suspended users are rejected by server-side authorization, not only hidden UI.
+- Any signed-in user may delete their own account through Better Auth from the
+  profile settings, with an explicit irreversible confirmation. Better Auth
+  requires a fresh session or a verified current password. The server derives
+  the identity; no client-selected member can be deleted through this flow.
+- Account deletion immediately withdraws the member's public profile and
+  publications and blocks further writes, including from an unexpired JWT.
+  Durable, bounded cleanup then deletes owned publications, legacy lyrics,
+  album associations, profile records, upload intents and owned image claims.
+  Files still referenced by another account are preserved. A minimal revoked
+  auth-identity marker remains; content and email are not retained in it.
+  Signing up again with the same email creates a new identity, not a restoration.
 
 ## Songs, credits, and lyrics
 
