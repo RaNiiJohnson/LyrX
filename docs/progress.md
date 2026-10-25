@@ -2,6 +2,38 @@
 
 ## Active lot
 
+### Paused checkpoint — deletion/redirection flash, 25 October 2026
+
+The user requested a quota stop. Stay on `codex/account-self-deletion`;
+the completed account-deletion implementation is saved at `0b43973`.
+The newly reported flash correction is **not implemented or verified yet**.
+
+- Scope: remove the transient error/unavailable message when deleting a song,
+  album or account, without hiding real failures. No PR, push or next lot.
+- Read-only inspection found that `ReadySongPreview` and `ReadyAlbumPreview`
+  keep their `getMySong`/`getMyAlbum` subscriptions active while awaiting delete
+  and navigation. Those server reads throw `NOT_FOUND` after deletion; Convex
+  rethrows inside `useQuery` before later rendering guards. For account deletion,
+  `ProfileEditor` can switch to suspended/anonymous/unavailable while its nested
+  deletion dialog awaits native success and full navigation.
+- These are code-inspection findings, not a completed reproduction. First build
+  a deterministic failing interaction test: deferred deletion, reactive query
+  invalidation before resolution, then delayed navigation. Assert no error frame;
+  also assert real deletion failures remain visible and normal missing-resource
+  errors are not globally suppressed.
+- Added test-only `happy-dom` to `apps/web/package.json` and the lockfile so
+  React DOM interaction tests can exercise the actual state updates. No product
+  code changed, no regression test was written, and checks have not been rerun
+  for this checkpoint. The earlier 151-test gate applies to `0b43973` only.
+- Candidate direction to validate after the red test: set deletion state before
+  subscribing, pass `"skip"` to the affected query while deleting, retain a neutral
+  pending view through navigation, and restore subscriptions on real failure.
+  Account state must live above the profile branch so auth invalidation cannot
+  unmount its deletion controller prematurely. Do not add a timed error delay.
+- No live resource/account was deleted or modified during this investigation.
+  The browser was reported at `/onboarding` when the user paused; obtain fresh
+  browser state on resumption. Lot 6 remains separately saved at `1298ef1`.
+
 **Current priority — self-service account deletion** (25 October 2026), on
 `codex/account-self-deletion`, based on `541b610`. The user explicitly requested
 this prerequisite before continuing the Fan test journey. Implement native
