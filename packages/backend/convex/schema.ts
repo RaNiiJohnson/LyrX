@@ -1,5 +1,11 @@
 import { defineSchema, defineTable } from "convex/server"
 import { v } from "convex/values"
+import {
+  contributionInput,
+  contributionStatus,
+  moderationAction,
+  reportStatus,
+} from "./community/model"
 
 import {
   accountRoleValidator,
@@ -102,7 +108,11 @@ export default defineSchema({
     .index("by_owner_member_id", ["ownerMemberId"])
     .index("by_owner_member_id_and_status", ["ownerMemberId", "status"])
     .index("by_status", ["status"])
-    .index("by_artwork_storage_id", ["artworkStorageId"]),
+    .index("by_artwork_storage_id", ["artworkStorageId"])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["status"],
+    }),
 
   songSections: defineTable({
     songId: v.id("songs"),
@@ -184,4 +194,49 @@ export default defineSchema({
     cursor: v.union(v.string(), v.null()),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
+
+  communityContributions: defineTable({
+    ...contributionInput,
+    authorMemberId: v.id("members"),
+    requestId: v.string(),
+    status: contributionStatus,
+    revision: v.number(),
+    firstPublishedAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_author_member_id", ["authorMemberId"])
+    .index("by_author_member_id_and_request_id", [
+      "authorMemberId",
+      "requestId",
+    ])
+    .index("by_status_and_first_published_at", ["status", "firstPublishedAt"])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["status"],
+    }),
+
+  communityReports: defineTable({
+    contributionId: v.id("communityContributions"),
+    reporterMemberId: v.id("members"),
+    reportedRevision: v.number(),
+    reason: v.string(),
+    status: reportStatus,
+    createdAt: v.number(),
+  })
+    .index("by_contribution_id_and_reporter_member_id_and_reported_revision", [
+      "contributionId",
+      "reporterMemberId",
+      "reportedRevision",
+    ])
+    .index("by_status", ["status"]),
+
+  communityModeration: defineTable({
+    reportId: v.id("communityReports"),
+    contributionId: v.id("communityContributions"),
+    moderatorMemberId: v.id("members"),
+    reviewedRevision: v.number(),
+    action: moderationAction,
+    reason: v.string(),
+    createdAt: v.number(),
+  }).index("by_report_id", ["reportId"]),
 })

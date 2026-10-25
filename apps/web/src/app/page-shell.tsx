@@ -68,6 +68,9 @@ export function PageShell({
               <Button asChild variant="ghost" size="sm">
                 <Link to="/">{t("navigation.home")}</Link>
               </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/community">{t("community.title")}</Link>
+              </Button>
             </nav>
 
             <div className="flex items-center gap-0.5">
@@ -155,6 +158,16 @@ function ConfiguredAccountNavigation() {
             <Link to="/studio">{t("navigation.studio")}</Link>
           </Button>
         ) : null}
+        {current.state === "ready" && current.member.role === "fan" ? (
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/community/mine">{t("community.mine")}</Link>
+          </Button>
+        ) : null}
+        {current.state === "ready" && current.member.isAdmin ? (
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/admin/community">{t("community.moderation")}</Link>
+          </Button>
+        ) : null}
         <Button asChild size="sm">
           <Link to={navigation.href}>{t(navigation.labelKey)}</Link>
         </Button>
@@ -168,6 +181,10 @@ function ConfiguredAccountNavigation() {
           current.state === "ready" && current.member.role === "artist"
         }
         onSignOut={signOut}
+        showCommunityMine={
+          current.state === "ready" && current.member.role === "fan"
+        }
+        showModeration={current.state === "ready" && current.member.isAdmin}
       />
     </>
   )
@@ -197,6 +214,8 @@ function AnonymousAccountNavigation() {
 function MobileNavigation({
   primary,
   showStudio = false,
+  showCommunityMine = false,
+  showModeration = false,
   onSignOut,
 }: {
   primary?: {
@@ -204,6 +223,8 @@ function MobileNavigation({
     label: string
   }
   showStudio?: boolean
+  showCommunityMine?: boolean
+  showModeration?: boolean
   onSignOut?: () => Promise<void>
 }) {
   const { t } = useLocale()
@@ -235,6 +256,19 @@ function MobileNavigation({
                 <Disc3 />
                 {t("navigation.studio")}
               </Link>
+            </DropdownMenuItem>
+          ) : null}
+          <DropdownMenuItem asChild>
+            <Link to="/community">{t("community.title")}</Link>
+          </DropdownMenuItem>
+          {showCommunityMine ? (
+            <DropdownMenuItem asChild>
+              <Link to="/community/mine">{t("community.mine")}</Link>
+            </DropdownMenuItem>
+          ) : null}
+          {showModeration ? (
+            <DropdownMenuItem asChild>
+              <Link to="/admin/community">{t("community.moderation")}</Link>
             </DropdownMenuItem>
           ) : null}
           {primary ? (

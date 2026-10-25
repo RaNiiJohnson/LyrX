@@ -8,7 +8,9 @@ import { mutation, query } from "../_generated/server"
 import { catalogueAggregateTriggers } from "../catalogue/aggregates"
 import {
   requireActiveArtist,
+  requireActiveFan,
   requireActiveMember,
+  requireAdmin,
   requireVerifiedIdentity,
 } from "./authz"
 
@@ -55,4 +57,21 @@ export const artistMutation = customMutation(
       member: await requireActiveArtist(ctx),
     })
   )
+)
+
+export const fanQuery = customQuery(
+  query,
+  customCtx(async (ctx) => ({ member: await requireActiveFan(ctx) }))
+)
+export const fanMutation = customMutation(
+  mutation,
+  customCtx(async (ctx) => ({ member: await requireActiveFan(ctx) }))
+)
+export const adminQuery = customQuery(
+  query,
+  customCtx(async (ctx) => ({ member: await requireAdmin(ctx) }))
+)
+export const adminMutation = customMutation(
+  mutation,
+  customCtx(async (ctx) => ({ member: await requireAdmin(ctx) }))
 )

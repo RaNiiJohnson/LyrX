@@ -91,3 +91,14 @@ export async function requireAdmin(ctx: DatabaseCtx) {
   }
   return member
 }
+
+export async function requireActiveFan(ctx: DatabaseCtx) {
+  const member = await requireActiveMember(ctx)
+  if (member.role !== "fan") {
+    throw new ConvexError({
+      code: "FAN_REQUIRED",
+      message: "A fan account is required.",
+    })
+  }
+  return member
+}
