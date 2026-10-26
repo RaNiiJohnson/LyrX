@@ -56,6 +56,12 @@ delivery status and proof remain in [progress.md](progress.md).
   Files still referenced by another account are preserved. A minimal revoked
   auth-identity marker remains; content and email are not retained in it.
   Signing up again with the same email creates a new identity, not a restoration.
+- Community contributions owned by a deleted member and their dependent reports
+  and decisions are deleted as part of that cascade. Reports or decisions on
+  other authors' content keep their private moderation outcome, revision and
+  timestamps, but lose the deleted reporter/moderator reference. A deleted
+  reporter's free-text reason is replaced with a neutral deletion marker.
+  Deleting a reporter or moderator must never restore hidden/removed content.
 
 ## Songs, credits, and lyrics
 

@@ -1,6 +1,76 @@
 import type { SupportedLocale } from "./index"
 
 const frenchMessages = {
+  "community.title": "Communauté",
+  "community.description":
+    "Des paroles partagées par les Fans, avec leur contribution clairement attribuée.",
+  "community.label": "Contribution communautaire",
+  "community.official": "Catalogue officiel",
+  "community.publish": "Publier des paroles",
+  "community.edit": "Modifier ma contribution",
+  "community.mine": "Mes contributions",
+  "community.publishDescription":
+    "Votre contribution sera publique immédiatement et vous sera attribuée. Elle ne modifie pas le catalogue officiel de l’artiste.",
+  "community.contributedBy": "Partagé par",
+  "community.albumReference": "Album de référence",
+  "community.saved": "Contribution enregistrée",
+  "community.artworkSavePartial":
+    "La contribution est déjà publique, mais sa pochette n’a pas été enregistrée. Réessayez ou retirez l’image sélectionnée pour continuer sans elle.",
+  "community.retryArtwork": "Réessayer la pochette",
+  "community.options": "Options de la contribution",
+  "community.selfReportForbidden":
+    "Vous ne pouvez pas signaler votre propre contribution.",
+  "community.restore": "Rendre public",
+  "community.restoreDescription":
+    "Rétablissez la visibilité publique de cette contribution masquée en indiquant un motif. La décision initiale reste conservée.",
+  "community.restored": "Visibilité publique rétablie",
+  "community.notRestorable":
+    "Seule une contribution masquée dont l’auteur est actif peut être rendue publique.",
+  "community.empty": "Aucun contenu à afficher",
+  "community.emptyDescription":
+    "Les paroles communautaires publiées apparaîtront ici.",
+  "community.emptyMineDescription":
+    "Vous n’avez pas encore publié de contribution communautaire.",
+  "community.emptyReportsDescription":
+    "Aucun signalement ne correspond à ce statut.",
+  "community.loadMore": "Voir la suite",
+  "community.fanOnly": "Compte Fan requis",
+  "community.adminOnly": "Accès administrateur requis",
+  "community.accessDescription":
+    "Cette action n’est pas disponible pour ce compte. Vous pouvez toujours lire les contributions publiques.",
+  "community.hidden": "Masquée",
+  "community.removed": "Retirée",
+  "community.moderated":
+    "Cette contribution a été modérée et ne peut pas être republiée depuis le formulaire.",
+  "community.matches": "Des titres similaires existent",
+  "community.matchesDescription":
+    "Vérifiez ces correspondances possibles. Vous pouvez publier une version distincte ; aucune fusion n’est automatique.",
+  "community.publishAnyway": "Publier ma version",
+  "community.report": "Signaler cette contribution",
+  "community.reportDescription":
+    "Un signalement ne masque pas automatiquement les paroles. Un administrateur examinera le contenu et votre motif.",
+  "community.reason": "Motif",
+  "community.reportSent": "Signalement enregistré",
+  "community.signInToReport": "Connectez-vous pour signaler un problème",
+  "community.moderation": "Modération communautaire",
+  "community.moderationDescription":
+    "Seuls les contenus signalés sont examinés ici. La publication ne nécessite aucune approbation préalable.",
+  "community.openReports": "À examiner",
+  "community.resolvedReports": "Traités",
+  "community.reportedRevision": "Version signalée",
+  "community.currentRevision": "Version actuelle",
+  "community.decision": "Décision",
+  "community.dismiss": "Classer sans retrait",
+  "community.hide": "Masquer",
+  "community.remove": "Retirer",
+  "community.resolve": "Enregistrer la décision",
+  "community.resolved": "Décision enregistrée",
+  "community.removeConfirm": "Retirer cette contribution ?",
+  "community.removeDescription":
+    "Elle ne sera plus visible publiquement ni modifiable par son auteur. Le contenu et le motif sont conservés pour la modération.",
+  "community.revisionConflict":
+    "Le contenu a changé. Rechargez la page avant de réessayer.",
+  "community.reportResolved": "Ce signalement a déjà été traité.",
   "account.deleteTitle": "Supprimer le compte",
   "account.deleteDescription":
     "Supprimez définitivement votre compte, votre profil, vos publications et leurs images. Cette action est irréversible.",
@@ -477,6 +547,73 @@ const frenchMessages = {
 export type MessageKey = keyof typeof frenchMessages
 
 const englishMessages = {
+  "community.title": "Community",
+  "community.description":
+    "Lyrics shared by Fans, with clear contributor attribution.",
+  "community.label": "Community contribution",
+  "community.official": "Official catalogue",
+  "community.publish": "Publish lyrics",
+  "community.edit": "Edit my contribution",
+  "community.mine": "My contributions",
+  "community.publishDescription":
+    "Your contribution will be public immediately and attributed to you. It does not modify the artist’s official catalogue.",
+  "community.contributedBy": "Shared by",
+  "community.albumReference": "Album reference",
+  "community.saved": "Contribution saved",
+  "community.artworkSavePartial":
+    "The contribution is already public, but its artwork was not saved. Retry or clear the selected image to continue without it.",
+  "community.retryArtwork": "Retry artwork",
+  "community.options": "Contribution options",
+  "community.selfReportForbidden": "You cannot report your own contribution.",
+  "community.restore": "Restore public visibility",
+  "community.restoreDescription":
+    "Restore public visibility of this hidden contribution with a reason. The original decision remains recorded.",
+  "community.restored": "Public visibility restored",
+  "community.notRestorable":
+    "Only a hidden contribution with an active author can be made public again.",
+  "community.empty": "Nothing to display",
+  "community.emptyDescription": "Published community lyrics will appear here.",
+  "community.emptyMineDescription":
+    "You have not published any community contributions yet.",
+  "community.emptyReportsDescription": "No reports match this status.",
+  "community.loadMore": "Load more",
+  "community.fanOnly": "Fan account required",
+  "community.adminOnly": "Administrator access required",
+  "community.accessDescription":
+    "This action is not available for this account. You can still read public contributions.",
+  "community.hidden": "Hidden",
+  "community.removed": "Removed",
+  "community.moderated":
+    "This contribution has been moderated and cannot be republished from the editor.",
+  "community.matches": "Similar titles already exist",
+  "community.matchesDescription":
+    "Check these possible matches. You can publish a distinct version; nothing is merged automatically.",
+  "community.publishAnyway": "Publish my version",
+  "community.report": "Report this contribution",
+  "community.reportDescription":
+    "Reporting does not automatically hide lyrics. An administrator will review the content and your reason.",
+  "community.reason": "Reason",
+  "community.reportSent": "Report recorded",
+  "community.signInToReport": "Sign in to report a problem",
+  "community.moderation": "Community moderation",
+  "community.moderationDescription":
+    "Only reported content is reviewed here. Publication requires no prior approval.",
+  "community.openReports": "Open reports",
+  "community.resolvedReports": "Resolved reports",
+  "community.reportedRevision": "Reported revision",
+  "community.currentRevision": "Current revision",
+  "community.decision": "Decision",
+  "community.dismiss": "Dismiss without removal",
+  "community.hide": "Hide",
+  "community.remove": "Remove",
+  "community.resolve": "Save decision",
+  "community.resolved": "Decision saved",
+  "community.removeConfirm": "Remove this contribution?",
+  "community.removeDescription":
+    "It will no longer be publicly visible or editable by its author. The content and reason are retained for moderation.",
+  "community.revisionConflict":
+    "The content changed. Reload the page before retrying.",
+  "community.reportResolved": "This report has already been resolved.",
   "account.deleteTitle": "Delete account",
   "account.deleteDescription":
     "Permanently delete your account, profile, publications and their images. This cannot be undone.",

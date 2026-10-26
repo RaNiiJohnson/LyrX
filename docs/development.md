@@ -183,8 +183,52 @@ work around an authorization failure. Unregistered raw uploads are handled by
 the existing global grace-period sweep, not guessed from a client-supplied id.
 Storage URLs or previously downloaded copies cannot be recalled.
 
-Lot 6 is checkpointed separately. Extend this cascade to its community tables
-when that branch is resumed, before claiming account deletion covers that domain.
+The resumed lot 6 extends the final cleanup phase to community contributions,
+dependent reports and decisions. Reports/decisions on other authors' works are
+anonymized, not erased in a way that would undo moderation. Old jobs already in
+the `member` phase also pass this guard before member removal.
+
+## Community verification (lot 6)
+
+Fan authoring is at `/community/new`, own contributions at `/community/mine`,
+and public reading at `/community/<id>`. Only authenticated, active, verified
+Fans may publish/edit, and the server chooses the author. A report remains
+private and does not hide lyrics. `/admin/community` is an administrator-only
+report queue, not a publication-approval queue. Hide/remove require a report
+and a reason; removed text is retained privately until its author is deleted.
+
+The lot 6 follow-up adds optional Fan artwork and song metadata, server rejection
+of self-reports, and admin restoration of hidden content. Restoration requires
+an existing hide decision, active author, current revision, nonempty reason and
+idempotent request; it appends an audit without rewriting the hide decision or
+first-publication time. Removed contributions are not restorable through it.
+Artwork uses the shared image preparation policy, followed by a Fan-owned
+contribution-bound upload intent and atomic claim/attachment. Text is public
+before this optional upload; check the explicit partial-success retry state.
+Account cleanup includes community images/intents/restorations and preserves
+foreign storage references and anonymized audit history. Test destructive paths
+in isolation. For UI checks, include the top report menu/dialog, own-post absence,
+small-height scrolling, keyboard focus/cancellation and compact artwork previews.
+
+Limits: title 160 characters, credited artist 120, optional album reference 160,
+lyrics the shared `MAX_LYRICS_TEXT_LENGTH`, report/decision reason 1,000 and
+request id 100. Pagination accepts 1–50 items (web pages request 24). Token buckets
+allow publication at 10/hour with burst 3, edits at 30/hour with burst 10, and
+reports at 10/hour with burst 3 per member. Idempotent publication/report retries
+do not consume another token. Edits retain the first-publication date.
+
+The duplicate warning searches at most 10 published official and 10 community
+title matches, then compares credited artists and visibility. It is best-effort,
+not exhaustive duplicate detection or lot 8's general lyrics search. Nothing
+is merged automatically. Public pages can be short/empty while retaining a
+continuation cursor when suspended/deleted authors are excluded after paging.
+The Load more control remains available in that case.
+
+Use original, clearly labelled technical text for live Fan checks. Never change
+an existing account's role, bootstrap an admin, delete an account, or remove a
+real publication just to produce verification evidence. Isolated backend/DOM
+tests cover destructive moderation/cascade paths when no admin session is
+available; record that live-browser limitation explicitly.
 
 ## Environment policy
 

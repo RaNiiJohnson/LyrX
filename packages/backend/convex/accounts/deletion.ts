@@ -62,6 +62,113 @@ async function removeUnclaimedFile(
     await ctx.storage.delete(storageId)
 }
 
+/** Remove only owned publications; preserve anonymized history on other works. */
+async function cleanCommunityBatch(ctx: MutationCtx, owner: Id<"members">) {
+  const contribution = await ctx.db
+    .query("communityContributions")
+    .withIndex("by_author_member_id", (q) => q.eq("authorMemberId", owner))
+    .first()
+  if (contribution) {
+    const restorations = await ctx.db
+      .query("communityRestorations")
+      .withIndex("by_contribution_id", (q) =>
+        q.eq("contributionId", contribution._id)
+      )
+      .take(BATCH_SIZE)
+    if (restorations.length) {
+      for (const restoration of restorations)
+        await ctx.db.delete("communityRestorations", restoration._id)
+      return true
+    }
+    const decisions = await ctx.db
+      .query("communityModeration")
+      .withIndex("by_contribution_id", (q) =>
+        q.eq("contributionId", contribution._id)
+      )
+      .take(BATCH_SIZE)
+    if (decisions.length) {
+      for (const decision of decisions)
+        await ctx.db.delete("communityModeration", decision._id)
+      return true
+    }
+    const reports = await ctx.db
+      .query("communityReports")
+      .withIndex(
+        "by_contribution_id_and_reporter_member_id_and_reported_revision",
+        (q) => q.eq("contributionId", contribution._id)
+      )
+      .take(BATCH_SIZE)
+    if (reports.length) {
+      for (const report of reports)
+        await ctx.db.delete("communityReports", report._id)
+      return true
+    }
+    await ctx.db.delete("communityContributions", contribution._id)
+    return true
+  }
+
+  const intents = await ctx.db
+    .query("communityArtworkUploadIntents")
+    .withIndex("by_author_member_id", (q) => q.eq("authorMemberId", owner))
+    .take(BATCH_SIZE)
+  if (intents.length) {
+    for (const intent of intents)
+      await ctx.db.delete("communityArtworkUploadIntents", intent._id)
+    return true
+  }
+  const images = await ctx.db
+    .query("communityImages")
+    .withIndex("by_author_member_id", (q) => q.eq("authorMemberId", owner))
+    .take(BATCH_SIZE)
+  if (images.length) {
+    for (const image of images) {
+      await ctx.db.delete("communityImages", image._id)
+      await removeUnclaimedFile(ctx, image.storageId)
+    }
+    return true
+  }
+
+  const reports = await ctx.db
+    .query("communityReports")
+    .withIndex("by_reporter_member_id", (q) => q.eq("reporterMemberId", owner))
+    .take(BATCH_SIZE)
+  if (reports.length) {
+    for (const report of reports)
+      await ctx.db.patch("communityReports", report._id, {
+        reporterMemberId: undefined,
+        reason: "Reporter account deleted.",
+      })
+    return true
+  }
+  const decisions = await ctx.db
+    .query("communityModeration")
+    .withIndex("by_moderator_member_id", (q) =>
+      q.eq("moderatorMemberId", owner)
+    )
+    .take(BATCH_SIZE)
+  if (decisions.length) {
+    for (const decision of decisions)
+      await ctx.db.patch("communityModeration", decision._id, {
+        moderatorMemberId: undefined,
+      })
+    return true
+  }
+  const restorations = await ctx.db
+    .query("communityRestorations")
+    .withIndex("by_moderator_member_id", (q) =>
+      q.eq("moderatorMemberId", owner)
+    )
+    .take(BATCH_SIZE)
+  if (restorations.length) {
+    for (const restoration of restorations)
+      await ctx.db.patch("communityRestorations", restoration._id, {
+        moderatorMemberId: undefined,
+      })
+    return true
+  }
+  return false
+}
+
 async function advance(ctx: MutationCtx, job: Doc<"accountDeletionJobs">) {
   const owner = job.memberId
   if (job.phase === "songs") {
@@ -167,6 +274,9 @@ async function advance(ctx: MutationCtx, job: Doc<"accountDeletionJobs">) {
     }
     return images.length ? "catalogueImages" : "member"
   }
+  // Keep this guard at the final phase, so jobs created by older deployments
+  // (including a stalled job already at "member") cannot skip new dependents.
+  if (await cleanCommunityBatch(ctx, owner)) return "member"
   if (await ctx.db.get("members", owner)) await ctx.db.delete("members", owner)
   return null
 }

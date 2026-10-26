@@ -2,7 +2,127 @@
 
 ## Active lot
 
-### Deletion/redirection flash correction — 25 October 2026
+### Lot 6 community follow-up — completed locally 26 October 2026
+
+Resumed from checkpoint `b54177d` on `codex/community-fan-lyrics`. The original
+lot 6 was already completed at `64f2654`; lot 5 and T1 remain merged and closed.
+This follow-up implements the user's three additions, not lot 7's redesign.
+
+- Own-post reporting is hidden and rejected on the server; other readers use
+  the top Options menu and an accessible report dialog instead of a bottom form.
+- Admins can restore hidden reported contributions with a reason, revision and
+  idempotent request. An independent restoration audit preserves the original
+  hide decision. Removed content/unavailable authors cannot be restored.
+- Fans can add optimized artwork and optional song-like metadata without
+  changing the session-derived contributor or official Artist catalogue.
+  Partial image failure retains public text/form/file and allows safe retry.
+- Bounded account cleanup includes artwork/intents/restorations. Cross-domain
+  image claims protect foreign files; foreign moderation history is anonymized.
+- The primary agent reviewed the entire follow-up locally from fixed point
+  `64f2654`, including new files/tests, with the Convex skill's security,
+  performance and quality passes. No final review was delegated and no blocking
+  standards/specification or Critical/Important Convex finding remains.
+- Review corrections include blank optional genre handling, strict test fixture
+  indexing, cross-domain storage preservation, ambiguous-response recovery and
+  a short-height dialog max-height/scroll correction. The last is accessibility
+  maintenance only; the user reaffirmed that redesign belongs to the next lot.
+- Root `pnpm check`: formatting, lint, TypeScript, **259 tests** (29 shared,
+  72 backend, 158 web), client/SSR production builds. Mobile 390 × 844, desktop
+  1280 × 900, short-height dialog 390 × 280 and keyboard/focus checks passed.
+  Fan artwork/metadata and Chrome admin restoration were verified live against
+  the synthetic contribution, as detailed in the linked record. Destructive
+  deletion/removal and failure retries remain isolated-test evidence.
+- Accepted limits and historical evidence are in
+  [the follow-up record](lot6-community-followup.md): optional artwork attaches
+  after public text, so partial success is explicitly visible and retryable;
+  existing file URLs/downloads cannot be recalled; no physical-device or
+  cross-engine matrix is claimed. No push, PR, remote merge or production
+  deployment occurred. Lot 7 implementation has not started.
+
+### Lot 6 completed locally — Community Fan lyrics, 25 October 2026
+
+The user authorized resumption after switching the browser to a Fan account.
+Active branch: `codex/community-fan-lyrics`. The account-deletion prerequisite
+and validated redirect-flash fix (`3da2c3e`) were integrated locally in merge
+`66b5d9f`. Lot 5 (`b9b5c4d`) and T1 (`80ade32`) remain merged and closed.
+The paused records below are historical, not the current mission.
+
+- The separate Fan publication/report domain and community cleanup extension
+  are complete, with the real Fan/admin journey verified as recorded below.
+- The primary local review uses fixed prerequisite point `3da2c3e`, including
+  the original lot 6 checkpoint and all resumed changes.
+- No push, PR, remote merge, production deployment or lot 7 is authorized.
+- Cascade policy: owned contributions and their dependent reports/decisions are
+  deleted. On other authors' content, reporter/moderator member references are
+  anonymized; deleted reporters' free-text reasons become
+  `Reporter account deleted.`. Private decisions retain action/reason/time and
+  report revision/status so account deletion cannot reverse another author's
+  moderation. New writes still derive these identities from the session.
+
+#### Completion evidence
+
+- Public Fan publication is immediate and session-attributed, separate from
+  official Artist songs/albums. The author can edit only their own published
+  contribution. Lyrics preserve the raw source and remain mandatory; duplicate
+  warnings require an explicit choice and never merge rows automatically.
+- Reports are private and do not change public visibility. Only an authorized
+  admin can resolve an existing report with a reason and revision check.
+  Hide/remove and audit writes commit transactionally; duplicate decisions are
+  idempotent and a moderated contribution cannot be edited back into public view.
+- The bounded deletion extension handles more than 25 publications/dependents,
+  retry and stalled jobs already in the old final phase, immediate public
+  withdrawal, anonymization and cross-account preservation. Its three new tests
+  use isolated data; no live account was deleted by the agent.
+- The primary agent reviewed the **entire** lot diff locally from `3da2c3e`,
+  including original checkpoint files, generated routes/API, new tests and docs.
+  No completion review was delegated. Convex security, performance and quality
+  passes checked session roles/authorship, deleted JWTs, projections, private
+  reports, indexed pagination, bounded cleanup and concurrent writes. No blocking
+  standards/specification or Critical/Important Convex findings remain.
+- Corrections found during implementation/review: separate public/own/report
+  empty descriptions; stable locale/UTC moderation dates; targeted account
+  loading under public lyrics; stronger forged-author/Artist/missing-report
+  tests; whitespace moderation reasons, pending double submission and renewed
+  removal consent; async DOM-test lifecycle warnings; tablet navbar overflow.
+  Navigation now stays compact below 1,024 px, consistently for loading,
+  anonymous, Fan and admin states.
+- `pnpm check` passes formatting, lint, TypeScript, **208 tests** (29 shared,
+  58 backend, 121 web) and production client/SSR builds. Web tests include 10
+  actual Radix/TanStack Form moderation interactions, 10 display-state cases,
+  four authoring cases and four navigation-breakpoint cases. The final web suite
+  has no React act warnings. Development-only `convex dev --once` succeeds;
+  no production deployment was performed.
+- Live Fan checks: required empty lyrics block submission; publish/read with
+  visible contributor credit; edit/raw-text round-trip; own/public list;
+  duplicate warning without creating another row; technical self-report with
+  continued public visibility; admin queue forbidden to the Fan. Anonymous
+  Convex reading returned the public projection, then no content after hiding.
+- The user explicitly authorized promoting the named account open in Chrome.
+  The existing internal `admin:bootstrapFirstAdmin` succeeded in development;
+  that account remains Artist with `isAdmin`, while the separate Codex browser
+  account remains an ordinary Fan. No new public promotion endpoint or bypass
+  was added. Do not repeat bootstrap: it is single-use.
+- Chrome admin checks: open the real report, inspect reported/current revision,
+  save a justified hide decision and observe its recorded outcome. The Fan then
+  sees `Masquée`, no edit action; direct edit is blocked and the public URL is
+  unavailable. The only live contribution changed is original synthetic text
+  `[TEST LOT 6] Fenêtre ouverte` (`ks7866ae7f2f756afyzybf1kz58gz4at`), retained
+  hidden with its technical report/decision
+  (`m1719tftqbhb40dd9qc13v54v58gzr7e`). No existing publication was edited.
+- Relevant mobile (390), tablet (768/1,024) and desktop widths were checked.
+  Fan/admin pages have no horizontal overflow after the navbar fix; Chrome
+  moderation labels were checked in French and English. Locale and viewport
+  overrides were restored. Both tested browser sessions report no console errors.
+  Final proof: `/tmp/lyrx-lot6-moderation-proof.png`. Remove/cascade destructive
+  paths and dismiss are proved by isolated backend/DOM tests, not a live deletion.
+- Accepted trade-offs: duplicate lookup is bounded best-effort, not lot 8 search;
+  public pagination can be short after filtering inactive authors but retains
+  Load more; removed content is private audit data until author deletion.
+  These limits are recorded in development/architecture documentation.
+- Saved locally on the active branch; no push, PR creation or remote merge was
+  performed. Lot 7 has not started and still requires user approval.
+
+### Completed prerequisite — Deletion/redirection flash correction, 25 October 2026
 
 Resumed and implemented on `codex/account-self-deletion`; the paused checkpoint
 below is historical and superseded by this correction. Lot 6 remains separate.
@@ -75,7 +195,7 @@ The newly reported flash correction is **not implemented or verified yet**.
   The browser was reported at `/onboarding` when the user paused; obtain fresh
   browser state on resumption. Lot 6 remains separately saved at `1298ef1`.
 
-**Current priority — self-service account deletion** (25 October 2026), on
+**Completed prerequisite — self-service account deletion** (25 October 2026), on
 `codex/account-self-deletion`, based on `541b610`. The user explicitly requested
 this prerequisite before continuing the Fan test journey. Implement native
 Better Auth self-deletion with irreversible confirmation and resumable cascade

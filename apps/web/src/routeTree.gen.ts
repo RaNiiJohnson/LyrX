@@ -19,10 +19,18 @@ import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-passw
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
+import { Route as CommunityIndexRouteImport } from './routes/community/index'
+import { Route as CommunityContributionIdRouteImport } from './routes/community/$contributionId'
+import { Route as CommunityMineRouteImport } from './routes/community/mine'
+import { Route as CommunityNewRouteImport } from './routes/community/new'
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
 import { Route as SongsSongIdRouteImport } from './routes/songs/$songId'
 import { Route as StudioIndexRouteImport } from './routes/studio/index'
+import { Route as AdminCommunityIndexRouteImport } from './routes/admin/community/index'
+import { Route as AdminCommunityReportIdRouteImport } from './routes/admin/community/$reportId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as CommunityContributionIdIndexRouteImport } from './routes/community/$contributionId/index'
+import { Route as CommunityContributionIdEditRouteImport } from './routes/community/$contributionId/edit'
 import { Route as StudioAlbumsAlbumIdRouteImport } from './routes/studio/albums/$albumId'
 import { Route as StudioAlbumsNewRouteImport } from './routes/studio/albums/new'
 import { Route as StudioSongsSongIdRouteImport } from './routes/studio/songs/$songId'
@@ -82,6 +90,26 @@ const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
   path: '/auth/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityIndexRoute = CommunityIndexRouteImport.update({
+  id: '/community/',
+  path: '/community/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityContributionIdRoute = CommunityContributionIdRouteImport.update({
+  id: '/community/$contributionId',
+  path: '/community/$contributionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityMineRoute = CommunityMineRouteImport.update({
+  id: '/community/mine',
+  path: '/community/mine',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityNewRoute = CommunityNewRouteImport.update({
+  id: '/community/new',
+  path: '/community/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfilesHandleRoute = ProfilesHandleRouteImport.update({
   id: '/profiles/$handle',
   path: '/profiles/$handle',
@@ -97,11 +125,33 @@ const StudioIndexRoute = StudioIndexRouteImport.update({
   path: '/studio/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCommunityIndexRoute = AdminCommunityIndexRouteImport.update({
+  id: '/admin/community/',
+  path: '/admin/community/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCommunityReportIdRoute = AdminCommunityReportIdRouteImport.update({
+  id: '/admin/community/$reportId',
+  path: '/admin/community/$reportId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityContributionIdIndexRoute =
+  CommunityContributionIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => CommunityContributionIdRoute,
+  } as any)
+const CommunityContributionIdEditRoute =
+  CommunityContributionIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => CommunityContributionIdRoute,
+  } as any)
 const StudioAlbumsAlbumIdRoute = StudioAlbumsAlbumIdRouteImport.update({
   id: '/studio/albums/$albumId',
   path: '/studio/albums/$albumId',
@@ -157,14 +207,22 @@ export interface FileRoutesByFullPath {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/community/$contributionId': typeof CommunityContributionIdRouteWithChildren
+  '/community/mine': typeof CommunityMineRoute
+  '/community/new': typeof CommunityNewRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/songs/$songId': typeof SongsSongIdRoute
+  '/community/': typeof CommunityIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/admin/community/$reportId': typeof AdminCommunityReportIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/community/$contributionId/edit': typeof CommunityContributionIdEditRoute
   '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdRouteWithChildren
   '/studio/albums/new': typeof StudioAlbumsNewRoute
   '/studio/songs/$songId': typeof StudioSongsSongIdRouteWithChildren
   '/studio/songs/new': typeof StudioSongsNewRoute
+  '/admin/community/': typeof AdminCommunityIndexRoute
+  '/community/$contributionId/': typeof CommunityContributionIdIndexRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
   '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
   '/studio/albums/$albumId/': typeof StudioAlbumsAlbumIdIndexRoute
@@ -181,12 +239,19 @@ export interface FileRoutesByTo {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/community/mine': typeof CommunityMineRoute
+  '/community/new': typeof CommunityNewRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/songs/$songId': typeof SongsSongIdRoute
+  '/community': typeof CommunityIndexRoute
   '/studio': typeof StudioIndexRoute
+  '/admin/community/$reportId': typeof AdminCommunityReportIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/community/$contributionId/edit': typeof CommunityContributionIdEditRoute
   '/studio/albums/new': typeof StudioAlbumsNewRoute
   '/studio/songs/new': typeof StudioSongsNewRoute
+  '/admin/community': typeof AdminCommunityIndexRoute
+  '/community/$contributionId': typeof CommunityContributionIdIndexRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
   '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
   '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdIndexRoute
@@ -204,14 +269,22 @@ export interface FileRoutesById {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/community/$contributionId': typeof CommunityContributionIdRouteWithChildren
+  '/community/mine': typeof CommunityMineRoute
+  '/community/new': typeof CommunityNewRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/songs/$songId': typeof SongsSongIdRoute
+  '/community/': typeof CommunityIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/admin/community/$reportId': typeof AdminCommunityReportIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/community/$contributionId/edit': typeof CommunityContributionIdEditRoute
   '/studio/albums/$albumId': typeof StudioAlbumsAlbumIdRouteWithChildren
   '/studio/albums/new': typeof StudioAlbumsNewRoute
   '/studio/songs/$songId': typeof StudioSongsSongIdRouteWithChildren
   '/studio/songs/new': typeof StudioSongsNewRoute
+  '/admin/community/': typeof AdminCommunityIndexRoute
+  '/community/$contributionId/': typeof CommunityContributionIdIndexRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
   '/studio/songs/$songId/preview': typeof StudioSongsSongIdPreviewRoute
   '/studio/albums/$albumId/': typeof StudioAlbumsAlbumIdIndexRoute
@@ -230,14 +303,22 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verify-email'
+    | '/community/$contributionId'
+    | '/community/mine'
+    | '/community/new'
     | '/profiles/$handle'
     | '/songs/$songId'
+    | '/community/'
     | '/studio/'
+    | '/admin/community/$reportId'
     | '/api/auth/$'
+    | '/community/$contributionId/edit'
     | '/studio/albums/$albumId'
     | '/studio/albums/new'
     | '/studio/songs/$songId'
     | '/studio/songs/new'
+    | '/admin/community/'
+    | '/community/$contributionId/'
     | '/studio/albums/$albumId/preview'
     | '/studio/songs/$songId/preview'
     | '/studio/albums/$albumId/'
@@ -254,12 +335,19 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verify-email'
+    | '/community/mine'
+    | '/community/new'
     | '/profiles/$handle'
     | '/songs/$songId'
+    | '/community'
     | '/studio'
+    | '/admin/community/$reportId'
     | '/api/auth/$'
+    | '/community/$contributionId/edit'
     | '/studio/albums/new'
     | '/studio/songs/new'
+    | '/admin/community'
+    | '/community/$contributionId'
     | '/studio/albums/$albumId/preview'
     | '/studio/songs/$songId/preview'
     | '/studio/albums/$albumId'
@@ -276,14 +364,22 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verify-email'
+    | '/community/$contributionId'
+    | '/community/mine'
+    | '/community/new'
     | '/profiles/$handle'
     | '/songs/$songId'
+    | '/community/'
     | '/studio/'
+    | '/admin/community/$reportId'
     | '/api/auth/$'
+    | '/community/$contributionId/edit'
     | '/studio/albums/$albumId'
     | '/studio/albums/new'
     | '/studio/songs/$songId'
     | '/studio/songs/new'
+    | '/admin/community/'
+    | '/community/$contributionId/'
     | '/studio/albums/$albumId/preview'
     | '/studio/songs/$songId/preview'
     | '/studio/albums/$albumId/'
@@ -301,14 +397,20 @@ export interface RootRouteChildren {
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
+  CommunityContributionIdRoute: typeof CommunityContributionIdRouteWithChildren
+  CommunityMineRoute: typeof CommunityMineRoute
+  CommunityNewRoute: typeof CommunityNewRoute
   ProfilesHandleRoute: typeof ProfilesHandleRoute
   SongsSongIdRoute: typeof SongsSongIdRoute
+  CommunityIndexRoute: typeof CommunityIndexRoute
   StudioIndexRoute: typeof StudioIndexRoute
+  AdminCommunityReportIdRoute: typeof AdminCommunityReportIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   StudioAlbumsAlbumIdRoute: typeof StudioAlbumsAlbumIdRouteWithChildren
   StudioAlbumsNewRoute: typeof StudioAlbumsNewRoute
   StudioSongsSongIdRoute: typeof StudioSongsSongIdRouteWithChildren
   StudioSongsNewRoute: typeof StudioSongsNewRoute
+  AdminCommunityIndexRoute: typeof AdminCommunityIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -383,6 +485,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthVerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community/': {
+      id: '/community/'
+      path: '/community'
+      fullPath: '/community/'
+      preLoaderRoute: typeof CommunityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community/$contributionId': {
+      id: '/community/$contributionId'
+      path: '/community/$contributionId'
+      fullPath: '/community/$contributionId'
+      preLoaderRoute: typeof CommunityContributionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community/mine': {
+      id: '/community/mine'
+      path: '/community/mine'
+      fullPath: '/community/mine'
+      preLoaderRoute: typeof CommunityMineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community/new': {
+      id: '/community/new'
+      path: '/community/new'
+      fullPath: '/community/new'
+      preLoaderRoute: typeof CommunityNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profiles/$handle': {
       id: '/profiles/$handle'
       path: '/profiles/$handle'
@@ -404,12 +534,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/community/': {
+      id: '/admin/community/'
+      path: '/admin/community'
+      fullPath: '/admin/community/'
+      preLoaderRoute: typeof AdminCommunityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/community/$reportId': {
+      id: '/admin/community/$reportId'
+      path: '/admin/community/$reportId'
+      fullPath: '/admin/community/$reportId'
+      preLoaderRoute: typeof AdminCommunityReportIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/community/$contributionId/': {
+      id: '/community/$contributionId/'
+      path: '/'
+      fullPath: '/community/$contributionId/'
+      preLoaderRoute: typeof CommunityContributionIdIndexRouteImport
+      parentRoute: typeof CommunityContributionIdRoute
+    }
+    '/community/$contributionId/edit': {
+      id: '/community/$contributionId/edit'
+      path: '/edit'
+      fullPath: '/community/$contributionId/edit'
+      preLoaderRoute: typeof CommunityContributionIdEditRouteImport
+      parentRoute: typeof CommunityContributionIdRoute
     }
     '/studio/albums/$albumId': {
       id: '/studio/albums/$albumId'
@@ -470,6 +628,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CommunityContributionIdRouteChildren {
+  CommunityContributionIdEditRoute: typeof CommunityContributionIdEditRoute
+  CommunityContributionIdIndexRoute: typeof CommunityContributionIdIndexRoute
+}
+
+const CommunityContributionIdRouteChildren: CommunityContributionIdRouteChildren =
+  {
+    CommunityContributionIdEditRoute: CommunityContributionIdEditRoute,
+    CommunityContributionIdIndexRoute: CommunityContributionIdIndexRoute,
+  }
+
+const CommunityContributionIdRouteWithChildren =
+  CommunityContributionIdRoute._addFileChildren(
+    CommunityContributionIdRouteChildren,
+  )
+
 interface StudioAlbumsAlbumIdRouteChildren {
   StudioAlbumsAlbumIdPreviewRoute: typeof StudioAlbumsAlbumIdPreviewRoute
   StudioAlbumsAlbumIdIndexRoute: typeof StudioAlbumsAlbumIdIndexRoute
@@ -507,14 +681,20 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
+  CommunityContributionIdRoute: CommunityContributionIdRouteWithChildren,
+  CommunityMineRoute: CommunityMineRoute,
+  CommunityNewRoute: CommunityNewRoute,
   ProfilesHandleRoute: ProfilesHandleRoute,
   SongsSongIdRoute: SongsSongIdRoute,
+  CommunityIndexRoute: CommunityIndexRoute,
   StudioIndexRoute: StudioIndexRoute,
+  AdminCommunityReportIdRoute: AdminCommunityReportIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   StudioAlbumsAlbumIdRoute: StudioAlbumsAlbumIdRouteWithChildren,
   StudioAlbumsNewRoute: StudioAlbumsNewRoute,
   StudioSongsSongIdRoute: StudioSongsSongIdRouteWithChildren,
   StudioSongsNewRoute: StudioSongsNewRoute,
+  AdminCommunityIndexRoute: AdminCommunityIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
