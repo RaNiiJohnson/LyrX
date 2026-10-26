@@ -1,8 +1,42 @@
-# Lot 6 follow-up checkpoint — 25 October 2026
+# Lot 6 community follow-up — completed locally 26 October 2026
 
-Paused at the user's quota warning. This is a follow-up to completed lot 6
+Resumed from quota checkpoint `b54177d`. This is a follow-up to completed lot 6
 (`64f2654`), not a reopening of merged lot 5 or T1 and not lot 7 implementation.
 Branch: `codex/community-fan-lyrics`. No push, PR, merge or production deployment.
+
+## Final verification and review
+
+- The primary agent completed the entire local follow-up review from fixed point
+  `64f2654`, including new production files, generated API, tests and documentation.
+  No completion review was delegated. The Convex skill checklist covered server
+  roles/ownership, public projections, arguments/returns, indexed bounded reads,
+  transactional restoration/upload retries and cross-domain storage/cascade safety.
+  No blocking standards/specification or Critical/Important Convex finding remains.
+- Corrections: blank optional `otherGenre` normalization with a regression test;
+  checked test fixture indexing; preserving all storage claims before file deletion;
+  lost-response upload/publish recovery without overwriting concurrent changes.
+- The final responsive pass found a clipped report dialog at 390 × 280. It now
+  uses a dynamic viewport max-height and internal vertical scrolling. Browser
+  measurements show 16 px top/bottom clearance, reachable cancellation, contained
+  keyboard focus and focus restored to Options after closing. This is an
+  accessibility correction, not the next lot's redesign.
+- Mobile reader/editor at 390 × 844 and desktop editor at 1280 × 900 have no
+  horizontal overflow. Cover previews remain 96 px and 160 px respectively;
+  metadata persists across collapsed sections. Temporary viewports were reset.
+- The root `pnpm check` passed formatting, lint, TypeScript, **259 tests**
+  (29 shared, 72 backend, 158 web), and client/SSR production builds. The
+  short-height correction also passed the six report-dialog interaction tests,
+  followed by a successful full root gate rerun after that correction.
+  Final browser proof: `/tmp/lyrx-lot6-followup-proof.jpg`.
+- Earlier live development evidence below remains valid. The resumed checks
+  did not publish another contribution, submit another report, delete an account,
+  change roles or alter a real lyric. Destructive cascade/removal and lost-response
+  failure paths are isolated-test evidence, not new live operations.
+- Accepted limits: text becomes public before optional artwork attachment, so
+  a partial upload can temporarily leave public text without its selected cover;
+  the UI explicitly states this and supports retry. Existing storage URLs or
+  downloaded bytes cannot be recalled. No physical mobile keyboard/browser-engine
+  matrix is claimed; viewport and keyboard checks used the available Chromium UI.
 
 ## Implemented scope
 
@@ -55,7 +89,7 @@ Branch: `codex/community-fan-lyrics`. No push, PR, merge or production deploymen
 - One Fan edit-route initial load failed with `fetch failed`; reload recovered
   and save/read worked. Not established as a reproducible product regression.
 
-## Required resumption work
+## Historical resumption checklist (now completed)
 
 1. Finish the primary agent's entire local follow-up diff review from `64f2654`,
    including new files/tests. The mandatory completion review is not delegated.
@@ -91,5 +125,5 @@ bootstrap an admin again or delete an account to manufacture evidence. Reacquire
 fresh browser state after resumption; persistent JavaScript handles may expire.
 
 The three implementation subagents finished and made no commits or live changes.
-All implementation files are shared locally. Remaining checks/review belong to
-the primary agent. The next action is verification, not another feature batch.
+The primary agent subsequently completed the local review and verification.
+The next lot's design direction remains separate and needs implementation approval.

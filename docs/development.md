@@ -197,6 +197,19 @@ private and does not hide lyrics. `/admin/community` is an administrator-only
 report queue, not a publication-approval queue. Hide/remove require a report
 and a reason; removed text is retained privately until its author is deleted.
 
+The lot 6 follow-up adds optional Fan artwork and song metadata, server rejection
+of self-reports, and admin restoration of hidden content. Restoration requires
+an existing hide decision, active author, current revision, nonempty reason and
+idempotent request; it appends an audit without rewriting the hide decision or
+first-publication time. Removed contributions are not restorable through it.
+Artwork uses the shared image preparation policy, followed by a Fan-owned
+contribution-bound upload intent and atomic claim/attachment. Text is public
+before this optional upload; check the explicit partial-success retry state.
+Account cleanup includes community images/intents/restorations and preserves
+foreign storage references and anonymized audit history. Test destructive paths
+in isolation. For UI checks, include the top report menu/dialog, own-post absence,
+small-height scrolling, keyboard focus/cancellation and compact artwork previews.
+
 Limits: title 160 characters, credited artist 120, optional album reference 160,
 lyrics the shared `MAX_LYRICS_TEXT_LENGTH`, report/decision reason 1,000 and
 request id 100. Pagination accepts 1–50 items (web pages request 24). Token buckets

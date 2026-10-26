@@ -2,14 +2,42 @@
 
 ## Active lot
 
-### Lot 6 follow-up checkpoint — 25 October 2026
+### Lot 6 community follow-up — completed locally 26 October 2026
 
-The user requested a quota-safe pause after the reporting/restoration/Fan artwork
-follow-up. Implementation and live Fan/admin checks are recorded in
-[the resumption checkpoint](lot6-community-followup.md). Final full-diff review,
-responsive checks and the root handoff gate remain pending; do not present this
-follow-up as complete or start lot 7. The completed original lot 6 below remains
-historical evidence, not verification of these new changes.
+Resumed from checkpoint `b54177d` on `codex/community-fan-lyrics`. The original
+lot 6 was already completed at `64f2654`; lot 5 and T1 remain merged and closed.
+This follow-up implements the user's three additions, not lot 7's redesign.
+
+- Own-post reporting is hidden and rejected on the server; other readers use
+  the top Options menu and an accessible report dialog instead of a bottom form.
+- Admins can restore hidden reported contributions with a reason, revision and
+  idempotent request. An independent restoration audit preserves the original
+  hide decision. Removed content/unavailable authors cannot be restored.
+- Fans can add optimized artwork and optional song-like metadata without
+  changing the session-derived contributor or official Artist catalogue.
+  Partial image failure retains public text/form/file and allows safe retry.
+- Bounded account cleanup includes artwork/intents/restorations. Cross-domain
+  image claims protect foreign files; foreign moderation history is anonymized.
+- The primary agent reviewed the entire follow-up locally from fixed point
+  `64f2654`, including new files/tests, with the Convex skill's security,
+  performance and quality passes. No final review was delegated and no blocking
+  standards/specification or Critical/Important Convex finding remains.
+- Review corrections include blank optional genre handling, strict test fixture
+  indexing, cross-domain storage preservation, ambiguous-response recovery and
+  a short-height dialog max-height/scroll correction. The last is accessibility
+  maintenance only; the user reaffirmed that redesign belongs to the next lot.
+- Root `pnpm check`: formatting, lint, TypeScript, **259 tests** (29 shared,
+  72 backend, 158 web), client/SSR production builds. Mobile 390 × 844, desktop
+  1280 × 900, short-height dialog 390 × 280 and keyboard/focus checks passed.
+  Fan artwork/metadata and Chrome admin restoration were verified live against
+  the synthetic contribution, as detailed in the linked record. Destructive
+  deletion/removal and failure retries remain isolated-test evidence.
+- Accepted limits and historical evidence are in
+  [the follow-up record](lot6-community-followup.md): optional artwork attaches
+  after public text, so partial success is explicitly visible and retryable;
+  existing file URLs/downloads cannot be recalled; no physical-device or
+  cross-engine matrix is claimed. No push, PR, remote merge or production
+  deployment occurred. Lot 7 implementation has not started.
 
 ### Lot 6 completed locally — Community Fan lyrics, 25 October 2026
 
