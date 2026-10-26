@@ -146,6 +146,15 @@ the creation/editing forms.
 
 ## Public discovery and search
 
+- Public song lists combine artist-owned songs and Fan community contributions,
+  with `Artiste`/`Communauté` origin badges and visible Fan contributor attribution
+  on details. There is no separate public Community discovery page in the lot 7
+  target. Fan publication/personal contributions and admin moderation remain
+  accessible, with their existing ownership and visibility rules.
+- Lot 7 applies [the approved design guidance](design-guidance.md) to the public
+  screens and necessary existing views, retaining the current Caffeine colors.
+  It displays the search entry with an explicit unavailable state; real search
+  is delivered in lot 8. Other future interactions retain their roadmap lots.
 - **New releases** sort by first public publication date descending. Ordinary
   edits do not make content new again.
 - **Popular** uses a documented, recent activity window, principally deduplicated

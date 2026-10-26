@@ -28,6 +28,9 @@ and the technical identifier is `lyrx`.
   the authenticated session; a client cannot submit another member's identity.
   The contribution cannot silently become part of an artist-owned official
   catalogue.
+- Public song discovery combines artist publications and Fan contributions in
+  the same lists, distinguished by origin badges. Fan contributor attribution
+  remains visible; shared discovery does not transfer ownership or permissions.
 - Drafts, hidden or removed content, reports, and notebooks never appear in
   public queries or search. A reported community lyric remains public until a
   moderator hides or removes it.
@@ -63,3 +66,10 @@ editorial text, Newsreader for the landing display headline, and Space Mono for
 code-like labels. Landing imagery favors real, tactile music photography over
 decorative gradients. All token adaptations must preserve readable contrast and
 comfortable long-form lyrics in light and dark modes.
+
+The approved `design/` mockups guide layout and interactions while the existing
+Caffeine theme and colors remain unchanged. Lot 7 integrates the necessary
+screens under [the approved design guidance](design-guidance.md), including one
+public song catalogue instead of a separate Community discovery page. Search is
+visually present in lot 7 with an explicit unavailable state; its behavior is
+delivered in lot 8.

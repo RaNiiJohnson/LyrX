@@ -39,6 +39,20 @@ This follow-up implements the user's three additions, not lot 7's redesign.
   cross-engine matrix is claimed. No push, PR, remote merge or production
   deployment occurred. Lot 7 implementation has not started.
 
+### Approved next-lot design direction — 25 October 2026
+
+Documentation only: the user approved integrating necessary `design/` mockups
+within lot 7, without changing Caffeine colors or creating a separate design lot.
+Artist publications and Fan contributions will share public song lists with
+origin badges; the separate public Community listing is superseded. Fan author
+tools, contribution attribution, ownership, moderation, and old detail links
+must be preserved. Search gets an explicitly unavailable visual entry in lot 7;
+functional search stays in lot 8. Responsive layout, shadcn reuse, footer/bottom
+navigation, horizontal home rows, Studio tabs/actions, and lyric heading insertion
+are recorded in [design guidance](design-guidance.md). No product code was changed
+for this decision, and this entry does not claim lot 7 has started or authorize
+push, PR, merge, or production deployment.
+
 ### Lot 6 completed locally — Community Fan lyrics, 25 October 2026
 
 The user authorized resumption after switching the browser to a Fan account.
@@ -1096,10 +1110,10 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Let the user choose whether to delete their own account through `/profile` and
-create a Fan account. Then resume lot 6 from `codex/community-fan-lyrics` at
-`1298ef1`, incorporate this prerequisite and extend cascade cleanup to its
-community tables before final review and real Fan/admin validation. Lot 5 and T1
-remain merged and closed. Artist claim/replacement remains future scope. No push,
-PR or merge is authorized. The writing notebook with local audio and the
-Genius-style sharing-card refinement remain proposal-only.
+Lot 6 is complete locally as recorded above; its older pause/resumption notes
+are historical. Prepare the next implementation handoff using the approved lot 7
+scope in [design guidance](design-guidance.md) and [roadmap](roadmap.md).
+This research/documentation session has not started lot 7 product code. Lot 5
+and T1 remain merged and closed. Artist claim/replacement remains future scope.
+No push, PR, merge, or production deployment is authorized. The writing notebook
+with local audio and the Genius-style sharing-card refinement remain proposal-only.

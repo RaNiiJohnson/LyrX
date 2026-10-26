@@ -137,6 +137,14 @@ screens; private data is not prefetched in public loaders. TanStack Form and
 shadcn primitives provide required lyrics, duplicate confirmation, accessible
 report/moderation forms and French/English feedback.
 
+The approved lot 7 target replaces only the separate public Community listing
+with unified Artist/Fan song discovery and origin badges. Preserve the community
+write/moderation domain, private author tools, and existing detail links. A unified
+public read projection must apply consistent ordering, pagination, counts, and
+visibility across both origins; concatenating two independently paginated lists
+is insufficient. Its maintenance must cover moderation, withdrawal, and account
+deletion as well as publication. See [design guidance](design-guidance.md).
+
 ## Catalogue module boundary (technical lot T1)
 
 Catalogue capabilities live together under `packages/backend/convex/catalogue/`:
