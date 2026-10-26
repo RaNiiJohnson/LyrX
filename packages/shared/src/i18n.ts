@@ -1,6 +1,16 @@
 import type { SupportedLocale } from "./index"
 
 const frenchMessages = {
+  "common.close": "Fermer",
+  "discovery.artistsCount": "{{count}} artistes",
+  "common.chooseImage": "Parcourir",
+  "common.changeImage": "Changer l’image",
+  "navigation.explore": "Explorer",
+  "navigation.artistTools": "Espace artiste",
+  "navigation.fanTools": "Espace Fan",
+  "navigation.administration": "Administration",
+  "studio.headingIntro": "Intro",
+  "studio.headingOutro": "Outro",
   "profile.identity": "Identité",
   "profile.socialLinks": "Réseaux et liens d’écoute",
   "profile.imagesDescription":
@@ -595,6 +605,16 @@ const frenchMessages = {
 export type MessageKey = keyof typeof frenchMessages
 
 const englishMessages = {
+  "common.close": "Close",
+  "discovery.artistsCount": "{{count}} artists",
+  "common.chooseImage": "Browse",
+  "common.changeImage": "Change image",
+  "navigation.explore": "Explore",
+  "navigation.artistTools": "Artist space",
+  "navigation.fanTools": "Fan space",
+  "navigation.administration": "Administration",
+  "studio.headingIntro": "Intro",
+  "studio.headingOutro": "Outro",
   "profile.identity": "Identity",
   "profile.socialLinks": "Social and listening links",
   "profile.imagesDescription":

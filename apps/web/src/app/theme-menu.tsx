@@ -40,15 +40,15 @@ export function ThemeMenu() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
+          size="icon-lg"
           aria-label={`${t("preferences.theme")} : ${label}`}
         >
           <Icon aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel>{t("preferences.theme")}</DropdownMenuLabel>
         <DropdownMenuGroup>
+          <DropdownMenuLabel>{t("preferences.theme")}</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={preference}
             onValueChange={(value) => {

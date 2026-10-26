@@ -15,6 +15,9 @@ const mocks = vi.hoisted(() => ({
     artist: { bannerUrl: "https://example.com/banner.webp" },
   },
   update: vi.fn(),
+  generateUpload: vi.fn(),
+  saveImage: vi.fn(),
+  prepareImage: vi.fn(),
   otherMutation: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
@@ -39,10 +42,17 @@ vi.mock("convex/react", () => ({
               }
             : null,
         },
-  useMutation: (reference: Parameters<typeof getFunctionName>[0]) =>
-    getFunctionName(reference).endsWith("updateMyProfile")
-      ? mocks.update
-      : mocks.otherMutation,
+  useMutation: (reference: Parameters<typeof getFunctionName>[0]) => {
+    const name = getFunctionName(reference)
+    if (name.endsWith("updateMyProfile")) return mocks.update
+    if (name.endsWith("generateProfileImageUploadUrl"))
+      return mocks.generateUpload
+    if (name.endsWith("saveProfileImage")) return mocks.saveImage
+    return mocks.otherMutation
+  },
+}))
+vi.mock("@/lib/image-upload", () => ({
+  prepareImageForUpload: mocks.prepareImage,
 }))
 vi.mock("@/features/account/account-deletion", () => ({
   AccountDeletion: () => <section>Account deletion settings</section>,
@@ -90,6 +100,14 @@ beforeEach(() => {
   mocks.artist = false
   mocks.update.mockReset().mockResolvedValue(null)
   mocks.otherMutation.mockReset()
+  mocks.publicProfile.avatarUrl = null
+  mocks.publicProfile.artist.bannerUrl = "https://example.com/banner.webp"
+  mocks.generateUpload.mockReset().mockResolvedValue({
+    uploadIntentId: "intent-id",
+    uploadUrl: "https://upload.test/image",
+  })
+  mocks.saveImage.mockReset().mockResolvedValue({ ok: true })
+  mocks.prepareImage.mockReset()
   mocks.success.mockClear()
   mocks.error.mockClear()
   host = document.createElement("div")
@@ -122,6 +140,17 @@ describe("profile form design adaptation", () => {
     expect(
       document.querySelector('[data-slot="avatar-fallback"]')
     ).not.toBeNull()
+    const avatar = document.querySelector('[data-slot="avatar"]')
+    expect(avatar?.className).toContain("size-24")
+    expect(avatar?.className).toContain("shrink-0")
+    expect(avatar?.parentElement?.className).toContain("size-24")
+    expect(avatar?.parentElement?.matches('[data-slot="field"]')).toBe(false)
+    expect(input("avatar").hidden).toBe(true)
+    expect(
+      document.querySelector(
+        'button[aria-labelledby="avatar-label avatar-action"]'
+      )?.className
+    ).toContain("border-dashed")
     expect(document.body.textContent).toContain("Account deletion settings")
     expect(
       document.querySelector('a[href="/profiles/test-handle"]')
@@ -158,6 +187,12 @@ describe("profile form design adaptation", () => {
     expect(banner?.getAttribute("src")).toBe("https://example.com/banner.webp")
     await flush(() => banner?.dispatchEvent(new Event("error")))
     expect(document.querySelector('img[alt="Bannière"]')).toBeNull()
+    mocks.publicProfile.artist.bannerUrl =
+      "https://example.com/replacement.webp"
+    await render()
+    expect(
+      document.querySelector('img[alt="Bannière"]')?.getAttribute("src")
+    ).toBe("https://example.com/replacement.webp")
     const add = Array.from(document.querySelectorAll("button")).find(
       (node) => node.textContent === "Ajouter un lien"
     )
@@ -219,5 +254,98 @@ describe("profile form design adaptation", () => {
     expect(document.body.textContent).toContain("Account deletion settings")
     expect(mocks.error).toHaveBeenCalledOnce()
     expect(mocks.success).not.toHaveBeenCalled()
+  })
+
+  it("prepares the same image again after failure and keeps the established immediate upload pipeline", async () => {
+    const file = new File(["source"], "portrait.png", { type: "image/png" })
+    const optimized = new File(["prepared"], "portrait.webp", {
+      type: "image/webp",
+    })
+    mocks.prepareImage
+      .mockRejectedValueOnce(new Error("Invalid source"))
+      .mockResolvedValue(optimized)
+    const post = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ storageId: "image-id" }),
+    })
+    vi.stubGlobal("fetch", post)
+    await render()
+    const picker = input("avatar")
+    const transfer = new DataTransfer()
+    transfer.items.add(file)
+    Object.defineProperty(picker, "files", {
+      configurable: true,
+      value: transfer.files,
+    })
+    await flush(() =>
+      picker.dispatchEvent(new Event("change", { bubbles: true }))
+    )
+    expect(mocks.prepareImage).toHaveBeenCalledWith(file, "avatar")
+    expect(mocks.generateUpload).not.toHaveBeenCalled()
+    expect(picker.value).toBe("")
+    expect(document.querySelector('[role="alert"]')).not.toBeNull()
+    await flush(() =>
+      picker.dispatchEvent(new Event("change", { bubbles: true }))
+    )
+    expect(mocks.prepareImage).toHaveBeenCalledTimes(2)
+    expect(mocks.generateUpload).toHaveBeenCalledWith({ kind: "avatar" })
+    expect(post).toHaveBeenCalledWith("https://upload.test/image", {
+      method: "POST",
+      headers: { "Content-Type": "image/webp" },
+      body: optimized,
+    })
+    expect(mocks.saveImage).toHaveBeenCalledWith({
+      kind: "avatar",
+      storageId: "image-id",
+      uploadIntentId: "intent-id",
+    })
+    expect(mocks.update).not.toHaveBeenCalled()
+    expect(input("handle").value).toBe("test-handle")
+    expect(document.body.textContent).toContain("Account deletion settings")
+  })
+
+  it("disables every image chooser while preparation is pending without disabling identity fields", async () => {
+    mocks.artist = true
+    let resolve: (file: File) => void = () => {}
+    const preparation = new Promise<File>((done) => {
+      resolve = done
+    })
+    mocks.prepareImage.mockReturnValue(preparation)
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ storageId: "image-id" }),
+      })
+    )
+    await render()
+    const file = new File(["source"], "cover.webp", { type: "image/webp" })
+    const transfer = new DataTransfer()
+    transfer.items.add(file)
+    Object.defineProperty(input("banner"), "files", {
+      configurable: true,
+      value: transfer.files,
+    })
+    await flush(() =>
+      input("banner").dispatchEvent(new Event("change", { bubbles: true }))
+    )
+    expect(input("avatar").disabled).toBe(true)
+    expect(input("banner").disabled).toBe(true)
+    for (const id of ["avatar", "banner"]) {
+      expect(
+        document.querySelector<HTMLButtonElement>(
+          `button[aria-labelledby="${id}-label ${id}-action"]`
+        )?.disabled
+      ).toBe(true)
+    }
+    expect(input("handle").disabled).toBe(false)
+    expect(document.querySelector('[role="status"]')?.textContent).toContain(
+      "Préparation"
+    )
+    await flush(() => resolve(file))
+    expect(mocks.saveImage).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "banner" })
+    )
+    expect(input("avatar").disabled).toBe(false)
   })
 })

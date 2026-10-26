@@ -3,6 +3,8 @@ import { act, useRef, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { TextareaHeadingTools } from "./textarea-heading-tools"
+import { LYRIC_HEADING_MESSAGE_KEYS } from "./lyric-heading"
+import { formatMessage, type SupportedLocale } from "@lyrx/shared"
 
 let root: ReturnType<typeof createRoot>
 let container: HTMLDivElement
@@ -17,8 +19,10 @@ const insertText = vi.fn((_command: string, _showUi: boolean, text: string) => {
 
 function Harness({
   disabled = false,
+  readOnly = false,
   maxLength = -1,
   value = "original lyrics",
+  locale = "fr" as SupportedLocale,
 }) {
   const textarea = useRef<HTMLTextAreaElement>(null)
   const [source, setSource] = useState(value)
@@ -31,7 +35,10 @@ function Harness({
     >
       <TextareaHeadingTools
         textarea={textarea}
-        headings={["Couplet", "Refrain", "Pont"]}
+        headings={LYRIC_HEADING_MESSAGE_KEYS.map((key) =>
+          formatMessage(locale, key)
+        )}
+        disabled={disabled || readOnly}
         label="Optional headings"
         onChange={(next) => {
           onChange(next)
@@ -41,6 +48,7 @@ function Harness({
       <textarea
         ref={textarea}
         disabled={disabled}
+        readOnly={readOnly}
         maxLength={maxLength}
         value={source}
         onChange={(event) => setSource(event.target.value)}
@@ -84,6 +92,31 @@ afterEach(() => {
 })
 
 describe("optional native textarea heading tools", () => {
+  it.each(["fr", "en"] as const)(
+    "offers optional Intro and Outro in %s without submitting",
+    async (locale) => {
+      await render({ value: "", locale })
+      const buttons = [...container.querySelectorAll("button")]
+      expect(buttons.map((button) => button.textContent)).toEqual(
+        locale === "fr"
+          ? ["Intro", "Couplet", "Refrain", "Pont", "Outro"]
+          : ["Intro", "Verse", "Chorus", "Bridge", "Outro"]
+      )
+      await act(async () => {
+        buttons[0]!.click()
+        await Promise.resolve()
+      })
+      expect(container.querySelector("textarea")?.value).toBe("[Intro]\n")
+      await act(async () => {
+        buttons[4]!.click()
+        await Promise.resolve()
+      })
+      expect(container.querySelector("textarea")?.value).toBe(
+        "[Intro]\n[Outro]\n"
+      )
+      expect(onSubmit).not.toHaveBeenCalled()
+    }
+  )
   it("keeps free writing available without unsupported native editing controls", async () => {
     Object.defineProperty(document, "queryCommandSupported", {
       configurable: true,
@@ -99,7 +132,7 @@ describe("optional native textarea heading tools", () => {
     const input = container.querySelector("textarea")!
     input.setSelectionRange(6, 14)
     await act(async () => {
-      container.querySelector<HTMLButtonElement>("button")!.click()
+      container.querySelectorAll<HTMLButtonElement>("button")[1]!.click()
       await Promise.resolve()
     })
     expect(insertText).toHaveBeenCalledWith(
@@ -133,7 +166,7 @@ describe("optional native textarea heading tools", () => {
   it("does not insert while the textarea is disabled", async () => {
     await render({ disabled: true })
     const buttons = [...container.querySelectorAll("button")]
-    expect(buttons).toHaveLength(3)
+    expect(buttons).toHaveLength(5)
     expect(buttons.every((button) => button.disabled)).toBe(true)
     await act(async () => {
       buttons[0]!.click()
@@ -141,6 +174,35 @@ describe("optional native textarea heading tools", () => {
     })
     expect(insertText).not.toHaveBeenCalled()
     expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it("updates disabled tools immediately across pending and read-only transitions", async () => {
+    await render()
+    expect(
+      [...container.querySelectorAll("button")].every(
+        (button) => !button.disabled
+      )
+    ).toBe(true)
+    await render({ disabled: true })
+    expect(
+      [...container.querySelectorAll("button")].every(
+        (button) => button.disabled
+      )
+    ).toBe(true)
+    await render({ readOnly: true })
+    expect(
+      [...container.querySelectorAll("button")].every(
+        (button) => button.disabled
+      )
+    ).toBe(true)
+    expect(container.querySelector("textarea")?.value).toBe("original lyrics")
+    await render()
+    expect(
+      [...container.querySelectorAll("button")].every(
+        (button) => !button.disabled
+      )
+    ).toBe(true)
+    expect(insertText).not.toHaveBeenCalled()
   })
 
   it("hides failed native editing tools without replacing the existing source", async () => {

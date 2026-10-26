@@ -107,7 +107,10 @@ function TextareaField({
   const invalid = field.state.meta.isTouched && !field.state.meta.isValid
 
   return (
-    <Field data-invalid={invalid || undefined}>
+    <Field
+      data-invalid={invalid || undefined}
+      data-disabled={textareaProps.disabled || undefined}
+    >
       {labelExtra ? (
         <div className="flex items-center justify-between gap-3">
           <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
@@ -121,6 +124,7 @@ function TextareaField({
           textarea={textareaRef}
           headings={headings}
           label={headingToolsLabel ?? ""}
+          disabled={textareaProps.disabled || textareaProps.readOnly}
           onChange={(value) => {
             field.handleChange(value)
             onValueChange?.(value)

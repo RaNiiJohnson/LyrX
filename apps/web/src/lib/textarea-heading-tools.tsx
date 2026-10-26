@@ -8,11 +8,13 @@ export function TextareaHeadingTools({
   headings,
   label,
   onChange,
+  disabled = false,
 }: {
   textarea: RefObject<HTMLTextAreaElement | null>
   headings: Array<string>
   label: string
   onChange: (value: string) => void
+  disabled?: boolean
 }) {
   const [supported, setSupported] = useState(false)
   useEffect(() => {
@@ -33,10 +35,17 @@ export function TextareaHeadingTools({
           type="button"
           variant="outline"
           size="sm"
-          disabled={textarea.current?.disabled}
+          disabled={disabled}
           onClick={() => {
             const input = textarea.current
-            if (!input || input.disabled) return
+            if (
+              disabled ||
+              !input ||
+              input.disabled ||
+              input.readOnly ||
+              input.matches(":disabled")
+            )
+              return
             const edit = lyricHeadingInsertion(
               input.value,
               input.selectionStart,

@@ -1,3 +1,11 @@
+export const LYRIC_HEADING_MESSAGE_KEYS = [
+  "studio.headingIntro",
+  "studio.headingVerse",
+  "studio.headingChorus",
+  "studio.headingBridge",
+  "studio.headingOutro",
+] as const
+
 /** Insert a standalone heading, leaving all text outside the selection intact. */
 export function lyricHeadingInsertion(
   text: string,

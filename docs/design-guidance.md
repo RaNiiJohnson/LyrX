@@ -43,6 +43,17 @@ unchanged. Artist claim/replacement remains future scope.
 
 ## Header, hero, and mobile navigation
 
+The user's 26 October correction keeps catalogue navigation **below the list
+title**, as in `Voir tout – Albums@2x.png`: real links for Morceaux, Albums and
+Artistes, with an underlined active destination. Do not duplicate these links
+in the desktop header. That header contains Accueil plus Studio for an Artist
+or Contributions for a Fan; other account states show Accueil alone.
+
+Use a simple shadcn offcanvas account panel with separated exploration, account,
+role tools and administration groups. Publication is the prominent action;
+sign-out is separated at the bottom and must not receive initial focus. Language
+(FR/EN), theme and account controls use equal 36px targets and a uniform gap.
+
 The home hero uses a real image behind the headline, with a readable overlay
 and deliberate mobile crop. Reuse suitable existing local music photography
 when possible; selecting another asset does not change theme tokens.
@@ -99,8 +110,8 @@ equal widths. The primary action follows the active tab: `Créer un morceau` or
 `Créer un album`; it may occupy a separate full-width row on mobile. Desktop
 keeps the action aligned alongside the tabs where space permits.
 
-Keep one canonical lyric textarea. Optional `+ Couplet`, `+ Refrain`, and
-`+ Pont` buttons insert the matching bracket heading at the current text
+Keep one canonical lyric textarea. Optional `+ Intro`, `+ Couplet`, `+ Refrain`,
+`+ Pont` and `+ Outro` buttons (localized in French/English) insert the matching bracket heading at the current text
 selection, with necessary line breaks, then return focus/caret to the textarea
 so writing can continue. They must not reset the remaining text, submit the form,
 or create structured per-line fields. Preserve normal undo behavior and the
@@ -116,6 +127,14 @@ The user reaffirmed the mockup on 26 October: do not display the repeated
 Single/Album choice, identity fields and lyrics directly. Desktop uses a side
 column for compact artwork, optional details and actions; mobile keeps these in
 normal flow. Optional details must remain usable at the side column's width.
+
+All song/album/Fan artwork pickers use a minimal outlined browse tile, not a
+large nested Card with duplicate titles or a prominent native file input.
+Keep constraints, accessible keyboard selection, pending/failure/retry/clear
+behavior and compact previews; an outlined tile does not imply drag-and-drop.
+Profile image controls follow the same presentation, with a true 96px circular
+avatar rather than a Field-stretched capsule. Image preparation and upload
+authorization are unchanged.
 
 ## Lot boundaries and acceptance
 

@@ -1,34 +1,12 @@
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
-import {
-  Disc3,
-  Home,
-  Library,
-  LogIn,
-  LogOut,
-  Music2,
-  PenLine,
-  Plus,
-  ShieldCheck,
-  UserRound,
-  UserRoundPlus,
-  Users,
-} from "lucide-react"
+import { Home, Library, Music2, PenLine, UserRound, Users } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { PRODUCT_NAME } from "@lyrx/shared"
 import { Button } from "@lyrx/ui/components/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@lyrx/ui/components/dropdown-menu"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { toast } from "@lyrx/ui/lib/toast"
 import { cn } from "@lyrx/ui/lib/utils"
@@ -38,6 +16,7 @@ import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { getPublicRuntimeConfig } from "@/lib/runtime-config"
 
+import { AccountSidebar, type AccountNavigationProps } from "./account-sidebar"
 import { LocaleMenu } from "./locale-menu"
 import { useLocale } from "./locale-provider"
 import { ThemeMenu } from "./theme-menu"
@@ -108,12 +87,17 @@ function ShellFrame({ children, width, current }: ShellFrameProps) {
             className="mr-auto hidden items-center gap-1 lg:flex"
           >
             <DesktopLink to="/">{t("navigation.home")}</DesktopLink>
-            <DesktopLink to="/songs">{t("studio.songs")}</DesktopLink>
-            <DesktopLink to="/albums">{t("studio.albums")}</DesktopLink>
-            <DesktopLink to="/artists">{t("navigation.artists")}</DesktopLink>
+            {current?.state === "ready" && current.member.role === "artist" ? (
+              <DesktopLink to="/studio">{t("navigation.studio")}</DesktopLink>
+            ) : null}
+            {current?.state === "ready" && current.member.role === "fan" ? (
+              <DesktopLink to="/community/mine">
+                {t("navigation.contributions")}
+              </DesktopLink>
+            ) : null}
           </nav>
 
-          <div className="flex items-center gap-0.5">
+          <div className="flex shrink-0 items-center gap-1.5">
             <LocaleMenu />
             <ThemeMenu />
             <ConfiguredAccountNavigation current={current} />
@@ -152,7 +136,7 @@ function DesktopLink({
   to,
 }: {
   children: ReactNode
-  to: "/" | "/songs" | "/albums" | "/artists"
+  to: "/" | "/studio" | "/community/mine"
 }) {
   return (
     <Button asChild variant="ghost">
@@ -184,7 +168,7 @@ function ConfiguredAccountNavigation({
   }
 
   const navigation = getAccountNavigation(current.state)
-  if (navigation.kind === "anonymous") return <AccountNavigation />
+  if (navigation.kind === "anonymous") return <AccountSidebar />
 
   async function signOut() {
     try {
@@ -199,8 +183,11 @@ function ConfiguredAccountNavigation({
   }
 
   return (
-    <AccountNavigation
+    <AccountSidebar
       primary={{ href: navigation.href, label: t(navigation.labelKey) }}
+      displayName={
+        current.state === "ready" ? current.profile.displayName : undefined
+      }
       initial={
         current.state === "ready"
           ? current.profile.displayName.trim().slice(0, 1).toUpperCase()
@@ -210,140 +197,6 @@ function ConfiguredAccountNavigation({
       showModeration={current.state === "ready" && current.member.isAdmin}
       onSignOut={signOut}
     />
-  )
-}
-
-type AccountNavigationProps = {
-  primary?: {
-    href: "/auth/verify-email" | "/onboarding" | "/profile"
-    label: string
-  }
-  initial?: string
-  role?: "artist" | "fan"
-  showModeration?: boolean
-  onSignOut?: () => Promise<void>
-}
-
-function AccountNavigation({
-  primary,
-  initial,
-  role,
-  showModeration = false,
-  onSignOut,
-}: AccountNavigationProps) {
-  const { t } = useLocale()
-
-  return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant={primary ? "default" : "outline"}
-            size="icon-lg"
-            className="rounded-full"
-            aria-label={t("navigation.account")}
-          >
-            {initial ? (
-              <span aria-hidden="true">{initial}</span>
-            ) : (
-              <UserRound aria-hidden="true" />
-            )}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>{PRODUCT_NAME}</DropdownMenuLabel>
-            {primary ? (
-              <DropdownMenuItem asChild>
-                <Link to={primary.href}>
-                  <UserRound />
-                  {primary.label}
-                </Link>
-              </DropdownMenuItem>
-            ) : (
-              <>
-                <DropdownMenuItem asChild>
-                  <Link to="/auth/sign-in">
-                    <LogIn />
-                    {t("navigation.signIn")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/auth/sign-up">
-                    <UserRoundPlus />
-                    {t("navigation.createAccount")}
-                  </Link>
-                </DropdownMenuItem>
-              </>
-            )}
-            {role === "artist" ? (
-              <DropdownMenuItem asChild>
-                <Link to="/studio">
-                  <PenLine />
-                  {t("navigation.studio")}
-                </Link>
-              </DropdownMenuItem>
-            ) : null}
-            {role === "fan" ? (
-              <>
-                <DropdownMenuItem asChild>
-                  <Link to="/community/mine">
-                    <Library />
-                    {t("community.mine")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/community/new">
-                    <Plus />
-                    {t("community.publish")}
-                  </Link>
-                </DropdownMenuItem>
-              </>
-            ) : null}
-            {showModeration ? (
-              <DropdownMenuItem asChild>
-                <Link to="/admin/community">
-                  <ShieldCheck />
-                  {t("community.moderation")}
-                </Link>
-              </DropdownMenuItem>
-            ) : null}
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem asChild>
-              <Link to="/songs">
-                <Music2 />
-                {t("studio.songs")}
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/albums">
-                <Disc3 />
-                {t("studio.albums")}
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/artists">
-                <Users />
-                {t("navigation.artists")}
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          {onSignOut ? (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem onSelect={() => void onSignOut()}>
-                  <LogOut />
-                  {t("navigation.signOut")}
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
   )
 }
 

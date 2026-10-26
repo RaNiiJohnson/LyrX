@@ -20,11 +20,9 @@ import {
   Field,
   FieldDescription,
   FieldGroup,
-  FieldLabel,
   FieldLegend,
   FieldSet,
 } from "@lyrx/ui/components/field"
-import { Input } from "@lyrx/ui/components/input"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { Separator } from "@lyrx/ui/components/separator"
 import { Spinner } from "@lyrx/ui/components/spinner"
@@ -33,6 +31,7 @@ import { toast } from "@lyrx/ui/lib/toast"
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
 import { prepareImageForUpload } from "@/lib/image-upload"
+import { ImageUploadField } from "@/lib/image-upload-field"
 import { useLocale } from "@/app/locale-provider"
 import { AccountDeletion } from "@/features/account/account-deletion"
 
@@ -243,65 +242,49 @@ function ReadyProfileEditor({
               {t("profile.imagesDescription")}
             </FieldDescription>
             <FieldGroup className="grid gap-6 sm:grid-cols-2">
-              <Field>
-                <div className="flex items-center justify-between gap-3">
-                  <FieldLabel htmlFor="avatar">
-                    {t("profile.avatar")}
-                  </FieldLabel>
-                  <OptionalLabel />
-                </div>
-                {publicProfile === undefined ? (
-                  <Skeleton className="size-24 rounded-full" />
-                ) : (
-                  <Avatar className="size-24">
-                    <AvatarImage
-                      src={publicProfile?.avatarUrl ?? undefined}
-                      alt={current.profile.displayName}
-                    />
-                    <AvatarFallback>
-                      <UserRound className="size-8" aria-hidden="true" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-                <Input
-                  id="avatar"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={imagePending !== null}
-                  onChange={(event) =>
-                    void uploadImage("avatar", event.target.files?.[0])
+              <ImageUploadField
+                id="avatar"
+                label={t("profile.avatar")}
+                description={t("profile.avatarDescription")}
+                pending={imagePending !== null}
+                currentImage={Boolean(publicProfile?.avatarUrl)}
+                onSelect={(file) => void uploadImage("avatar", file)}
+                preview={
+                  <span className="block size-24 shrink-0">
+                    {publicProfile === undefined ? (
+                      <Skeleton className="size-24 rounded-full" />
+                    ) : (
+                      <Avatar className="size-24 shrink-0">
+                        <AvatarImage
+                          src={publicProfile?.avatarUrl ?? undefined}
+                          alt={current.profile.displayName}
+                        />
+                        <AvatarFallback>
+                          <UserRound aria-hidden="true" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </span>
+                }
+              />
+              {current.member.role === "artist" ? (
+                <ImageUploadField
+                  id="banner"
+                  label={t("profile.banner")}
+                  description={t("profile.bannerDescription")}
+                  pending={imagePending !== null}
+                  currentImage={Boolean(publicProfile?.artist?.bannerUrl)}
+                  onSelect={(file) => void uploadImage("banner", file)}
+                  preview={
+                    <span className="block h-24 w-40 shrink-0">
+                      <ProfileBannerPreview
+                        key={publicProfile?.artist?.bannerUrl ?? "empty"}
+                        url={publicProfile?.artist?.bannerUrl}
+                        loading={publicProfile === undefined}
+                      />
+                    </span>
                   }
                 />
-                <FieldDescription>
-                  {t("profile.avatarDescription")}
-                </FieldDescription>
-              </Field>
-              {current.member.role === "artist" ? (
-                <Field>
-                  <div className="flex items-center justify-between gap-3">
-                    <FieldLabel htmlFor="banner">
-                      {t("profile.banner")}
-                    </FieldLabel>
-                    <OptionalLabel />
-                  </div>
-                  <ProfileBannerPreview
-                    key={publicProfile?.artist?.bannerUrl ?? "empty"}
-                    url={publicProfile?.artist?.bannerUrl}
-                    loading={publicProfile === undefined}
-                  />
-                  <Input
-                    id="banner"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    disabled={imagePending !== null}
-                    onChange={(event) =>
-                      void uploadImage("banner", event.target.files?.[0])
-                    }
-                  />
-                  <FieldDescription>
-                    {t("profile.bannerDescription")}
-                  </FieldDescription>
-                </Field>
               ) : null}
             </FieldGroup>
             {imagePending ? (

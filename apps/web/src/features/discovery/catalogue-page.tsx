@@ -1,9 +1,13 @@
+import type { ReactNode } from "react"
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Button } from "@lyrx/ui/components/button"
 import { Field, FieldGroup, FieldLabel } from "@lyrx/ui/components/field"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { ToggleGroup, ToggleGroupItem } from "@lyrx/ui/components/toggle-group"
+import { cn } from "@lyrx/ui/lib/utils"
 import {
   Pagination,
   PaginationContent,
@@ -40,105 +44,99 @@ export function CataloguePage({
   search: CatalogueSearch
   onSearch: (search: CatalogueSearch) => void
 }) {
+  return kind === "songs" ? (
+    <Songs search={search} onSearch={onSearch} />
+  ) : kind === "albums" ? (
+    <Albums search={search} onSearch={onSearch} />
+  ) : (
+    <Artists search={search} onSearch={onSearch} />
+  )
+}
+
+function CatalogueLayout({
+  kind,
+  search,
+  onSearch,
+  total,
+  children,
+}: ResultsProps & {
+  kind: CatalogueKind
+  total: number | undefined
+  children: ReactNode
+}) {
   const { t } = useLocale()
   return (
     <section className="flex min-w-0 flex-col gap-6">
-      <h1 className="text-3xl font-semibold">{t(`discovery.${kind}`)}</h1>
-      {search.artist ? (
-        <p className="text-sm text-muted-foreground">@{search.artist}</p>
-      ) : null}
+      <header className="flex flex-col gap-2">
+        <h1 className="text-3xl font-semibold">{t(`discovery.${kind}`)}</h1>
+        {total === undefined ? (
+          <Skeleton className="h-5 w-28" aria-hidden="true" />
+        ) : (
+          <ResultsCount kind={kind} total={total} />
+        )}
+        {search.artist ? (
+          <p className="text-sm text-muted-foreground">@{search.artist}</p>
+        ) : null}
+      </header>
       <nav
-        className="flex flex-wrap gap-2"
         aria-label={t("discovery.catalogue")}
+        className="flex gap-1 overflow-x-auto border-b border-border"
       >
         {(["songs", "albums", "artists"] as const).map((entry) => (
-          <Button
-            asChild
-            variant={kind === entry ? "default" : "ghost"}
+          <Link
             key={entry}
+            to={`/${entry}`}
+            search={{ page: 1, sort: "newest" }}
+            aria-current={kind === entry ? "page" : undefined}
+            className={cn(
+              "inline-flex shrink-0 items-center border-b-2 border-transparent px-3 py-3 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:px-5",
+              kind === entry && "border-primary font-medium text-foreground"
+            )}
           >
-            <Link
-              to={`/${entry}`}
-              aria-current={entry === kind ? "page" : undefined}
-            >
-              {t(`discovery.${entry}`)}
-            </Link>
-          </Button>
+            {t(`discovery.${entry}`)}
+          </Link>
         ))}
       </nav>
-      <FieldGroup className="flex-row flex-wrap gap-3">
-        <Field className="w-full sm:w-48">
-          <FieldLabel>{t("discovery.sort")}</FieldLabel>
-          <Select
-            value={search.sort}
-            onValueChange={(value) =>
-              onSearch(
-                changeCatalogueFilter(search, {
-                  sort: value as CatalogueSearch["sort"],
-                })
-              )
-            }
-          >
-            <SelectTrigger aria-label={t("discovery.sort")} className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="newest">
-                  {t("discovery.sortNewest")}
-                </SelectItem>
-                <SelectItem value="title">
-                  {t("discovery.sortTitle")}
-                </SelectItem>
-                {kind === "songs" ? (
-                  <SelectItem value="popular">
-                    {t("discovery.sortPopular")}
-                  </SelectItem>
-                ) : null}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Field>
+      <FieldGroup className="flex-row flex-wrap items-center gap-3">
         {kind === "songs" && !search.artist ? (
           <>
-            <Field className="w-full sm:w-48">
-              <FieldLabel>{t("discovery.origin")}</FieldLabel>
-              <Select
+            <Field className="w-full min-w-0 sm:w-auto">
+              <FieldLabel className="sr-only">
+                {t("discovery.origin")}
+              </FieldLabel>
+              <ToggleGroup
+                type="single"
+                variant="outline"
                 value={search.origin ?? "all"}
-                onValueChange={(value) =>
-                  onSearch(
-                    changeCatalogueFilter(search, {
-                      origin:
-                        value === "all"
-                          ? undefined
-                          : (value as CatalogueSearch["origin"]),
-                    })
+                aria-label={t("discovery.origin")}
+                onValueChange={(value) => {
+                  if (
+                    value === "all" ||
+                    value === "artist" ||
+                    value === "community"
                   )
-                }
+                    onSearch(
+                      changeCatalogueFilter(search, {
+                        origin: value === "all" ? undefined : value,
+                      })
+                    )
+                }}
               >
-                <SelectTrigger
-                  aria-label={t("discovery.origin")}
-                  className="w-full"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="all">
-                      {t("discovery.allOrigins")}
-                    </SelectItem>
-                    <SelectItem value="artist">
-                      {t("discovery.sourceArtist")}
-                    </SelectItem>
-                    <SelectItem value="community">
-                      {t("discovery.sourceCommunity")}
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                <ToggleGroupItem value="all">
+                  {t("catalogue.all")}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="artist">
+                  {t("discovery.sourceArtist")}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="community">
+                  {t("discovery.sourceCommunity")}
+                </ToggleGroupItem>
+              </ToggleGroup>
             </Field>
-            <Field className="w-full sm:w-48">
-              <FieldLabel>{t("discovery.genre")}</FieldLabel>
+            <Field className="min-w-0 flex-1 sm:grow-0 sm:basis-44">
+              <FieldLabel className="sr-only">
+                {t("discovery.genre")}
+              </FieldLabel>
               <Select
                 value={search.genre ?? "all"}
                 onValueChange={(value) =>
@@ -171,14 +169,40 @@ export function CataloguePage({
             </Field>
           </>
         ) : null}
+        <Field className="min-w-0 flex-1 sm:ml-auto sm:grow-0 sm:basis-48">
+          <FieldLabel className="sr-only">{t("discovery.sort")}</FieldLabel>
+          <Select
+            value={search.sort}
+            onValueChange={(value) =>
+              onSearch(
+                changeCatalogueFilter(search, {
+                  sort: value as CatalogueSearch["sort"],
+                })
+              )
+            }
+          >
+            <SelectTrigger aria-label={t("discovery.sort")} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="newest">
+                  {t("discovery.sortNewest")}
+                </SelectItem>
+                <SelectItem value="title">
+                  {t("discovery.sortTitle")}
+                </SelectItem>
+                {kind === "songs" ? (
+                  <SelectItem value="popular">
+                    {t("discovery.sortPopular")}
+                  </SelectItem>
+                ) : null}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Field>
       </FieldGroup>
-      {kind === "songs" ? (
-        <Songs search={search} onSearch={onSearch} />
-      ) : kind === "albums" ? (
-        <Albums search={search} onSearch={onSearch} />
-      ) : (
-        <Artists search={search} onSearch={onSearch} />
-      )}
+      {children}
     </section>
   )
 }
@@ -194,11 +218,16 @@ function Songs({ search, onSearch }: ResultsProps) {
     genre: search.artist ? undefined : search.genre,
     artistHandle: search.artist,
   })
-  if (!data?.ready) return <DiscoveryLoading />
   return (
-    <>
-      <ResultsCount kind="songs" total={data.total} />
-      {data.items.length ? (
+    <CatalogueLayout
+      kind="songs"
+      search={search}
+      onSearch={onSearch}
+      total={data?.ready ? data.total : undefined}
+    >
+      {!data?.ready ? (
+        <DiscoveryLoading />
+      ) : data.items.length ? (
         <div className="grid gap-x-4 sm:grid-cols-2 sm:gap-y-4 lg:grid-cols-3">
           {data.items.map((song) => (
             <SongCard key={`${song.origin}:${song.id}`} song={song} />
@@ -207,11 +236,13 @@ function Songs({ search, onSearch }: ResultsProps) {
       ) : (
         <DiscoveryEmpty />
       )}
-      <CataloguePagination
-        {...data}
-        onPage={(page) => onSearch({ ...search, page })}
-      />
-    </>
+      {data?.ready ? (
+        <CataloguePagination
+          {...data}
+          onPage={(page) => onSearch({ ...search, page })}
+        />
+      ) : null}
+    </CatalogueLayout>
   )
 }
 function Albums({ search, onSearch }: ResultsProps) {
@@ -220,11 +251,16 @@ function Albums({ search, onSearch }: ResultsProps) {
     sort: search.sort === "popular" ? "newest" : search.sort,
     artistHandle: search.artist,
   })
-  if (!data?.ready) return <DiscoveryLoading />
   return (
-    <>
-      <ResultsCount kind="albums" total={data.total} />
-      {data.items.length ? (
+    <CatalogueLayout
+      kind="albums"
+      search={search}
+      onSearch={onSearch}
+      total={data?.ready ? data.total : undefined}
+    >
+      {!data?.ready ? (
+        <DiscoveryLoading />
+      ) : data.items.length ? (
         <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
           {data.items.map((album) => (
             <AlbumCard key={album.id} album={album} />
@@ -233,11 +269,13 @@ function Albums({ search, onSearch }: ResultsProps) {
       ) : (
         <DiscoveryEmpty />
       )}
-      <CataloguePagination
-        {...data}
-        onPage={(page) => onSearch({ ...search, page })}
-      />
-    </>
+      {data?.ready ? (
+        <CataloguePagination
+          {...data}
+          onPage={(page) => onSearch({ ...search, page })}
+        />
+      ) : null}
+    </CatalogueLayout>
   )
 }
 function Artists({ search, onSearch }: ResultsProps) {
@@ -245,11 +283,16 @@ function Artists({ search, onSearch }: ResultsProps) {
     page: search.page,
     sort: search.sort === "popular" ? "newest" : search.sort,
   })
-  if (!data?.ready) return <DiscoveryLoading />
   return (
-    <>
-      <ResultsCount kind="artists" total={data.total} />
-      {data.items.length ? (
+    <CatalogueLayout
+      kind="artists"
+      search={search}
+      onSearch={onSearch}
+      total={data?.ready ? data.total : undefined}
+    >
+      {!data?.ready ? (
+        <DiscoveryLoading />
+      ) : data.items.length ? (
         <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
           {data.items.map((artist) => (
             <ArtistCard key={artist.handle} artist={artist} />
@@ -258,11 +301,13 @@ function Artists({ search, onSearch }: ResultsProps) {
       ) : (
         <DiscoveryEmpty />
       )}
-      <CataloguePagination
-        {...data}
-        onPage={(page) => onSearch({ ...search, page })}
-      />
-    </>
+      {data?.ready ? (
+        <CataloguePagination
+          {...data}
+          onPage={(page) => onSearch({ ...search, page })}
+        />
+      ) : null}
+    </CatalogueLayout>
   )
 }
 
@@ -270,7 +315,7 @@ function ResultsCount({ kind, total }: { kind: CatalogueKind; total: number }) {
   const { t, locale } = useLocale()
   return (
     <p role="status" className="text-sm text-muted-foreground">
-      {total.toLocaleString(locale)} · {t(`discovery.${kind}`)}
+      {t(`discovery.${kind}Count`, { count: total.toLocaleString(locale) })}
     </p>
   )
 }

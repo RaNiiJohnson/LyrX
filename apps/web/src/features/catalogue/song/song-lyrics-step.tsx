@@ -3,6 +3,7 @@ import { FieldLegend, FieldSet } from "@lyrx/ui/components/field"
 
 import { useLocale } from "@/app/locale-provider"
 import { withForm } from "@/lib/app-form"
+import { LYRIC_HEADING_MESSAGE_KEYS } from "@/lib/lyric-heading"
 import { songFormOptions } from "./song-form-options"
 
 export const SongLyricsStep = withForm({
@@ -22,11 +23,7 @@ export const SongLyricsStep = withForm({
           {(field) => (
             <field.TextareaField
               label={t("studio.lyricsEditor")}
-              headings={[
-                t("studio.headingVerse"),
-                t("studio.headingChorus"),
-                t("studio.headingBridge"),
-              ]}
+              headings={LYRIC_HEADING_MESSAGE_KEYS.map((key) => t(key))}
               headingToolsLabel={t("studio.headingTools")}
               description={t("studio.lyricsEditorDescription")}
               placeholder={t("studio.lyricsEditorPlaceholder")}

@@ -32,8 +32,20 @@ vi.mock("@tanstack/react-query", () => ({
   useSuspenseQuery: () => ({ data: state.profile }),
 }))
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children, to }: { children: ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
+  Link: ({
+    children,
+    to,
+    "aria-current": current,
+    className,
+  }: {
+    children: ReactNode
+    to: string
+    "aria-current"?: "page"
+    className?: string
+  }) => (
+    <a href={to} aria-current={current} className={className}>
+      {children}
+    </a>
   ),
 }))
 vi.mock("@/app/locale-provider", () => ({
@@ -55,17 +67,28 @@ describe("discovery public display states", () => {
     state.locale = "fr"
     state.calls = []
   })
-  it.each(["fr", "en"] as const)(
-    "does not show false empty/counts during %s backfill",
-    (locale) => {
+  it.each([
+    ["fr", "songs"],
+    ["en", "songs"],
+    ["fr", "albums"],
+    ["en", "albums"],
+    ["fr", "artists"],
+    ["en", "artists"],
+  ] as const)(
+    "does not show false empty/counts during %s %s backfill",
+    (locale, kind) => {
       state.locale = locale
       state.data = { ready: false, items: [], total: 0, pageCount: 0, page: 1 }
       const html = renderToStaticMarkup(
-        <CataloguePage kind="songs" search={search} onSearch={vi.fn()} />
+        <CataloguePage kind={kind} search={search} onSearch={vi.fn()} />
       )
       expect(html).toContain('data-slot="skeleton"')
       expect(html).not.toContain(formatMessage(locale, "discovery.emptyTitle"))
-      expect(html).not.toContain("0 ·")
+      expect(html).not.toContain(
+        formatMessage(locale, `discovery.${kind}Count`, { count: 0 })
+      )
+      expect(html).not.toContain('<p role="status"')
+      expect(html).toContain(formatMessage(locale, `discovery.${kind}`))
     }
   )
   it("renders genuine empty state only after the projection is ready", () => {
@@ -74,7 +97,7 @@ describe("discovery public display states", () => {
       <CataloguePage kind="songs" search={search} onSearch={vi.fn()} />
     )
     expect(html).toContain(formatMessage("fr", "discovery.emptyTitle"))
-    expect(html).toContain("0 · Morceaux")
+    expect(html).toContain("0 morceaux")
     expect(html).not.toContain('data-slot="pagination"')
   })
   it("passes owner scope, unified ordering and URL page to the public API", () => {
@@ -150,7 +173,7 @@ describe("discovery public display states", () => {
     const html = renderToStaticMarkup(
       <CataloguePage kind="songs" search={search} onSearch={vi.fn()} />
     )
-    expect(html).toContain("3 · Morceaux")
+    expect(html).toContain("3 morceaux")
     expect(html.indexOf("First fan song")).toBeLessThan(
       html.indexOf("Second artist song")
     )
@@ -159,6 +182,43 @@ describe("discovery public display states", () => {
     )
     expect(html.match(/data-slot="badge"/g)).toHaveLength(3)
   })
+  it.each([
+    ["fr", "songs"],
+    ["en", "albums"],
+    ["fr", "artists"],
+  ] as const)(
+    "places the real %s %s count above the local catalogue navigation",
+    (locale, kind) => {
+      state.locale = locale
+      state.data = { ready: true, items: [], total: 42, pageCount: 1, page: 1 }
+      const html = renderToStaticMarkup(
+        <CataloguePage kind={kind} search={search} onSearch={vi.fn()} />
+      )
+      const count = formatMessage(locale, `discovery.${kind}Count`, {
+        count: 42,
+      })
+      expect(html).toContain(count)
+      expect(html).toContain("<header")
+      expect(html.indexOf(count)).toBeLessThan(html.indexOf("</header>"))
+      expect(html.match(/<h1\b/g)).toHaveLength(1)
+      const nav = html.match(/<nav\b[^>]*>[\s\S]*?<\/nav>/)?.[0]
+      expect(nav).toBeDefined()
+      expect(html.indexOf("</header>")).toBeLessThan(html.indexOf("<nav"))
+      expect(nav).toContain(
+        `aria-label="${formatMessage(locale, "discovery.catalogue")}"`
+      )
+      expect(nav?.match(/<a\b/g)).toHaveLength(3)
+      expect(nav?.match(/aria-current="page"/g)).toHaveLength(1)
+      expect(nav).toContain(`href="/${kind}" aria-current="page"`)
+      expect(nav).toContain("border-b-2")
+      expect(nav).not.toContain("bg-primary")
+      expect(nav).not.toContain("42")
+      expect(html).not.toContain("<input")
+      expect(html).toContain(
+        `aria-label="${formatMessage(locale, "discovery.sort")}"`
+      )
+    }
+  )
   it("retains stable artist identity while catalogue counts are unavailable", () => {
     state.profile = {
       role: "artist",

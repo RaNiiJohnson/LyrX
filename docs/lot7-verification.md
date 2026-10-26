@@ -1,14 +1,14 @@
 # Lot 7 verification — 26 October 2026
 
-**Intermediate evidence only.** The user supplied additional visual comments
-after this review and then requested a quota stop. They are still pending in
-[the latest checkpoint](lot7-checkpoint.md); this record does not close lot 7.
-Root `pnpm check` passed 339 tests (29 shared, 83 backend, 227 web) before those
-new changes. Revalidate after implementing them.
+**Final local evidence**, including the user's visual follow-up and subsequent
+navigation/spacing corrections. Root `pnpm check` passes **373 tests** (29 shared,
+83 backend, 261 web), formatting, lint, TypeScript and client/SSR production
+builds. No PR creation, merge or production deployment is claimed.
 
 Branch: `codex/public-discovery-layouts`. Fixed review base: `9f83883`
 (merged lot 6, PR #4). `06deac9` adopts the approved design/roadmap documents;
 `4609f8a` is the recoverable quota checkpoint, not a completed lot.
+`2e48b37` is the second remote checkpoint; its pending visual work is now resolved.
 
 ## Delivered scope
 
@@ -24,6 +24,13 @@ Branch: `codex/public-discovery-layouts`. Fixed review base: `9f83883`
   Single/Album toggles and identity/lyrics are direct, with compact artwork and
   optional metadata/actions in the desktop side column. Optional details use
   container breakpoints so their narrow-column controls cannot overflow.
+- Local underlined catalogue navigation remains below title/count; the header
+  has only Home plus role tools, not duplicate catalogue links. Account navigation
+  uses a grouped shadcn Sheet. Language/theme/account targets are all 36px, with
+  6px gaps. Minimal artwork controls and a real circular avatar replace bulky
+  upload cards/native controls and the stretched profile capsule.
+- Intro/Outro join Verse/Chorus/Bridge in both locales and Artist/Fan editors.
+  Explicit pending/read-only props disable heading tools immediately.
 
 ## Primary local review
 
@@ -45,6 +52,9 @@ Corrections made during implementation/review:
   and sidebar optional-field overflow.
 - Added real Radix/router filter and Studio interactions, native heading/caret
   tests, safe telemetry tests, image fallback and external-player fallback tests.
+- Re-reviewed all visual follow-up files, including the shared image chooser,
+  title-focused Sheet, Radix state animation selectors, role-only header,
+  equal-sized preference controls and actual local catalogue router links.
 
 No blocking standards/specification or Critical/Important Convex finding remains.
 
@@ -85,6 +95,20 @@ No blocking standards/specification or Critical/Important Convex finding remains
   heading guidance remains visible after typing.
 - Test-tab console read returned no errors or warnings. Account roles and real
   content were not changed; no account deletion or production operation occurred.
+- Follow-up Fan checks used a separate background tab: avatar measured 96×96px;
+  artwork browse opened the native single-file chooser with Enter without an
+  upload. FR/dark and EN/light heading insertion, native Ctrl+Z, mobile wrapping,
+  Sheet Tab/Shift+Tab trap, Escape and trigger focus restoration passed. Real
+  Sheet links closed the panel and navigated; local Albums links set the active
+  underline and showed the genuine zero total. Header targets measured 36×36px
+  at x=254/296/338 on a 390px viewport, with no horizontal page overflow.
+- A transient hydration diagnostic during concurrent hot edits compared old
+  server markup with new header markup. A fresh tab after edits settled had no
+  errors/warnings, including Sheet navigation to Albums. The Chrome Artist
+  session later required sign-in; final Artist-specific image/pending states use
+  isolated tests in addition to the earlier live Artist evidence. No account was
+  reauthenticated, modified or deleted to manufacture final evidence. Temporary
+  viewport and locale/theme changes were restored.
 
 ## Accepted limits and next boundary
 

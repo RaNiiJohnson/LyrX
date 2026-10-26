@@ -109,13 +109,11 @@ async function openAccount() {
     'button[aria-label="Compte"], button[aria-label="Account"]'
   )
   if (!trigger) throw new Error("Missing account trigger")
-  await flush(() =>
-    trigger.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Enter", bubbles: true })
-    )
-  )
-  const menu = document.querySelector<HTMLElement>('[role="menu"]')
-  if (!menu) throw new Error("Missing account menu")
+  expect(trigger.getAttribute("data-size")).toBe("icon-lg")
+  expect(trigger.className).toContain("size-9")
+  await flush(() => trigger.click())
+  const menu = document.querySelector<HTMLElement>('[role="dialog"]')
+  if (!menu) throw new Error("Missing account sidebar")
   return { trigger, menu }
 }
 
@@ -139,6 +137,37 @@ afterEach(async () => {
 })
 
 describe("role-aware shared navigation", () => {
+  it.each([
+    ["artist", "/studio", "Studio"],
+    ["fan", "/community/mine", "Contributions"],
+  ] as const)(
+    "limits the %s header to Home and its own workspace",
+    async (role, destination, label) => {
+      mocks.account = ready(role)
+      await render()
+      const headerNav = document.querySelector("header nav")
+      expect(hrefs(headerNav!)).toEqual(["/", destination])
+      expect(headerNav?.textContent).toContain(label)
+      expect(hrefs(headerNav!)).not.toContain("/songs")
+      expect(hrefs(headerNav!)).not.toContain("/albums")
+      expect(hrefs(headerNav!)).not.toContain("/artists")
+    }
+  )
+
+  it.each([
+    "anonymous",
+    "email-unverified",
+    "onboarding-required",
+    "suspended",
+  ] as const)(
+    "keeps only Home in the %s header without a ready workspace",
+    async (state) => {
+      mocks.account = { state }
+      await render()
+      expect(hrefs(document.querySelector("header nav")!)).toEqual(["/"])
+    }
+  )
+
   it("keeps public reading available while only account-dependent slots load", async () => {
     await render()
     expect(document.querySelector("main")?.textContent).toBe(
@@ -146,6 +175,7 @@ describe("role-aware shared navigation", () => {
     )
     expect(hrefs(bottomNav())).toEqual(["/", "/songs"])
     expect(document.querySelectorAll('[role="status"]')).toHaveLength(2)
+    expect(hrefs(document.querySelector("header nav")!)).toEqual(["/"])
     expect(document.querySelector('a[href="/auth/sign-in"]')).toBeNull()
     expect(document.querySelector('a[href="/community"]')).toBeNull()
 
@@ -172,17 +202,18 @@ describe("role-aware shared navigation", () => {
     ])
     const { menu } = await openAccount()
     expect(hrefs(menu)).toEqual([
-      "/auth/sign-in",
-      "/auth/sign-up",
+      "/",
       "/songs",
       "/albums",
       "/artists",
+      "/auth/sign-in",
+      "/auth/sign-up",
     ])
     expect(document.querySelector('a[href="/community"]')).toBeNull()
   })
 
   it.each(["artist", "fan"] as const)(
-    "keeps %s tools separate and accessible from the same account menu",
+    "keeps %s tools separate and accessible from the same account sidebar",
     async (role) => {
       mocks.account = ready(role)
       await render()
@@ -194,6 +225,7 @@ describe("role-aware shared navigation", () => {
       expect(links).not.toContain("/admin/community")
       if (role === "artist") {
         expect(links).toContain("/studio")
+        expect(links).toContain("/studio/songs/new")
         expect(links).not.toContain("/community/new")
         expect(hrefs(bottomNav())).toContain("/studio")
       } else {
@@ -262,13 +294,11 @@ describe("role-aware shared navigation", () => {
     expect(document.querySelector("header nav")?.className).toContain("lg:flex")
     expect(hrefs(document.querySelector("header nav")!)).toEqual([
       "/",
-      "/songs",
-      "/albums",
-      "/artists",
+      "/studio",
     ])
   })
 
-  it("localizes the mobile navigation and account menu in English", async () => {
+  it("localizes the mobile navigation and account sidebar in English", async () => {
     window.localStorage.setItem("lyrx-locale", "en")
     mocks.account = ready("fan", true)
     await render()
@@ -276,6 +306,9 @@ describe("role-aware shared navigation", () => {
     const { menu } = await openAccount()
     expect(menu.textContent).toContain("Publish lyrics")
     expect(menu.textContent).toContain("Sign out")
+    expect(menu.textContent).toContain("Explore")
+    expect(menu.textContent).toContain("Fan space")
+    expect(menu.querySelector('[aria-label="Close menu"]')).not.toBeNull()
     expect(menu.textContent).not.toContain("Se déconnecter")
   })
 
@@ -285,7 +318,7 @@ describe("role-aware shared navigation", () => {
     await render()
     const { menu } = await openAccount()
     const item = Array.from(
-      menu.querySelectorAll<HTMLElement>('[role="menuitem"]')
+      menu.querySelectorAll<HTMLButtonElement>("button")
     ).find((node) => node.textContent.includes("Se déconnecter"))
     if (!item) throw new Error("Missing sign-out action")
     await flush(() => item.click())
@@ -293,5 +326,130 @@ describe("role-aware shared navigation", () => {
     expect(mocks.toast).toHaveBeenCalledOnce()
     expect(hrefs(bottomNav())).toContain("/profile")
     expect(hrefs(bottomNav())).not.toContain("/auth/sign-in")
+  })
+
+  it("groups discovery and account tools, highlights publication and separates sign-out", async () => {
+    mocks.account = ready("fan", true)
+    await render()
+    const { menu } = await openAccount()
+    expect(document.querySelector('[data-slot="sheet-overlay"]')).not.toBeNull()
+    expect(host.getAttribute("aria-hidden")).toBe("true")
+    expect(menu.textContent).toContain("A long account display name")
+    const explore = menu.querySelector('nav[aria-label="Explorer"]')
+    expect(explore?.className).toContain("gap-3")
+    expect(hrefs(explore!)).toEqual(["/", "/songs", "/albums", "/artists"])
+    const tools = menu.querySelector('nav[aria-label="Espace Fan"]')
+    expect(hrefs(tools!)).toEqual(["/community/new", "/community/mine"])
+    expect(
+      tools
+        ?.querySelector('a[href="/community/new"]')
+        ?.getAttribute("data-variant")
+    ).toBe("default")
+    expect(
+      menu.querySelector('[data-slot="sheet-footer"]')?.textContent
+    ).toContain("Se déconnecter")
+    expect(
+      menu.querySelector('[data-slot="sheet-footer"]')?.className
+    ).toContain("safe-area-inset-bottom")
+    expect(document.querySelector('[role="menu"]')).toBeNull()
+  })
+
+  it("closes with Escape and restores focus to its account trigger", async () => {
+    mocks.account = ready("fan")
+    await render()
+    const { trigger, menu } = await openAccount()
+    expect(document.activeElement).toBe(
+      menu.querySelector('[data-slot="sheet-title"]')
+    )
+    await flush(() =>
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
+      )
+    )
+    // Radix focus restoration runs after its close effect.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
+    expect(document.querySelector('[role="dialog"]')).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+  })
+
+  it("closes after choosing a real destination, including the current page", async () => {
+    mocks.account = ready("fan")
+    await render()
+    const { menu } = await openAccount()
+    const link = menu.querySelector<HTMLAnchorElement>('a[href="/profile"]')
+    if (!link) throw new Error("Missing profile destination")
+    await flush(() => link.click())
+    expect(document.querySelector('[role="dialog"]')).toBeNull()
+    expect(hrefs(bottomNav())).toContain("/profile")
+  })
+
+  it("keeps Tab navigation inside the open sidebar", async () => {
+    mocks.account = ready("fan")
+    await render()
+    const { menu } = await openAccount()
+    const first = menu.querySelector<HTMLAnchorElement>('a[href="/"]')
+    const last = menu.querySelector<HTMLButtonElement>(
+      '[aria-label="Fermer le menu"]'
+    )
+    if (!first || !last) throw new Error("Missing sidebar focus boundaries")
+    last.focus()
+    await flush(() =>
+      last.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Tab", bubbles: true })
+      )
+    )
+    expect(document.activeElement).toBe(first)
+    await flush(() =>
+      first.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Tab",
+          shiftKey: true,
+          bubbles: true,
+        })
+      )
+    )
+    expect(document.activeElement).toBe(last)
+  })
+
+  it("disables sign-out while pending without hiding a recoverable sidebar", async () => {
+    let finish:
+      ((result: { error: null | { code: string } }) => void) | undefined
+    mocks.signOut.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        })
+    )
+    mocks.account = ready("fan")
+    await render()
+    const { menu } = await openAccount()
+    const signOut = menu.querySelector<HTMLButtonElement>(
+      '[data-slot="sheet-footer"] button'
+    )
+    if (!signOut) throw new Error("Missing sign-out action")
+    await flush(() => signOut.click())
+    expect(signOut.disabled).toBe(true)
+    await flush(() => signOut.click())
+    expect(mocks.signOut).toHaveBeenCalledOnce()
+    await flush(() => finish?.({ error: { code: "UNKNOWN_ERROR" } }))
+    expect(signOut.disabled).toBe(false)
+    expect(document.querySelector('[role="dialog"]')).toBe(menu)
+    expect(mocks.toast).toHaveBeenCalledOnce()
+  })
+
+  it("does not expose stale role tools if account state changes while open", async () => {
+    mocks.account = ready("artist", true)
+    await render()
+    await openAccount()
+    mocks.account = { state: "suspended" }
+    await render()
+    const menu = document.querySelector<HTMLElement>('[role="dialog"]')
+    expect(menu).not.toBeNull()
+    expect(hrefs(menu!)).toContain("/profile")
+    expect(hrefs(menu!)).not.toContain("/studio")
+    expect(hrefs(menu!)).not.toContain("/studio/songs/new")
+    expect(hrefs(menu!)).not.toContain("/admin/community")
   })
 })

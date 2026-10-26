@@ -2,22 +2,30 @@
 
 ## Active lot
 
-### Lot 7 — public discovery and approved layouts (in progress, 26 October 2026)
+### Lot 7 — completed locally, ready for user-created PR (26 October 2026)
 
-**Paused again at the user's explicit quota stop.** All UI agents are frozen.
-Read the **latest** section of [the checkpoint](lot7-checkpoint.md): technical
-failures from the first pause are resolved. Development discovery is initialized;
-root `pnpm check` passes **339 tests**, types, lint, formatting and builds.
-The primary local/Convex review and browser evidence for that intermediate state
-are recorded in [verification](lot7-verification.md).
+Resumed from remote checkpoint `2e48b37` on `codex/public-discovery-layouts`.
+The quota pauses and intermediate 339-test result are historical, not pending
+work. The final root **`pnpm check` passes 373 tests** (29 shared, 83 backend,
+261 web), formatting, lint, TypeScript and client/SSR production builds.
+The primary reviewed the entire lot locally from `9f83883`, then re-reviewed
+all visual follow-up changes and applied the Convex reviewer checklist. No
+blocking standards/specification or Critical/Important Convex finding remains.
+Evidence and accepted limits are in [verification](lot7-verification.md).
 
-The user then supplied eight new visual comments: remove duplicate catalogue
-navigation, follow reference list headers/filters more closely, replace the
-account dropdown with a simple shadcn sidebar and clearer spacing/hierarchy,
-minimalist artwork controls everywhere, Intro/Outro in both locales, and fix the
-stretched profile avatar. These remain **pending**, with no saved implementation
-from the new UI pass. Re-run checks and review after them. Lot 7 is not complete;
-no PR has been created or prepared in Chrome.
+The final visual corrections follow the user's clarification, superseding the
+first interpretation of duplicate navigation: **keep** Morceaux/Albums/Artistes
+under the title and **remove them from the header**. Desktop header is Accueil
+plus Studio (Artist) or Contributions (Fan). Language/theme/account have equal
+36px targets and 6px gaps. A shadcn Sheet replaces the dense account dropdown,
+with grouped navigation, prominent publication, separate sign-out, initial
+heading focus, Escape/focus restoration and working router links.
+
+Artwork controls across Artist/Fan song and album forms use one minimal browse
+tile; profile uses the same control and a non-stretched 96px circular avatar.
+The upload/authorization pipeline is unchanged. Intro/Outro are available in
+both locales and lyric editors; pending/read-only tools cannot edit the text.
+Native insertion, selection and Ctrl+Z were rechecked without submitting content.
 
 Authorized after Git verification: PR #4 merged lot 6 into `main` at `9f83883`.
 The new branch `codex/public-discovery-layouts` starts from that fixed point.
@@ -37,9 +45,10 @@ decisions for this and future lots, including ignored local PNG references.
   fictitious ranking, playback or likes are claimed.
 - Implementation may be delegated with explicit ownership. The primary agent
   retains the mandatory entire local diff review and applicable Convex review.
-  Completion, root gate and real browser evidence are still pending. Push is
-  authorized by the user's standing workflow, but PR creation is not: stop at
-  the prepared English description in Chrome. No production deployment.
+  Completion review, root gate and browser evidence are recorded above and in
+  verification. Push is authorized by the user's standing workflow, but PR
+  creation is not: stop at the prepared English description in Chrome. No lot 8,
+  production deployment, merge or new account/role/content mutation.
 
 ### Lot 6 community follow-up — completed locally 26 October 2026
 

@@ -1,6 +1,24 @@
 # Lot 7 quota checkpoint — 26 October 2026
 
-## Latest stop — supersedes the first checkpoint below
+## Resumed and completed locally — supersedes both pauses below
+
+The visual work pending at `2e48b37` is now implemented and verified. See
+[progress](progress.md) and [final verification](lot7-verification.md).
+Root `pnpm check` passes 373 tests (29 shared, 83 backend, 261 web), all static
+checks and client/SSR builds. Primary local entire-lot review from `9f83883` and
+the applicable Convex review have no unresolved blocking findings.
+
+Important user clarification after resumption: keep the under-title catalogue
+links, remove their header duplicates. Header is Home plus Studio/Contributions
+by role. All three preference/account targets are equal 36px with 6px spacing.
+Grouped Sheet navigation, minimal artwork controls, circular avatar and FR/EN
+Intro/Outro are complete. Earlier pending lists below are historical and must
+not be used to undo these clarified decisions. No lot 8 is authorized.
+
+Delivery remains commit/push this branch, then prepare the English PR in Chrome
+and stop before Create pull request. No PR is to be created by the agent.
+
+## Historical second stop — resolved by the resumption above
 
 The user explicitly asked **“sauvegarde et on continue après”** after supplying
 eight new visual comments. All three active UI agents were interrupted; no new
