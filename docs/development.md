@@ -121,6 +121,31 @@ concurrent catalogue writes remain synchronized. The repository command targets
 the selected development deployment unless `--prod` is deliberately supplied
 to the underlying Convex command.
 
+## Public discovery initialization (lot 7)
+
+After deploying the discovery functions to the selected development deployment:
+
+```bash
+pnpm --filter @lyrx/backend migrate:discovery
+```
+
+This internal, idempotent operation creates/resumes a durable backfill over songs,
+contributions, albums and artists, ten sources per transaction. It does not
+publish drafts or change ownership. `discoveryState` must report
+`initialized:true,pendingJobs:0` and `discoveryJobs` must be empty before claiming
+initialization is complete. Public discovery deliberately shows loading until
+then; do not substitute a false empty list. The recovery cron resumes stalled
+jobs and expires old view records. Run only against development unless a
+production migration is explicitly authorized.
+
+Ranking uses seven UTC days of verified member views, one per member/source/day,
+excluding the author. Distinct-source views have a token bucket of 30/minute,
+burst 10; duplicate daily retries spend no token. View recording is best effort
+and does not make anonymous reading require authentication. Deleted viewers'
+identity-bearing view records are removed through account cleanup; deleted
+sources have their own bounded cleanup. No browser test should publish a real
+song or change a role solely to populate the discovery screen.
+
 ## Image preparation verification
 
 `apps/web/src/lib/image-upload.ts` is the only client image preparation policy

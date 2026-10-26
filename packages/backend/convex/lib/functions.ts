@@ -23,9 +23,12 @@ export const verifiedQuery = customQuery(
 
 export const verifiedMutation = customMutation(
   mutation,
-  customCtx(async (ctx) => ({
-    identity: await requireVerifiedIdentity(ctx),
-  }))
+  customCtx(async (ctx) =>
+    catalogueAggregateTriggers.wrapDB({
+      ...ctx,
+      identity: await requireVerifiedIdentity(ctx),
+    })
+  )
 )
 
 export const memberQuery = customQuery(
@@ -37,9 +40,12 @@ export const memberQuery = customQuery(
 
 export const memberMutation = customMutation(
   mutation,
-  customCtx(async (ctx) => ({
-    member: await requireActiveMember(ctx),
-  }))
+  customCtx(async (ctx) =>
+    catalogueAggregateTriggers.wrapDB({
+      ...ctx,
+      member: await requireActiveMember(ctx),
+    })
+  )
 )
 
 export const artistQuery = customQuery(
@@ -65,7 +71,12 @@ export const fanQuery = customQuery(
 )
 export const fanMutation = customMutation(
   mutation,
-  customCtx(async (ctx) => ({ member: await requireActiveFan(ctx) }))
+  customCtx(async (ctx) =>
+    catalogueAggregateTriggers.wrapDB({
+      ...ctx,
+      member: await requireActiveFan(ctx),
+    })
+  )
 )
 export const adminQuery = customQuery(
   query,
@@ -73,5 +84,10 @@ export const adminQuery = customQuery(
 )
 export const adminMutation = customMutation(
   mutation,
-  customCtx(async (ctx) => ({ member: await requireAdmin(ctx) }))
+  customCtx(async (ctx) =>
+    catalogueAggregateTriggers.wrapDB({
+      ...ctx,
+      member: await requireAdmin(ctx),
+    })
+  )
 )

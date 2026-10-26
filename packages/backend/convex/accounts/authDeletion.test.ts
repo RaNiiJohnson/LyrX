@@ -3,6 +3,7 @@
 import { convexTest } from "convex-test"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { hashPassword } from "better-auth/crypto"
+import aggregateTest from "@convex-dev/aggregate/test"
 
 import { api, components, internal } from "../_generated/api"
 import schema from "../schema"
@@ -22,6 +23,7 @@ const authModules = import.meta.glob("../betterAuth/**/*.ts")
 
 function backend() {
   const t = convexTest(schema, modules)
+  aggregateTest.register(t, "publicDiscovery")
   t.registerComponent("betterAuth", authSchema, authModules)
   return t
 }

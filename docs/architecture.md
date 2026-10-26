@@ -137,6 +137,47 @@ screens; private data is not prefetched in public loaders. TanStack Form and
 shadcn primitives provide required lyrics, duplicate confirmation, accessible
 report/moderation forms and French/English feedback.
 
+The approved lot 7 target replaces only the separate public Community listing
+with unified Artist/Fan song discovery and origin badges. Preserve the community
+write/moderation domain, private author tools, and existing detail links. A unified
+public read projection must apply consistent ordering, pagination, counts, and
+visibility across both origins; concatenating two independently paginated lists
+is insufficient. Its maintenance must cover moderation, withdrawal, and account
+deletion as well as publication. See [design guidance](design-guidance.md).
+
+## Public discovery projection (lot 7)
+
+`convex/discovery/` owns read-only discovery, not publication ownership.
+`discoveryEntries` contains minimal source/owner, normalized title, first-publication
+time, genre and recent score. The named `publicDiscovery` DirectAggregate indexes
+one ordering across Artist and Fan songs plus album/artist scopes, sorts and
+filters. Numbered queries request at most 24 positions; home selects six newest
+and six popular songs, eight artists and eight albums. Hydration resolves current
+source data and storage URLs without copying lyrics, email or moderation data.
+Album cards deliberately omit a track count instead of reading every track's
+complete lyric document for every album on a list page.
+
+Trigger-wrapped writes synchronize publication, edits, moderation, withdrawal,
+profile availability and account eligibility. A durable owner job refreshes
+eligibility and large album inheritance changes in batches of ten sources.
+During initial backfill or pending owner jobs, public discovery returns
+`ready:false` rather than exposing stale entries or misleading totals. Existing
+public detail reads independently recheck eligibility and remain available when
+unaffected. A one-minute recovery cron resumes stalled jobs. Reactive numbered
+pages can shift after publication changes; they are not snapshots.
+
+Popularity counts verified signed-in member views, excluding the author,
+deduplicated by member/source/UTC day. Seven UTC days are retained; scheduled
+expiry and the recovery cron materialize score changes without a query reading
+the wall clock. Expiry/cascade batches handle at most 25 view rows. Anonymous
+reading is unrestricted but uncounted, and telemetry failure never blocks the
+reader. There are no playback/like counts or ranking inputs from later lots.
+
+The shared textarea's optional heading buttons use supported native `insertText`
+editing to preserve undo, selection and focus. When that API is unavailable,
+the tools are hidden and ordinary free writing remains available. Chromium undo
+is browser-verified; no cross-engine or physical mobile keyboard claim is made.
+
 ## Catalogue module boundary (technical lot T1)
 
 Catalogue capabilities live together under `packages/backend/convex/catalogue/`:

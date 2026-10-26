@@ -2,6 +2,63 @@
 
 ## Active lot
 
+### Lot 7 — completed locally, ready for user-created PR (26 October 2026)
+
+Resumed from remote checkpoint `2e48b37` on `codex/public-discovery-layouts`.
+The quota pauses and intermediate 339-test result are historical, not pending
+work. The final root **`pnpm check` passes 380 tests** (29 shared, 83 backend,
+268 web), formatting, lint, TypeScript and client/SSR production builds.
+The primary reviewed the entire lot locally from `9f83883`, then re-reviewed
+all visual follow-up changes and applied the Convex reviewer checklist. No
+blocking standards/specification or Critical/Important Convex finding remains.
+Evidence and accepted limits are in [verification](lot7-verification.md).
+
+The final visual corrections follow the user's clarification, superseding the
+first interpretation of duplicate navigation: **keep** Morceaux/Albums/Artistes
+under the title and **remove them from the header**. Desktop header is Accueil
+plus Studio (Artist) or Contributions (Fan). Language/theme/account have equal
+36px targets and 6px gaps. A shadcn Sheet replaces the dense account dropdown,
+with grouped navigation, prominent publication, separate sign-out, initial
+heading focus, Escape/focus restoration and working router links.
+
+Artwork controls across Artist/Fan song and album forms use one minimal browse
+tile; profile uses the same control and a non-stretched 96px circular avatar.
+The upload/authorization pipeline is unchanged. Intro/Outro are available in
+both locales and lyric editors; pending/read-only tools cannot edit the text.
+Native insertion, selection and Ctrl+Z were rechecked without submitting content.
+
+The user's subsequent profile polish is also complete on this same branch:
+avatar overlaps a working banner by 48px mobile / 64px desktop, with no phantom
+offset after image failure; the tighter name/handle block aligns with the avatar.
+Three equal-width profile tabs have a real active underline. The shared Tabs
+primitive now targets Radix `data-state=active` rather than absent `data-active`.
+The public-profile link is in the editor header, not the form footer. Primary
+re-reviewed these changes and image/error/keyboard regressions before re-running
+the complete root gate; the earlier 373-test result at `8d5a2b5` is superseded.
+
+Authorized after Git verification: PR #4 merged lot 6 into `main` at `9f83883`.
+The new branch `codex/public-discovery-layouts` starts from that fixed point.
+Commit `06deac9` preserves the user's previously uncommitted roadmap/design
+decisions for this and future lots, including ignored local PNG references.
+
+- Implement one public Artist/Fan song projection, coherent numbered pages,
+  counts, visibility maintenance and bounded home/artist/album selections.
+- Apply `design/` layouts with the current Caffeine theme unchanged; keep Fan
+  contribution tools and moderation while replacing separate public discovery.
+- Add role-aware mobile navigation, normal-flow desktop footer, responsive
+  Studio/form layouts and optional heading insertion in the canonical textarea.
+- Search remains explicitly unavailable until lot 8; likes, comments, notebooks,
+  sharing and artist claim/replacement remain in their own lots.
+- Ranking uses real deduplicated signed-in-member views over seven UTC days;
+  anonymous reading stays public and does not contribute to that metric. No
+  fictitious ranking, playback or likes are claimed.
+- Implementation may be delegated with explicit ownership. The primary agent
+  retains the mandatory entire local diff review and applicable Convex review.
+  Completion review, root gate and browser evidence are recorded above and in
+  verification. Push is authorized by the user's standing workflow, but PR
+  creation is not: stop at the prepared English description in Chrome. No lot 8,
+  production deployment, merge or new account/role/content mutation.
+
 ### Lot 6 community follow-up — completed locally 26 October 2026
 
 Resumed from checkpoint `b54177d` on `codex/community-fan-lyrics`. The original
@@ -38,6 +95,20 @@ This follow-up implements the user's three additions, not lot 7's redesign.
   existing file URLs/downloads cannot be recalled; no physical-device or
   cross-engine matrix is claimed. No push, PR, remote merge or production
   deployment occurred. Lot 7 implementation has not started.
+
+### Approved next-lot design direction — 25 October 2026
+
+Documentation only: the user approved integrating necessary `design/` mockups
+within lot 7, without changing Caffeine colors or creating a separate design lot.
+Artist publications and Fan contributions will share public song lists with
+origin badges; the separate public Community listing is superseded. Fan author
+tools, contribution attribution, ownership, moderation, and old detail links
+must be preserved. Search gets an explicitly unavailable visual entry in lot 7;
+functional search stays in lot 8. Responsive layout, shadcn reuse, footer/bottom
+navigation, horizontal home rows, Studio tabs/actions, and lyric heading insertion
+are recorded in [design guidance](design-guidance.md). No product code was changed
+for this decision, and this entry does not claim lot 7 has started or authorize
+push, PR, merge, or production deployment.
 
 ### Lot 6 completed locally — Community Fan lyrics, 25 October 2026
 
@@ -1096,10 +1167,10 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Let the user choose whether to delete their own account through `/profile` and
-create a Fan account. Then resume lot 6 from `codex/community-fan-lyrics` at
-`1298ef1`, incorporate this prerequisite and extend cascade cleanup to its
-community tables before final review and real Fan/admin validation. Lot 5 and T1
-remain merged and closed. Artist claim/replacement remains future scope. No push,
-PR or merge is authorized. The writing notebook with local audio and the
-Genius-style sharing-card refinement remain proposal-only.
+Lot 6 is complete locally as recorded above; its older pause/resumption notes
+are historical. Prepare the next implementation handoff using the approved lot 7
+scope in [design guidance](design-guidance.md) and [roadmap](roadmap.md).
+This research/documentation session has not started lot 7 product code. Lot 5
+and T1 remain merged and closed. Artist claim/replacement remains future scope.
+No push, PR, merge, or production deployment is authorized. The writing notebook
+with local audio and the Genius-style sharing-card refinement remain proposal-only.

@@ -1,5 +1,3 @@
-import { Languages } from "lucide-react"
-
 import { Button } from "@lyrx/ui/components/button"
 import {
   DropdownMenu,
@@ -21,18 +19,17 @@ export function LocaleMenu() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="sm"
+          size="icon-lg"
           aria-label={`${t("preferences.language")} : ${
             locale === "fr" ? t("locale.french") : t("locale.english")
           }`}
         >
-          <Languages data-icon="inline-start" aria-hidden="true" />
           <span aria-hidden="true">{locale.toUpperCase()}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel>{t("preferences.language")}</DropdownMenuLabel>
         <DropdownMenuGroup>
+          <DropdownMenuLabel>{t("preferences.language")}</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={locale}
             onValueChange={(value) => {

@@ -12,7 +12,7 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   return (
-    <PageShell>
+    <PageShell width="wide">
       <BackendRequired>
         <ProfileEditor />
       </BackendRequired>

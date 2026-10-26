@@ -5,14 +5,6 @@ import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@lyrx/ui/components/card"
 import { FieldGroup } from "@lyrx/ui/components/field"
 
 import { useLocale } from "@/app/locale-provider"
@@ -87,49 +79,56 @@ export function SongEditorForm({
           {songId ? t("studio.songEditTitle") : t("studio.songNewTitle")}
         </h1>
       </div>
-      <CatalogueArtworkCard
-        artworkUrl={controller.artworkPreviewUrl}
-        inputId="song-artwork"
-        pending={controller.artworkPending || controller.saving}
-        selectedFile={controller.selectedArtwork}
-        onSelect={controller.selectArtwork}
-      />
       <form
+        className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start"
         onSubmit={(event) => {
           event.preventDefault()
           event.stopPropagation()
           void controller.form.handleSubmit()
         }}
       >
+        <aside className="min-w-0 lg:col-start-2 lg:row-start-1">
+          <CatalogueArtworkCard
+            artworkUrl={controller.artworkPreviewUrl}
+            inputId="song-artwork"
+            pending={controller.artworkPending || controller.saving}
+            selectedFile={controller.selectedArtwork}
+            stacked
+            onSelect={controller.selectArtwork}
+          />
+        </aside>
         <controller.form.AppForm>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("studio.essentialInformation")}</CardTitle>
-              <CardDescription>
-                {t("studio.essentialInformationDescription")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-7">
-              {controller.error ? (
-                <Alert variant="destructive">
-                  <AlertTitle>{t("catalogue.saveError")}</AlertTitle>
-                  <AlertDescription>{controller.error}</AlertDescription>
-                </Alert>
-              ) : null}
-              <FieldGroup className="gap-8">
-                <SongBasicsStep form={controller.form} albums={albums} />
-                <SongLyricsStep form={controller.form} />
-                <SongCreditsStep form={controller.form} />
-              </FieldGroup>
-            </CardContent>
-            <CardFooter className="justify-end border-t">
-              <controller.form.SubmitButton
-                disabled={controller.artworkPending || controller.saving}
+          <FieldGroup className="min-w-0 gap-8 lg:col-start-1 lg:row-span-3 lg:row-start-1">
+            {controller.error ? (
+              <Alert variant="destructive">
+                <AlertTitle>{t("catalogue.saveError")}</AlertTitle>
+                <AlertDescription>{controller.error}</AlertDescription>
+              </Alert>
+            ) : null}
+            <SongBasicsStep form={controller.form} albums={albums} />
+            <SongLyricsStep form={controller.form} />
+          </FieldGroup>
+          <div className="min-w-0 lg:col-start-2 lg:row-start-2">
+            <SongCreditsStep form={controller.form} />
+          </div>
+          <div className="flex flex-wrap justify-end gap-3 lg:col-start-2 lg:row-start-3">
+            <Button asChild variant="outline">
+              <Link
+                to={
+                  returnAlbumId ? "/studio/albums/$albumId/preview" : "/studio"
+                }
+                params={returnAlbumId ? { albumId: returnAlbumId } : undefined}
+                search={returnAlbumId ? undefined : { tab: "songs" }}
               >
-                {t("common.save")}
-              </controller.form.SubmitButton>
-            </CardFooter>
-          </Card>
+                {t("common.cancel")}
+              </Link>
+            </Button>
+            <controller.form.SubmitButton
+              disabled={controller.artworkPending || controller.saving}
+            >
+              {t("common.save")}
+            </controller.form.SubmitButton>
+          </div>
         </controller.form.AppForm>
       </form>
     </section>

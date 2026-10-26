@@ -1,8 +1,11 @@
 import type { Doc } from "@lyrx/backend/convex/_generated/dataModel"
 import { Checkbox } from "@lyrx/ui/components/checkbox"
+import { ToggleGroup, ToggleGroupItem } from "@lyrx/ui/components/toggle-group"
 import {
+  Field,
   FieldDescription,
   FieldGroup,
+  FieldLabel,
   FieldLegend,
   FieldSet,
 } from "@lyrx/ui/components/field"
@@ -24,22 +27,36 @@ export const SongBasicsStep = withForm({
           <FieldGroup className="grid gap-5 md:grid-cols-2">
             <form.AppField name="releaseType">
               {(field) => (
-                <field.SelectField
-                  label={t("studio.releaseType")}
-                  options={[
-                    { label: t("studio.releaseSingle"), value: "single" },
-                    { label: t("studio.releaseAlbumTrack"), value: "album" },
-                  ]}
-                  onValueChange={(value) => {
-                    if (value === "single") {
-                      form.setFieldValue("albumId", "")
-                      form.setFieldValue("inheritArtwork", false)
-                      form.setFieldValue("inheritGenre", false)
-                      form.setFieldValue("inheritLabel", false)
-                      form.setFieldValue("inheritCredits", false)
-                    }
-                  }}
-                />
+                <Field>
+                  <FieldLabel className="sr-only" id="release-type-label">
+                    {t("studio.releaseContext")}
+                  </FieldLabel>
+                  <ToggleGroup
+                    type="single"
+                    variant="outline"
+                    value={field.state.value}
+                    aria-labelledby="release-type-label"
+                    onBlur={field.handleBlur}
+                    onValueChange={(value) => {
+                      if (value !== "single" && value !== "album") return
+                      field.handleChange(value)
+                      if (value === "single") {
+                        form.setFieldValue("albumId", "")
+                        form.setFieldValue("inheritArtwork", false)
+                        form.setFieldValue("inheritGenre", false)
+                        form.setFieldValue("inheritLabel", false)
+                        form.setFieldValue("inheritCredits", false)
+                      }
+                    }}
+                  >
+                    <ToggleGroupItem value="single">
+                      {t("studio.releaseSingle")}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="album">
+                      {t("studio.releaseAlbumTrack")}
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </Field>
               )}
             </form.AppField>
             <form.Subscribe selector={(state) => state.values.releaseType}>
@@ -96,7 +113,7 @@ export const SongBasicsStep = withForm({
           >
             {([releaseType, albumId]) =>
               releaseType === "album" && albumId ? (
-                <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
+                <div className="flex flex-col gap-3 rounded-xl border bg-muted/30 p-4">
                   <div>
                     <p className="font-medium">
                       {t("studio.inheritedMetadata")}
@@ -157,41 +174,38 @@ export const SongBasicsStep = withForm({
             }
           </form.Subscribe>
         </FieldSet>
-        <FieldSet>
-          <FieldLegend>{t("studio.essentialInformation")}</FieldLegend>
-          <FieldGroup className="grid gap-5 md:grid-cols-2">
-            <form.AppField
-              name="title"
-              validators={{
-                onBlur: ({ value }) =>
-                  value.trim() ? undefined : t("studio.songTitle"),
-              }}
-            >
-              {(field) => (
-                <field.TextField
-                  label={t("studio.songTitle")}
-                  required
-                  maxLength={160}
-                />
-              )}
-            </form.AppField>
-            <form.AppField
-              name="primaryArtist"
-              validators={{
-                onBlur: ({ value }) =>
-                  value.trim() ? undefined : t("studio.primaryArtist"),
-              }}
-            >
-              {(field) => (
-                <field.TextField
-                  label={t("studio.primaryArtist")}
-                  required
-                  maxLength={120}
-                />
-              )}
-            </form.AppField>
-          </FieldGroup>
-        </FieldSet>
+        <FieldGroup className="grid gap-5 md:grid-cols-2">
+          <form.AppField
+            name="title"
+            validators={{
+              onBlur: ({ value }) =>
+                value.trim() ? undefined : t("studio.songTitle"),
+            }}
+          >
+            {(field) => (
+              <field.TextField
+                label={t("studio.songTitle")}
+                required
+                maxLength={160}
+              />
+            )}
+          </form.AppField>
+          <form.AppField
+            name="primaryArtist"
+            validators={{
+              onBlur: ({ value }) =>
+                value.trim() ? undefined : t("studio.primaryArtist"),
+            }}
+          >
+            {(field) => (
+              <field.TextField
+                label={t("studio.primaryArtist")}
+                required
+                maxLength={120}
+              />
+            )}
+          </form.AppField>
+        </FieldGroup>
       </FieldGroup>
     )
   },

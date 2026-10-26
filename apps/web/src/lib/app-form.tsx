@@ -1,5 +1,6 @@
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form"
-import type { ComponentProps, ReactNode } from "react"
+import { useRef, type ComponentProps, type ReactNode } from "react"
+import { TextareaHeadingTools } from "./textarea-heading-tools"
 
 import { Button } from "@lyrx/ui/components/button"
 import {
@@ -86,6 +87,8 @@ type TextareaFieldProps = Omit<
   label: ReactNode
   labelExtra?: ReactNode
   onValueChange?: (value: string) => void
+  headings?: Array<string>
+  headingToolsLabel?: string
 }
 
 function TextareaField({
@@ -94,14 +97,20 @@ function TextareaField({
   label,
   labelExtra,
   onValueChange,
+  headings,
+  headingToolsLabel,
   ...textareaProps
 }: TextareaFieldProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const field = useFieldContext<string>()
   const inputId = id ?? field.name
   const invalid = field.state.meta.isTouched && !field.state.meta.isValid
 
   return (
-    <Field data-invalid={invalid || undefined}>
+    <Field
+      data-invalid={invalid || undefined}
+      data-disabled={textareaProps.disabled || undefined}
+    >
       {labelExtra ? (
         <div className="flex items-center justify-between gap-3">
           <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
@@ -110,7 +119,20 @@ function TextareaField({
       ) : (
         <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
       )}
+      {headings ? (
+        <TextareaHeadingTools
+          textarea={textareaRef}
+          headings={headings}
+          label={headingToolsLabel ?? ""}
+          disabled={textareaProps.disabled || textareaProps.readOnly}
+          onChange={(value) => {
+            field.handleChange(value)
+            onValueChange?.(value)
+          }}
+        />
+      ) : null}
       <Textarea
+        ref={textareaRef}
         {...textareaProps}
         id={inputId}
         name={field.name}

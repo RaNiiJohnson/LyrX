@@ -18,6 +18,7 @@ import { FieldGroup, FieldSet } from "@lyrx/ui/components/field"
 import { toast } from "@lyrx/ui/lib/toast"
 import { useLocale } from "@/app/locale-provider"
 import { useAppForm } from "@/lib/app-form"
+import { LYRIC_HEADING_MESSAGE_KEYS } from "@/lib/lyric-heading"
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
 import { useArtworkSelection } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
 import { CatalogueArtworkCard } from "@/features/catalogue/shared/catalogue-artwork-card"
@@ -310,6 +311,11 @@ function EditorForm({ detail }: { detail?: CommunityDetail }) {
                     {(field) => (
                       <field.TextareaField
                         label={t("studio.lyricsEditor")}
+                        headings={LYRIC_HEADING_MESSAGE_KEYS.map((key) =>
+                          t(key)
+                        )}
+                        disabled={saving}
+                        headingToolsLabel={t("studio.headingTools")}
                         placeholder={t("studio.lyricsEditorPlaceholder")}
                         description={t("studio.lyricsEditorDescription")}
                         maxLength={MAX_LYRICS_TEXT_LENGTH}

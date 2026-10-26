@@ -5,6 +5,7 @@ import type { Doc, Id } from "../_generated/dataModel"
 import { internalMutation, type MutationCtx } from "../_generated/server"
 import { catalogueAggregateTriggers } from "../catalogue/aggregates"
 import { storageIsClaimed } from "../catalogue/artwork"
+import { changeViews } from "../discovery/projection"
 
 const BATCH_SIZE = 25
 const STALLED_AFTER_MS = 5 * 60_000
@@ -12,9 +13,10 @@ type Phase = Doc<"accountDeletionJobs">["phase"]
 
 /** Called only by the authoritative Better Auth user-deletion trigger. */
 export async function beginAccountDeletion(
-  ctx: MutationCtx,
+  rawCtx: MutationCtx,
   authUserId: string
 ): Promise<void> {
+  const ctx = catalogueAggregateTriggers.wrapDB(rawCtx)
   const tombstone = await ctx.db
     .query("accountDeletions")
     .withIndex("by_auth_user_id", (q) => q.eq("authUserId", authUserId))
@@ -64,6 +66,17 @@ async function removeUnclaimedFile(
 
 /** Remove only owned publications; preserve anonymized history on other works. */
 async function cleanCommunityBatch(ctx: MutationCtx, owner: Id<"members">) {
+  const views = await ctx.db
+    .query("discoveryViews")
+    .withIndex("by_viewer_member_id", (q) => q.eq("viewerMemberId", owner))
+    .take(BATCH_SIZE)
+  if (views.length) {
+    for (const view of views) {
+      await changeViews(ctx, view.sourceId, -1)
+      await ctx.db.delete("discoveryViews", view._id)
+    }
+    return true
+  }
   const contribution = await ctx.db
     .query("communityContributions")
     .withIndex("by_author_member_id", (q) => q.eq("authorMemberId", owner))

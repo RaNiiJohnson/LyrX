@@ -1,37 +1,37 @@
 import { useMutation, useQuery } from "convex/react"
 import { useState } from "react"
 import { Link } from "@tanstack/react-router"
+import { ArrowUpRight, ImagePlus, UserRound } from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { isValidDisplayName, isValidHandle } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@lyrx/ui/components/avatar"
 import { Button } from "@lyrx/ui/components/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@lyrx/ui/components/card"
 import {
   Field,
   FieldDescription,
   FieldGroup,
-  FieldLabel,
   FieldLegend,
   FieldSet,
 } from "@lyrx/ui/components/field"
-import { Input } from "@lyrx/ui/components/input"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { Separator } from "@lyrx/ui/components/separator"
 import { Spinner } from "@lyrx/ui/components/spinner"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
 import { prepareImageForUpload } from "@/lib/image-upload"
+import { ImageUploadField } from "@/lib/image-upload-field"
 import { useLocale } from "@/app/locale-provider"
 import { AccountDeletion } from "@/features/account/account-deletion"
 
@@ -88,7 +88,7 @@ export function ProfileEditor() {
     )
   }
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
       <ReadyProfileEditor current={current} />
       <AccountDeletion onPendingChange={setLeaving} />
     </div>
@@ -104,6 +104,9 @@ function ReadyProfileEditor({
   >
 }) {
   const { t } = useLocale()
+  const publicProfile = useQuery(api.members.publicByHandle, {
+    handle: current.profile.handle,
+  })
   const updateProfile = useMutation(api.members.updateMyProfile)
   const generateUploadUrl = useMutation(
     api.members.generateProfileImageUploadUrl
@@ -204,122 +207,144 @@ function ReadyProfileEditor({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("navigation.myProfile")}</CardTitle>
-        <CardDescription>
-          <span className="flex flex-wrap gap-2">
+    <section className="flex min-w-0 flex-col gap-8">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("navigation.myProfile")}
+          </h1>
+          <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">
               {current.member.role === "artist"
                 ? t("common.artist")
                 : t("common.fan")}
             </Badge>
             {current.member.isAdmin ? <Badge>{t("common.admin")}</Badge> : null}
-          </span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            void form.handleSubmit()
-          }}
-          className="flex flex-col gap-5"
-        >
-          {error ? (
-            <Alert variant="destructive">
-              <AlertTitle>{t("profile.saveError")}</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          <FieldGroup>
-            <FieldSet>
-              <FieldLegend>{t("profile.images")}</FieldLegend>
-              <Field>
-                <div className="flex items-center justify-between gap-3">
-                  <FieldLabel htmlFor="avatar">
-                    {t("profile.avatar")}
-                  </FieldLabel>
-                  <OptionalLabel />
-                </div>
-                <Input
-                  id="avatar"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={imagePending !== null}
-                  onChange={(event) =>
-                    void uploadImage("avatar", event.target.files?.[0])
+          </div>
+        </div>
+        <Button asChild variant="outline">
+          <Link
+            to="/profiles/$handle"
+            params={{ handle: current.profile.handle }}
+          >
+            {t("profile.viewPublic")}
+            <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+          </Link>
+        </Button>
+      </header>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          void form.handleSubmit()
+        }}
+        className="flex min-w-0 flex-col gap-8"
+      >
+        {error ? (
+          <Alert variant="destructive">
+            <AlertTitle>{t("profile.saveError")}</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
+        <FieldGroup className="gap-8">
+          <FieldSet>
+            <FieldLegend>{t("profile.images")}</FieldLegend>
+            <FieldDescription>
+              {t("profile.imagesDescription")}
+            </FieldDescription>
+            <FieldGroup className="grid gap-6 sm:grid-cols-2">
+              <ImageUploadField
+                id="avatar"
+                label={t("profile.avatar")}
+                description={t("profile.avatarDescription")}
+                pending={imagePending !== null}
+                currentImage={Boolean(publicProfile?.avatarUrl)}
+                onSelect={(file) => void uploadImage("avatar", file)}
+                preview={
+                  <span className="block size-24 shrink-0">
+                    {publicProfile === undefined ? (
+                      <Skeleton className="size-24 rounded-full" />
+                    ) : (
+                      <Avatar className="size-24 shrink-0">
+                        <AvatarImage
+                          src={publicProfile?.avatarUrl ?? undefined}
+                          alt={current.profile.displayName}
+                        />
+                        <AvatarFallback>
+                          <UserRound aria-hidden="true" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </span>
+                }
+              />
+              {current.member.role === "artist" ? (
+                <ImageUploadField
+                  id="banner"
+                  label={t("profile.banner")}
+                  description={t("profile.bannerDescription")}
+                  pending={imagePending !== null}
+                  currentImage={Boolean(publicProfile?.artist?.bannerUrl)}
+                  onSelect={(file) => void uploadImage("banner", file)}
+                  preview={
+                    <span className="block h-24 w-40 shrink-0">
+                      <ProfileBannerPreview
+                        key={publicProfile?.artist?.bannerUrl ?? "empty"}
+                        url={publicProfile?.artist?.bannerUrl}
+                        loading={publicProfile === undefined}
+                      />
+                    </span>
                   }
                 />
-                <FieldDescription>
-                  {t("profile.avatarDescription")}
-                </FieldDescription>
-              </Field>
-              {current.member.role === "artist" ? (
-                <Field>
-                  <div className="flex items-center justify-between gap-3">
-                    <FieldLabel htmlFor="banner">
-                      {t("profile.banner")}
-                    </FieldLabel>
-                    <OptionalLabel />
-                  </div>
-                  <Input
-                    id="banner"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    disabled={imagePending !== null}
-                    onChange={(event) =>
-                      void uploadImage("banner", event.target.files?.[0])
-                    }
+              ) : null}
+            </FieldGroup>
+            {imagePending ? (
+              <p className="flex items-center gap-2 text-sm" role="status">
+                <Spinner /> {t("profile.imageUploading")}
+              </p>
+            ) : null}
+          </FieldSet>
+          <Separator />
+          <FieldSet>
+            <FieldLegend>{t("profile.identity")}</FieldLegend>
+            <FieldGroup className="grid gap-5 sm:grid-cols-2">
+              <form.AppField
+                name="handle"
+                validators={{
+                  onBlur: ({ value }) =>
+                    isValidHandle(value) ? undefined : t("error.invalidHandle"),
+                }}
+              >
+                {(field) => (
+                  <field.TextField
+                    id="handle"
+                    label={t("profile.handle")}
+                    required
+                    minLength={3}
+                    maxLength={30}
                   />
-                  <FieldDescription>
-                    {t("profile.bannerDescription")}
-                  </FieldDescription>
-                </Field>
-              ) : null}
-              {imagePending ? (
-                <p className="flex items-center gap-2 text-sm" role="status">
-                  <Spinner /> {t("profile.imageUploading")}
-                </p>
-              ) : null}
-            </FieldSet>
-            <form.AppField
-              name="handle"
-              validators={{
-                onBlur: ({ value }) =>
-                  isValidHandle(value) ? undefined : t("error.invalidHandle"),
-              }}
-            >
-              {(field) => (
-                <field.TextField
-                  id="handle"
-                  label={t("profile.handle")}
-                  required
-                  minLength={3}
-                  maxLength={30}
-                />
-              )}
-            </form.AppField>
-            <form.AppField
-              name="displayName"
-              validators={{
-                onBlur: ({ value }) =>
-                  isValidDisplayName(value)
-                    ? undefined
-                    : t("error.invalidDisplayName"),
-              }}
-            >
-              {(field) => (
-                <field.TextField
-                  id="displayName"
-                  label={t("signUp.displayName")}
-                  required
-                  minLength={2}
-                  maxLength={80}
-                />
-              )}
-            </form.AppField>
+                )}
+              </form.AppField>
+              <form.AppField
+                name="displayName"
+                validators={{
+                  onBlur: ({ value }) =>
+                    isValidDisplayName(value)
+                      ? undefined
+                      : t("error.invalidDisplayName"),
+                }}
+              >
+                {(field) => (
+                  <field.TextField
+                    id="displayName"
+                    label={t("signUp.displayName")}
+                    required
+                    minLength={2}
+                    maxLength={80}
+                  />
+                )}
+              </form.AppField>
+            </FieldGroup>
             <form.AppField name="bio">
               {(field) => (
                 <field.TextareaField
@@ -330,7 +355,10 @@ function ReadyProfileEditor({
                 />
               )}
             </form.AppField>
-            {current.member.role === "artist" ? (
+          </FieldSet>
+          {current.member.role === "artist" ? (
+            <>
+              <Separator />
               <FieldSet>
                 <FieldLegend>{t("profile.artistIdentity")}</FieldLegend>
                 <form.AppField name="presentation">
@@ -343,40 +371,48 @@ function ReadyProfileEditor({
                     />
                   )}
                 </form.AppField>
-                {[
-                  ["instagramUrl", "instagram", "Instagram"],
-                  ["facebookUrl", "facebook", "Facebook"],
-                  ["tiktokUrl", "tiktok", "TikTok"],
-                  ["youtubeUrl", "youtube", "YouTube"],
-                  ["spotifyUrl", "spotify", "Spotify"],
-                ].map(([name, id, label]) => (
-                  <form.AppField
-                    key={name}
-                    name={
-                      name as
-                        | "instagramUrl"
-                        | "facebookUrl"
-                        | "tiktokUrl"
-                        | "youtubeUrl"
-                        | "spotifyUrl"
-                    }
-                  >
-                    {(field) => (
-                      <field.TextField
-                        id={id}
-                        label={label}
-                        labelExtra={<OptionalLabel />}
-                        type="url"
-                      />
-                    )}
-                  </form.AppField>
-                ))}
+              </FieldSet>
+              <Separator />
+              <FieldSet>
+                <FieldLegend>{t("profile.socialLinks")}</FieldLegend>
+                <FieldGroup className="grid gap-5 sm:grid-cols-2">
+                  {[
+                    ["instagramUrl", "instagram", "Instagram"],
+                    ["facebookUrl", "facebook", "Facebook"],
+                    ["tiktokUrl", "tiktok", "TikTok"],
+                    ["youtubeUrl", "youtube", "YouTube"],
+                    ["spotifyUrl", "spotify", "Spotify"],
+                  ].map(([name, id, label]) => (
+                    <form.AppField
+                      key={name}
+                      name={
+                        name as
+                          | "instagramUrl"
+                          | "facebookUrl"
+                          | "tiktokUrl"
+                          | "youtubeUrl"
+                          | "spotifyUrl"
+                      }
+                    >
+                      {(field) => (
+                        <field.TextField
+                          id={id}
+                          label={label}
+                          labelExtra={<OptionalLabel />}
+                          type="url"
+                        />
+                      )}
+                    </form.AppField>
+                  ))}
+                </FieldGroup>
+              </FieldSet>
+              <Separator />
+              <FieldSet>
+                <FieldLegend>{t("profile.customLinks")}</FieldLegend>
                 <form.Field name="customLinks" mode="array">
                   {(linksField) => (
                     <Field>
                       <div className="flex items-center justify-between gap-3">
-                        <FieldLabel>{t("profile.customLinks")}</FieldLabel>
-                        <OptionalLabel />
                         <Button
                           type="button"
                           size="sm"
@@ -394,9 +430,9 @@ function ReadyProfileEditor({
                           {t("profile.noCustomLinks")}
                         </FieldDescription>
                       ) : (
-                        <div className="flex flex-col gap-3">
+                        <FieldGroup className="gap-3">
                           {linksField.state.value.map((_link, index) => (
-                            <div
+                            <FieldGroup
                               className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]"
                               key={index}
                             >
@@ -440,32 +476,52 @@ function ReadyProfileEditor({
                                   number: index + 1,
                                 })}
                               </Button>
-                            </div>
+                            </FieldGroup>
                           ))}
-                        </div>
+                        </FieldGroup>
                       )}
                     </Field>
                   )}
                 </form.Field>
               </FieldSet>
-            ) : null}
-          </FieldGroup>
+            </>
+          ) : null}
+        </FieldGroup>
+        <Separator />
+        <div className="flex flex-wrap items-center justify-end gap-4">
           <form.AppForm>
             <form.SubmitButton size="lg">{t("profile.save")}</form.SubmitButton>
           </form.AppForm>
-        </form>
-      </CardContent>
-      <CardFooter>
-        <Button asChild variant="ghost" size="sm">
-          <Link
-            to="/profiles/$handle"
-            params={{ handle: current.profile.handle }}
-          >
-            {t("profile.viewPublic")}
-          </Link>
-        </Button>
-      </CardFooter>
-    </Card>
+        </div>
+      </form>
+    </section>
+  )
+}
+
+function ProfileBannerPreview({
+  url,
+  loading,
+}: {
+  url?: string | null
+  loading: boolean
+}) {
+  const { t } = useLocale()
+  const [failed, setFailed] = useState(false)
+  if (loading) return <Skeleton className="h-24 w-full" />
+  return url && !failed ? (
+    <img
+      src={url}
+      alt={t("profile.banner")}
+      className="h-24 w-full rounded-xl object-cover"
+      onError={() => setFailed(true)}
+    />
+  ) : (
+    <div
+      className="grid h-24 place-items-center rounded-xl bg-muted text-muted-foreground"
+      aria-hidden="true"
+    >
+      <ImagePlus className="size-8" />
+    </div>
   )
 }
 

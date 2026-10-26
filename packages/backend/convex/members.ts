@@ -13,6 +13,7 @@ import { memberMutation, verifiedMutation } from "./lib/functions"
 import { findMemberByIdentity } from "./lib/authz"
 import { deleteOwnedProfileImageIfUnreferenced } from "./lib/profileImages"
 import { storageIsClaimed } from "./catalogue/artwork"
+import { eligibleMember } from "./discovery/projection"
 import {
   normalizeEmail,
   normalizeHandle,
@@ -512,8 +513,9 @@ export const publicByHandle = query({
       .unique()
     if (!profile) return null
 
-    const member = await ctx.db.get("members", profile.memberId)
-    if (!member || member.status !== "active") return null
+    const eligible = await eligibleMember(ctx, profile.memberId)
+    if (!eligible) return null
+    const member = eligible.member
 
     const artistProfile =
       member.role === "artist"

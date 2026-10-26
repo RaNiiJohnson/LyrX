@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 
 import { useLocale } from "@/app/locale-provider"
 import { SongReadOnly } from "./song-read-only"
+import { RecordPublicView } from "@/features/discovery/record-public-view"
 
 export function PublicSong({ songId }: { songId: Id<"songs"> }) {
   const { t } = useLocale()
@@ -23,5 +24,10 @@ export function PublicSong({ songId }: { songId: Id<"songs"> }) {
     )
   }
 
-  return <SongReadOnly detail={detail} />
+  return (
+    <>
+      <RecordPublicView origin="artist" sourceId={songId} />
+      <SongReadOnly detail={detail} />
+    </>
+  )
 }

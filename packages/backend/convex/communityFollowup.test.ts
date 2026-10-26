@@ -2,6 +2,7 @@
 import { convexTest } from "convex-test"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import rateLimiterTest from "@convex-dev/rate-limiter/test"
+import aggregateTest from "@convex-dev/aggregate/test"
 import { api, internal } from "./_generated/api"
 import schema from "./schema"
 import * as imageValidation from "./lib/catalogueImages"
@@ -9,6 +10,7 @@ import * as imageValidation from "./lib/catalogueImages"
 const modules = import.meta.glob("./**/*.ts")
 function backend() {
   const t = convexTest(schema, modules)
+  aggregateTest.register(t, "publicDiscovery")
   rateLimiterTest.register(t)
   return t
 }

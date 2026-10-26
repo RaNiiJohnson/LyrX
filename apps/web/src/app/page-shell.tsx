@@ -1,28 +1,12 @@
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
-import {
-  Disc3,
-  Home,
-  LogIn,
-  LogOut,
-  Menu,
-  UserRound,
-  UserRoundPlus,
-} from "lucide-react"
+import type { FunctionReturnType } from "convex/server"
+import { Home, Library, Music2, PenLine, UserRound, Users } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { PRODUCT_NAME } from "@lyrx/shared"
 import { Button } from "@lyrx/ui/components/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@lyrx/ui/components/dropdown-menu"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { toast } from "@lyrx/ui/lib/toast"
 import { cn } from "@lyrx/ui/lib/utils"
@@ -32,108 +16,159 @@ import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { getPublicRuntimeConfig } from "@/lib/runtime-config"
 
+import { AccountSidebar, type AccountNavigationProps } from "./account-sidebar"
 import { LocaleMenu } from "./locale-menu"
 import { useLocale } from "./locale-provider"
 import { ThemeMenu } from "./theme-menu"
 
 export function PageShell({
   children,
-  footerBelowFold = false,
   width = "narrow",
 }: {
   children: ReactNode
+  /** Retained for existing callers; the footer now always follows normal flow. */
   footerBelowFold?: boolean
   width?: "narrow" | "wide"
 }) {
+  return getPublicRuntimeConfig() ? (
+    <ConfiguredPageShell width={width}>{children}</ConfiguredPageShell>
+  ) : (
+    <ShellFrame width={width} current={{ state: "anonymous" }}>
+      {children}
+    </ShellFrame>
+  )
+}
+
+type CurrentAccount = FunctionReturnType<typeof api.members.current>
+type ShellFrameProps = {
+  children: ReactNode
+  width: "narrow" | "wide"
+  current: CurrentAccount | undefined
+}
+
+function ConfiguredPageShell({
+  children,
+  width,
+}: Omit<ShellFrameProps, "current">) {
+  const current = useQuery(api.members.current, {})
+  return (
+    <ShellFrame width={width} current={current}>
+      {children}
+    </ShellFrame>
+  )
+}
+
+function ShellFrame({ children, width, current }: ShellFrameProps) {
   const { t } = useLocale()
+  const account = current && getAccountNavigation(current.state)
+  const primary =
+    account?.kind === "authenticated"
+      ? { href: account.href, label: t(account.labelKey) }
+      : undefined
 
   return (
     <div className="grid min-h-svh grid-rows-[auto_1fr_auto]">
-      <header className="sticky top-0 z-40 pt-4">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <div className="flex h-14 items-center gap-3 rounded-full border bg-background/90 px-3 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/75 sm:px-4">
-            <Link
-              to="/"
-              className="group mr-auto flex items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-brand-foreground shadow-sm transition-transform group-hover:-rotate-3">
-                X
-              </span>
-              <span className="text-lg font-semibold tracking-tight">
-                {PRODUCT_NAME}
-              </span>
-            </Link>
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6 lg:gap-6">
+          <Link
+            to="/"
+            className="group mr-auto flex shrink-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:mr-0"
+          >
+            <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-brand-foreground shadow-sm transition-transform group-hover:-rotate-3">
+              X
+            </span>
+            <span className="text-lg font-semibold tracking-tight">
+              {PRODUCT_NAME}
+            </span>
+          </Link>
 
-            <nav aria-label={t("navigation.menu")} className="hidden lg:flex">
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/">{t("navigation.home")}</Link>
-              </Button>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/community">{t("community.title")}</Link>
-              </Button>
-            </nav>
+          <nav
+            aria-label={t("navigation.menu")}
+            className="mr-auto hidden items-center gap-1 lg:flex"
+          >
+            <DesktopLink to="/">{t("navigation.home")}</DesktopLink>
+            {current?.state === "ready" && current.member.role === "artist" ? (
+              <DesktopLink to="/studio">{t("navigation.studio")}</DesktopLink>
+            ) : null}
+            {current?.state === "ready" && current.member.role === "fan" ? (
+              <DesktopLink to="/community/mine">
+                {t("navigation.contributions")}
+              </DesktopLink>
+            ) : null}
+          </nav>
 
-            <div className="flex items-center gap-0.5">
-              <LocaleMenu />
-              <ThemeMenu />
-              {getPublicRuntimeConfig() ? (
-                <ConfiguredAccountNavigation />
-              ) : (
-                <AnonymousAccountNavigation />
-              )}
-            </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <LocaleMenu />
+            <ThemeMenu />
+            <ConfiguredAccountNavigation current={current} />
           </div>
         </div>
       </header>
 
       <main
         className={cn(
-          "mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8",
-          footerBelowFold && "min-h-[calc(100svh-4.5rem)]",
+          "mx-auto flex w-full min-w-0 flex-col gap-6 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:pb-8",
           width === "wide" ? "max-w-6xl" : "max-w-2xl"
         )}
       >
         {children}
       </main>
 
-      <footer className="border-t">
-        <div
-          className={cn(
-            "mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:px-6",
-            footerBelowFold && "pb-20 sm:pb-6"
-          )}
-        >
+      <footer className="hidden border-t lg:block">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6 text-sm text-muted-foreground">
           <p>
             © {new Date().getFullYear()} {PRODUCT_NAME}
           </p>
           <p>{t("home.eyebrow")}</p>
         </div>
       </footer>
+      <BottomNavigation
+        primary={primary}
+        role={current?.state === "ready" ? current.member.role : undefined}
+        pending={current === undefined}
+      />
     </div>
   )
 }
 
-function ConfiguredAccountNavigation() {
-  const current = useQuery(api.members.current, {})
+function DesktopLink({
+  children,
+  to,
+}: {
+  children: ReactNode
+  to: "/" | "/studio" | "/community/mine"
+}) {
+  return (
+    <Button asChild variant="ghost">
+      <Link
+        to={to}
+        activeOptions={{ exact: to === "/" }}
+        activeProps={{ "aria-current": "page", "data-active": true }}
+        className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+      >
+        {children}
+      </Link>
+    </Button>
+  )
+}
+
+function ConfiguredAccountNavigation({
+  current,
+}: {
+  current: CurrentAccount | undefined
+}) {
   const { t } = useLocale()
 
   if (current === undefined) {
     return (
-      <>
-        <div
-          aria-label={t("common.loadingAccount")}
-          className="hidden items-center gap-2 lg:flex"
-        >
-          <Skeleton className="h-7 w-20" />
-          <Skeleton className="h-7 w-24" />
-        </div>
-        <Skeleton className="size-8 rounded-lg lg:hidden" />
-      </>
+      <div aria-label={t("common.loadingAccount")} role="status">
+        <Skeleton className="size-9 rounded-full" />
+      </div>
     )
   }
 
   const navigation = getAccountNavigation(current.state)
-  if (navigation.kind === "anonymous") return <AnonymousAccountNavigation />
+  if (navigation.kind === "anonymous") return <AccountSidebar />
 
   async function signOut() {
     try {
@@ -148,163 +183,112 @@ function ConfiguredAccountNavigation() {
   }
 
   return (
-    <>
-      <nav
-        aria-label={t("navigation.account")}
-        className="hidden items-center gap-1 lg:flex"
-      >
-        {current.state === "ready" && current.member.role === "artist" ? (
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/studio">{t("navigation.studio")}</Link>
-          </Button>
-        ) : null}
-        {current.state === "ready" && current.member.role === "fan" ? (
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/community/mine">{t("community.mine")}</Link>
-          </Button>
-        ) : null}
-        {current.state === "ready" && current.member.isAdmin ? (
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/admin/community">{t("community.moderation")}</Link>
-          </Button>
-        ) : null}
-        <Button asChild size="sm">
-          <Link to={navigation.href}>{t(navigation.labelKey)}</Link>
-        </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={signOut}>
-          {t("navigation.signOut")}
-        </Button>
-      </nav>
-      <MobileNavigation
-        primary={{ href: navigation.href, label: t(navigation.labelKey) }}
-        showStudio={
-          current.state === "ready" && current.member.role === "artist"
-        }
-        onSignOut={signOut}
-        showCommunityMine={
-          current.state === "ready" && current.member.role === "fan"
-        }
-        showModeration={current.state === "ready" && current.member.isAdmin}
-      />
-    </>
+    <AccountSidebar
+      primary={{ href: navigation.href, label: t(navigation.labelKey) }}
+      displayName={
+        current.state === "ready" ? current.profile.displayName : undefined
+      }
+      initial={
+        current.state === "ready"
+          ? current.profile.displayName.trim().slice(0, 1).toUpperCase()
+          : undefined
+      }
+      role={current.state === "ready" ? current.member.role : undefined}
+      showModeration={current.state === "ready" && current.member.isAdmin}
+      onSignOut={signOut}
+    />
   )
 }
 
-function AnonymousAccountNavigation() {
-  const { t } = useLocale()
-
-  return (
-    <>
-      <nav
-        aria-label={t("navigation.account")}
-        className="hidden items-center gap-1 lg:flex"
-      >
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/auth/sign-in">{t("navigation.signIn")}</Link>
-        </Button>
-        <Button asChild size="sm">
-          <Link to="/auth/sign-up">{t("navigation.createAccount")}</Link>
-        </Button>
-      </nav>
-      <MobileNavigation />
-    </>
-  )
-}
-
-function MobileNavigation({
+function BottomNavigation({
   primary,
-  showStudio = false,
-  showCommunityMine = false,
-  showModeration = false,
-  onSignOut,
-}: {
-  primary?: {
-    href: "/auth/verify-email" | "/onboarding" | "/profile"
-    label: string
-  }
-  showStudio?: boolean
-  showCommunityMine?: boolean
-  showModeration?: boolean
-  onSignOut?: () => Promise<void>
-}) {
+  role,
+  pending = false,
+}: Pick<AccountNavigationProps, "primary" | "role"> & { pending?: boolean }) {
   const { t } = useLocale()
+  const tool =
+    role === "artist"
+      ? {
+          href: "/studio" as const,
+          label: t("navigation.studio"),
+          icon: PenLine,
+        }
+      : role === "fan"
+        ? {
+            href: "/community/mine" as const,
+            label: t("navigation.contributions"),
+            icon: Library,
+          }
+        : {
+            href: "/artists" as const,
+            label: t("navigation.artists"),
+            icon: Users,
+          }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="lg:hidden"
-          aria-label={t("navigation.openMenu")}
+    <nav
+      aria-label={t("navigation.mobile")}
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
+    >
+      <BottomLink href="/" label={t("navigation.home")} icon={Home} />
+      <BottomLink href="/songs" label={t("studio.songs")} icon={Music2} />
+      {pending ? (
+        <div
+          className="col-span-2 grid grid-cols-2"
+          aria-label={t("common.loadingAccount")}
+          role="status"
         >
-          <Menu aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 lg:hidden">
-        <DropdownMenuLabel>{PRODUCT_NAME}</DropdownMenuLabel>
-        <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link to="/">
-              <Home />
-              {t("navigation.home")}
-            </Link>
-          </DropdownMenuItem>
-          {showStudio ? (
-            <DropdownMenuItem asChild>
-              <Link to="/studio">
-                <Disc3 />
-                {t("navigation.studio")}
-              </Link>
-            </DropdownMenuItem>
-          ) : null}
-          <DropdownMenuItem asChild>
-            <Link to="/community">{t("community.title")}</Link>
-          </DropdownMenuItem>
-          {showCommunityMine ? (
-            <DropdownMenuItem asChild>
-              <Link to="/community/mine">{t("community.mine")}</Link>
-            </DropdownMenuItem>
-          ) : null}
-          {showModeration ? (
-            <DropdownMenuItem asChild>
-              <Link to="/admin/community">{t("community.moderation")}</Link>
-            </DropdownMenuItem>
-          ) : null}
-          {primary ? (
-            <DropdownMenuItem asChild>
-              <Link to={primary.href}>
-                <UserRound />
-                {primary.label}
-              </Link>
-            </DropdownMenuItem>
-          ) : (
-            <>
-              <DropdownMenuItem asChild>
-                <Link to="/auth/sign-in">
-                  <LogIn />
-                  {t("navigation.signIn")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/auth/sign-up">
-                  <UserRoundPlus />
-                  {t("navigation.createAccount")}
-                </Link>
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuGroup>
-        {onSignOut ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => void onSignOut()}>
-              <LogOut />
-              {t("navigation.signOut")}
-            </DropdownMenuItem>
-          </>
-        ) : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {[0, 1].map((slot) => (
+            <div key={slot} className="grid h-16 place-items-center">
+              <Skeleton className="h-9 w-14" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          <BottomLink href={tool.href} label={tool.label} icon={tool.icon} />
+          <BottomLink
+            href={primary?.href ?? "/auth/sign-in"}
+            label={
+              primary?.href === "/profile"
+                ? t("navigation.account")
+                : (primary?.label ?? t("navigation.signIn"))
+            }
+            icon={UserRound}
+          />
+        </>
+      )}
+    </nav>
+  )
+}
+
+function BottomLink({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href:
+    | "/"
+    | "/songs"
+    | "/artists"
+    | "/studio"
+    | "/community/mine"
+    | "/auth/sign-in"
+    | "/auth/verify-email"
+    | "/onboarding"
+    | "/profile"
+  label: string
+  icon: typeof Home
+}) {
+  return (
+    <Link
+      to={href}
+      activeOptions={{ exact: href === "/" }}
+      activeProps={{ "aria-current": "page", "data-active": true }}
+      className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-xs text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+    >
+      <Icon className="size-5 shrink-0" aria-hidden="true" />
+      <span className="line-clamp-2 break-words">{label}</span>
+    </Link>
   )
 }

@@ -1,28 +1,46 @@
 import { convexQuery } from "@convex-dev/react-query"
 import { useSuspenseQuery } from "@tanstack/react-query"
-
+import { Link } from "@tanstack/react-router"
+import { useQuery } from "convex/react"
+import type { FunctionReturnType } from "convex/server"
+import { ExternalLink } from "lucide-react"
+import { useState } from "react"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@lyrx/ui/components/avatar"
 import { Badge } from "@lyrx/ui/components/badge"
+import { Button } from "@lyrx/ui/components/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@lyrx/ui/components/card"
-import { Separator } from "@lyrx/ui/components/separator"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
-
+import { cn } from "@lyrx/ui/lib/utils"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@lyrx/ui/components/tabs"
 import { useLocale } from "@/app/locale-provider"
+import { AlbumCard, SongCard } from "@/features/discovery/discovery-cards"
+import {
+  DiscoveryEmpty,
+  DiscoveryLoading,
+} from "@/features/discovery/discovery-states"
+
+type Profile = NonNullable<
+  FunctionReturnType<typeof api.members.publicByHandle>
+>
 
 export function PublicProfile({ handle }: { handle: string }) {
   const { t } = useLocale()
   const { data: profile } = useSuspenseQuery(
     convexQuery(api.members.publicByHandle, { handle })
   )
-  if (!profile) {
+  if (!profile)
     return (
       <Alert>
         <AlertTitle>{t("profile.publicNotFoundTitle")}</AlertTitle>
@@ -31,117 +49,200 @@ export function PublicProfile({ handle }: { handle: string }) {
         </AlertDescription>
       </Alert>
     )
-  }
-
-  const initials = profile.displayName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-
   return (
-    <Card>
-      {profile.artist?.bannerUrl ? (
+    <section className="flex min-w-0 flex-col gap-7">
+      <ProfileHeader
+        key={profile.artist?.bannerUrl ?? "no-banner"}
+        profile={profile}
+      />
+      {profile.bio ? (
+        <p className="max-w-3xl leading-7 break-words whitespace-pre-wrap">
+          {profile.bio}
+        </p>
+      ) : null}
+      {profile.artist ? <ArtistCatalogue profile={profile} /> : null}
+    </section>
+  )
+}
+
+function ProfileHeader({ profile }: { profile: Profile }) {
+  const { t } = useLocale()
+  const [bannerFailed, setBannerFailed] = useState(false)
+  const bannerUrl = profile.artist?.bannerUrl
+  const hasBanner = Boolean(bannerUrl) && !bannerFailed
+  return (
+    <div className="flex flex-col">
+      {hasBanner && bannerUrl ? (
         <img
-          src={profile.artist.bannerUrl}
+          src={bannerUrl}
           alt=""
-          className="aspect-3/1 w-full rounded-t-xl object-cover"
+          className="aspect-3/1 max-h-64 w-full rounded-2xl object-cover"
+          onError={() => setBannerFailed(true)}
         />
       ) : null}
-      <CardHeader>
-        <div className="flex items-center gap-4">
-          <Avatar size="lg">
-            {profile.avatarUrl ? (
-              <AvatarImage src={profile.avatarUrl} alt="" />
-            ) : null}
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle>{profile.displayName}</CardTitle>
-            <CardDescription>@{profile.handle}</CardDescription>
+      <header
+        className={cn(
+          "flex flex-col items-start gap-3 sm:flex-row sm:gap-5",
+          hasBanner && "px-4 sm:px-6"
+        )}
+      >
+        <Avatar
+          className={cn(
+            "size-24 sm:size-32",
+            hasBanner && "-mt-12 ring-4 ring-background sm:-mt-16"
+          )}
+        >
+          {profile.avatarUrl ? (
+            <AvatarImage src={profile.avatarUrl} alt="" />
+          ) : null}
+          <AvatarFallback>
+            {profile.displayName.trim().slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div
+          className={cn(
+            "flex min-w-0 flex-col gap-1",
+            !hasBanner && "sm:self-center"
+          )}
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl font-semibold break-words">
+              {profile.displayName}
+            </h1>
+            <Badge variant="secondary">
+              {t(profile.role === "artist" ? "common.artist" : "common.fan")}
+            </Badge>
           </div>
-          <Badge variant="secondary">
-            {profile.role === "artist" ? t("common.artist") : t("common.fan")}
-          </Badge>
+          <p className="break-words text-muted-foreground">@{profile.handle}</p>
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        {profile.bio ? <p className="leading-7">{profile.bio}</p> : null}
-        {profile.artist ? (
-          <>
-            <Separator />
-            <section className="flex flex-col gap-3">
-              <h2 className="font-medium">{t("profile.aboutArtist")}</h2>
-              {profile.artist.presentation ? (
-                <p className="leading-7 text-muted-foreground">
-                  {profile.artist.presentation}
-                </p>
-              ) : null}
-              {profile.artist.instagramUrl ? (
-                <a
-                  className="w-fit underline"
-                  href={profile.artist.instagramUrl}
-                  target="_blank"
-                  rel="noreferrer"
+      </header>
+    </div>
+  )
+}
+
+function ArtistCatalogue({ profile }: { profile: Profile }) {
+  const { t } = useLocale()
+  const catalogue = useQuery(api.discovery.read.artistByHandle, {
+    handle: profile.handle,
+  })
+  if (!catalogue?.ready) return <DiscoveryLoading />
+  return (
+    <Tabs defaultValue="songs" className="gap-6">
+      <TabsList
+        variant="line"
+        className="w-full justify-start border-b border-border"
+      >
+        <TabsTrigger value="songs" className="min-w-0 flex-1 px-1 sm:px-4">
+          <span className="truncate">
+            {t("discovery.songs")} · {catalogue.songCount}
+          </span>
+        </TabsTrigger>
+        <TabsTrigger value="albums" className="min-w-0 flex-1 px-1 sm:px-4">
+          <span className="truncate">
+            {t("discovery.albums")} · {catalogue.albumCount}
+          </span>
+        </TabsTrigger>
+        <TabsTrigger value="about" className="min-w-0 flex-1 px-1 sm:px-4">
+          <span className="truncate">{t("discovery.about")}</span>
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="songs" className="flex flex-col gap-6">
+        <div className="grid gap-7 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="flex min-w-0 flex-col gap-5">
+            {catalogue.songs.length ? (
+              <div className="grid gap-x-4 sm:grid-cols-2 sm:gap-y-4">
+                {catalogue.songs.map((song) => (
+                  <SongCard key={song.id} song={song} />
+                ))}
+              </div>
+            ) : (
+              <DiscoveryEmpty />
+            )}
+            {catalogue.songCount > catalogue.songs.length ? (
+              <Button asChild variant="outline" className="self-start">
+                <Link
+                  to="/songs"
+                  search={{ artist: profile.handle, page: 1, sort: "newest" }}
                 >
-                  Instagram
-                </a>
-              ) : null}
-              {profile.artist.facebookUrl ? (
-                <a
-                  className="w-fit underline"
-                  href={profile.artist.facebookUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Facebook
-                </a>
-              ) : null}
-              {profile.artist.tiktokUrl ? (
-                <a
-                  className="w-fit underline"
-                  href={profile.artist.tiktokUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  TikTok
-                </a>
-              ) : null}
-              {profile.artist.youtubeUrl ? (
-                <a
-                  className="w-fit underline"
-                  href={profile.artist.youtubeUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  YouTube
-                </a>
-              ) : null}
-              {profile.artist.spotifyUrl ? (
-                <a
-                  className="w-fit underline"
-                  href={profile.artist.spotifyUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Spotify
-                </a>
-              ) : null}
-              {profile.artist.customLinks.map((link) => (
-                <a
-                  key={link.url}
-                  className="w-fit underline"
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {link.label}
-                </a>
+                  {t("discovery.seeAll")}
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+          <AboutArtist profile={profile} />
+        </div>
+        {catalogue.albums.length ? (
+          <section className="flex flex-col gap-4">
+            <h2 className="text-xl font-semibold">{t("discovery.albums")}</h2>
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              {catalogue.albums.map((album) => (
+                <AlbumCard key={album.id} album={album} />
               ))}
-            </section>
-          </>
+            </div>
+          </section>
         ) : null}
+      </TabsContent>
+      <TabsContent value="albums" className="flex flex-col gap-5">
+        {catalogue.albums.length ? (
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            {catalogue.albums.map((album) => (
+              <AlbumCard key={album.id} album={album} />
+            ))}
+          </div>
+        ) : (
+          <DiscoveryEmpty />
+        )}
+        {catalogue.albumCount > catalogue.albums.length ? (
+          <Button asChild variant="outline" className="self-start">
+            <Link
+              to="/albums"
+              search={{ artist: profile.handle, page: 1, sort: "newest" }}
+            >
+              {t("discovery.seeAll")}
+            </Link>
+          </Button>
+        ) : null}
+      </TabsContent>
+      <TabsContent value="about">
+        <AboutArtist profile={profile} />
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+function AboutArtist({ profile }: { profile: Profile }) {
+  const { t } = useLocale()
+  const artist = profile.artist
+  if (!artist) return null
+  const socialLinks = [
+    { label: "Instagram", url: artist.instagramUrl },
+    { label: "Facebook", url: artist.facebookUrl },
+    { label: "TikTok", url: artist.tiktokUrl },
+    { label: "YouTube", url: artist.youtubeUrl },
+    { label: "Spotify", url: artist.spotifyUrl },
+    ...artist.customLinks,
+  ].filter((link): link is { label: string; url: string } => Boolean(link.url))
+  return (
+    <Card className="h-fit">
+      <CardHeader>
+        <CardTitle>{t("profile.aboutArtist")}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {artist.presentation ? (
+          <p className="leading-7 break-words whitespace-pre-wrap text-muted-foreground">
+            {artist.presentation}
+          </p>
+        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {socialLinks.map((link) => (
+            <Button key={`${link.label}:${link.url}`} asChild variant="outline">
+              <a href={link.url} target="_blank" rel="noreferrer">
+                {link.label}
+                <ExternalLink data-icon="inline-end" />
+              </a>
+            </Button>
+          ))}
+        </div>
       </CardContent>
     </Card>
   )
@@ -149,22 +250,15 @@ export function PublicProfile({ handle }: { handle: string }) {
 
 export function PublicProfileSkeleton({ label }: { label: string }) {
   return (
-    <Card aria-label={label}>
-      <Skeleton className="aspect-3/1 w-full rounded-b-none" />
-      <CardHeader>
-        <div className="flex items-center gap-4">
-          <Skeleton className="size-12 rounded-full" />
-          <div className="flex flex-1 flex-col gap-2">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-28" />
-          </div>
-          <Skeleton className="h-5 w-16" />
+    <div aria-label={label} role="status" className="flex flex-col gap-6">
+      <div className="flex items-center gap-5">
+        <Skeleton className="size-24 rounded-full" />
+        <div className="flex flex-1 flex-col gap-3">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-28" />
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
-      </CardContent>
-    </Card>
+      </div>
+      <Skeleton className="h-4 w-3/4" />
+    </div>
   )
 }

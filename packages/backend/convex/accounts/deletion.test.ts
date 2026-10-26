@@ -18,6 +18,7 @@ import { beginAccountDeletion } from "./deletion"
 const modules = {
   "../_generated/server.ts": () => import("../_generated/server"),
   "../accounts/deletion.ts": () => import("./deletion"),
+  "../discovery/maintenance.ts": () => import("../discovery/maintenance"),
 }
 
 function first<T>(items: ReadonlyArray<T>): T {
@@ -34,6 +35,7 @@ function backend() {
     "catalogueAlbums",
     "catalogueAlbumsByStatus",
     "catalogueAlbumTracks",
+    "publicDiscovery",
   ])
     aggregateTest.register(t, name)
   return t

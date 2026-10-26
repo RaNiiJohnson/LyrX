@@ -24,6 +24,7 @@ app.use(aggregate, { name: "catalogueSongsByStatus" })
 app.use(aggregate, { name: "catalogueAlbums" })
 app.use(aggregate, { name: "catalogueAlbumsByStatus" })
 app.use(aggregate, { name: "catalogueAlbumTracks" })
+app.use(aggregate, { name: "publicDiscovery" })
 app.use(rateLimiter)
 app.use(resend)
 

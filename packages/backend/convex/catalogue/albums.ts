@@ -20,6 +20,7 @@ import {
   setSongAlbumContext,
 } from "./tracks"
 import { deleteArtworkIfUnused } from "./artwork"
+import { queueOwnerRefresh } from "../discovery/projection"
 
 export const createAlbum = artistMutation({
   args: albumInput,
@@ -305,6 +306,7 @@ export const deleteAlbum = artistMutation({
     if (tracks.length > MAX_TRACKS)
       bad("CATALOGUE_INVARIANT", "Too many tracks in the album.")
 
+    if (tracks.length > 10) await queueOwnerRefresh(ctx, album.ownerMemberId)
     for (const track of tracks) {
       const song = await ctx.db.get("songs", track.songId)
       if (!song || song.ownerMemberId !== ctx.member._id)

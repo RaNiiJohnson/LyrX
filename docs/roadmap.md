@@ -17,7 +17,7 @@ authoritative throughout delivery.
 | 5. Web structure and lyric entry | Route-owned screens and data loading, feature-oriented web code, and one-textarea lyric authoring | Route/SSR/auth regression checks, raw-text/parser tests, and production build |
 | T1. Catalogue modules and image upload optimization | Domain-oriented Convex catalogue and optimized avatar/banner/artwork uploads | Ownership/lifecycle/Aggregate regressions, image-processing checks, root gate and browser smoke test |
 | 6. Community fan lyrics and report moderation | Fans publish attributed community lyrics without pre-approval; admins moderate only after reports | Attribution, public visibility, report/hide/remove, and cross-account authorization tests |
-| 7. Public pages and discovery | Public artist, album, and song pages plus recent/popular discovery | Visibility, pagination, ranking, and external-player checks |
+| 7. Public pages, unified discovery, and approved layouts | Apply necessary `design/` layouts using the current theme; public artist/album/song pages, unified Artist/Fan song lists with origin badges, bounded home rows, numbered catalogue pages, and a visibly deferred search entry | Cross-origin visibility/pagination/counts, responsive/role-aware layout, ranking, and external-player checks |
 | 8. Catalogue and lyrics search | Search published titles, artists, albums, genres, and supported lyrics terms with excerpts | Search capability/limit tests and no-private-data proof |
 | 9. Likes, comments, reports | Idempotent song likes, flat comments, deletion, reports, and admin intervention | Concurrency and moderation tests |
 | 10. Private lyric notebook | Private saved excerpts, default/custom collections, source and unavailable states | Cross-account privacy and source-change tests |
@@ -42,9 +42,20 @@ on `codex/account-self-deletion`, completed with the redirect-flash fix at
 `3da2c3e`. The user has now authorized resuming `codex/community-fan-lyrics`;
 local merge `66b5d9f` integrates that prerequisite. The earlier checkpoint
 `1298ef1` is historical. Community cleanup and the final verification/review
-gate belong to this resumed lot. Lot 6 is now complete locally with Fan/admin
-browser evidence and 208 passing tests; no PR/push is authorized. Lot 7 awaits
-approval. Lot 5 and T1 stay closed.
+gate belonged to that resumed lot. Lot 6 and its follow-up are now merged in
+PR #4 at `9f83883`. The user authorized lot 7 on
+`codex/public-discovery-layouts`, based on that merge. Lot 5 and T1 stay closed.
+
+The user's subsequent lot 7 design decisions are recorded in
+[design guidance](design-guidance.md). They replace a separate design lot and
+the separate public Community listing: artist and Fan publications share public
+song discovery, while their backend ownership/moderation domains remain separate.
+The current Caffeine colors stay unchanged. Search UI is shown with an explicit
+unavailable state in lot 7; search behavior stays in lot 8. This documentation
+update originally recorded scope only. Actual lot 7 verification and completion
+are recorded in [progress](progress.md). The user permits pushing the branch and
+preparing an English PR description in Chrome, but retains the Create pull
+request action. No lot 8 or production deployment is authorized.
 
 Lots 2–12 stabilize the web and shared backend before Expo. Search follows the
 public content model so its visibility rules are testable. Notebook excerpts and

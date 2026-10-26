@@ -11,6 +11,7 @@ const modules = {
   "../_generated/server.ts": () => import("../_generated/server"),
   "../accounts/deletion.ts": () => import("./deletion"),
   "../community/read.ts": () => import("../community/read"),
+  "../discovery/maintenance.ts": () => import("../discovery/maintenance"),
 }
 
 function backend() {
@@ -21,6 +22,7 @@ function backend() {
     "catalogueAlbums",
     "catalogueAlbumsByStatus",
     "catalogueAlbumTracks",
+    "publicDiscovery",
   ])
     aggregateTest.register(t, name)
   return t

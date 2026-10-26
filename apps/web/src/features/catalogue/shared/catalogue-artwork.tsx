@@ -1,5 +1,5 @@
 import { Disc3, FileMusic, Pencil } from "lucide-react"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 
 import { Button } from "@lyrx/ui/components/button"
 import { Input } from "@lyrx/ui/components/input"
@@ -26,13 +26,19 @@ export function CatalogueArtwork({
 }) {
   const { t } = useLocale()
   const input = useRef<HTMLInputElement>(null)
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
   const label = t(artworkUrl ? "catalogue.editArtwork" : "catalogue.addArtwork")
   const Placeholder = kind === "album" ? Disc3 : FileMusic
   return (
     <div className={cn("relative shrink-0", className)}>
       <div className="grid size-full place-items-center overflow-hidden rounded-2xl bg-muted text-muted-foreground">
-        {artworkUrl ? (
-          <img src={artworkUrl} alt="" className="size-full object-cover" />
+        {artworkUrl && failedUrl !== artworkUrl ? (
+          <img
+            src={artworkUrl}
+            alt=""
+            className="size-full object-cover"
+            onError={() => setFailedUrl(artworkUrl)}
+          />
         ) : (
           <Placeholder className="size-8" />
         )}
