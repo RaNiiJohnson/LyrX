@@ -6,8 +6,8 @@
 
 Resumed from remote checkpoint `2e48b37` on `codex/public-discovery-layouts`.
 The quota pauses and intermediate 339-test result are historical, not pending
-work. The final root **`pnpm check` passes 373 tests** (29 shared, 83 backend,
-261 web), formatting, lint, TypeScript and client/SSR production builds.
+work. The final root **`pnpm check` passes 380 tests** (29 shared, 83 backend,
+268 web), formatting, lint, TypeScript and client/SSR production builds.
 The primary reviewed the entire lot locally from `9f83883`, then re-reviewed
 all visual follow-up changes and applied the Convex reviewer checklist. No
 blocking standards/specification or Critical/Important Convex finding remains.
@@ -26,6 +26,15 @@ tile; profile uses the same control and a non-stretched 96px circular avatar.
 The upload/authorization pipeline is unchanged. Intro/Outro are available in
 both locales and lyric editors; pending/read-only tools cannot edit the text.
 Native insertion, selection and Ctrl+Z were rechecked without submitting content.
+
+The user's subsequent profile polish is also complete on this same branch:
+avatar overlaps a working banner by 48px mobile / 64px desktop, with no phantom
+offset after image failure; the tighter name/handle block aligns with the avatar.
+Three equal-width profile tabs have a real active underline. The shared Tabs
+primitive now targets Radix `data-state=active` rather than absent `data-active`.
+The public-profile link is in the editor header, not the form footer. Primary
+re-reviewed these changes and image/error/keyboard regressions before re-running
+the complete root gate; the earlier 373-test result at `8d5a2b5` is superseded.
 
 Authorized after Git verification: PR #4 merged lot 6 into `main` at `9f83883`.
 The new branch `codex/public-discovery-layouts` starts from that fixed point.

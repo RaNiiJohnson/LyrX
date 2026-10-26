@@ -121,6 +121,30 @@ afterEach(async () => {
 })
 
 describe("profile form design adaptation", () => {
+  it.each([
+    [false, "fr", "Voir le profil public"],
+    [true, "fr", "Voir le profil public"],
+    [false, "en", "View public profile"],
+    [true, "en", "View public profile"],
+  ] as const)(
+    "places the public-profile action above the form for Artist=%s in %s",
+    async (artist, locale, label) => {
+      mocks.artist = artist
+      window.localStorage.setItem("lyrx-locale", locale)
+      await render()
+      const links = host.querySelectorAll('a[href="/profiles/test-handle"]')
+      expect(links).toHaveLength(1)
+      const link = links.item(0)
+      expect(link.textContent).toBe(label)
+      expect(link.closest("header")).not.toBeNull()
+      expect(link.closest("form")).toBeNull()
+      expect(
+        host.querySelector('form a[href="/profiles/test-handle"]')
+      ).toBeNull()
+      expect(mocks.update).not.toHaveBeenCalled()
+    }
+  )
+
   it("groups Fan images and identity without exposing Artist fields or changing text limits", async () => {
     await render()
     expect(document.querySelector("h1")?.textContent).toBe("Mon profil")

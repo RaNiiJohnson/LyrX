@@ -136,6 +136,14 @@ Profile image controls follow the same presentation, with a true 96px circular
 avatar rather than a Field-stretched capsule. Image preparation and upload
 authorization are unchanged.
 
+On public Artist profiles, the avatar overlaps the bottom of a visible banner
+like a social profile, with a background-colored ring. Missing or failed banners
+must not leave an overlap or empty gap. Artist catalogue tabs use a visible
+bottom rule and active underline, like the public list navigation, while keeping
+Radix keyboard behavior. The three profile tabs share the full row equally;
+catalogue destination links remain content-sized. In the profile editor, the public-profile link belongs
+in the top header; only saving stays at the bottom of the form.
+
 ## Lot boundaries and acceptance
 
 Lot 7 implements necessary mockups for public pages/discovery and the shared

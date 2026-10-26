@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
 import { ExternalLink } from "lucide-react"
+import { useState } from "react"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@lyrx/ui/components/avatar"
@@ -16,6 +17,7 @@ import {
   CardTitle,
 } from "@lyrx/ui/components/card"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { cn } from "@lyrx/ui/lib/utils"
 import {
   Tabs,
   TabsContent,
@@ -49,14 +51,47 @@ export function PublicProfile({ handle }: { handle: string }) {
     )
   return (
     <section className="flex min-w-0 flex-col gap-7">
-      {profile.artist?.bannerUrl ? (
-        <ProfileBanner
-          key={profile.artist.bannerUrl}
-          src={profile.artist.bannerUrl}
+      <ProfileHeader
+        key={profile.artist?.bannerUrl ?? "no-banner"}
+        profile={profile}
+      />
+      {profile.bio ? (
+        <p className="max-w-3xl leading-7 break-words whitespace-pre-wrap">
+          {profile.bio}
+        </p>
+      ) : null}
+      {profile.artist ? <ArtistCatalogue profile={profile} /> : null}
+    </section>
+  )
+}
+
+function ProfileHeader({ profile }: { profile: Profile }) {
+  const { t } = useLocale()
+  const [bannerFailed, setBannerFailed] = useState(false)
+  const bannerUrl = profile.artist?.bannerUrl
+  const hasBanner = Boolean(bannerUrl) && !bannerFailed
+  return (
+    <div className="flex flex-col">
+      {hasBanner && bannerUrl ? (
+        <img
+          src={bannerUrl}
+          alt=""
+          className="aspect-3/1 max-h-64 w-full rounded-2xl object-cover"
+          onError={() => setBannerFailed(true)}
         />
       ) : null}
-      <header className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-        <Avatar className="size-24 sm:size-32">
+      <header
+        className={cn(
+          "flex flex-col items-start gap-3 sm:flex-row sm:gap-5",
+          hasBanner && "px-4 sm:px-6"
+        )}
+      >
+        <Avatar
+          className={cn(
+            "size-24 sm:size-32",
+            hasBanner && "-mt-12 ring-4 ring-background sm:-mt-16"
+          )}
+        >
           {profile.avatarUrl ? (
             <AvatarImage src={profile.avatarUrl} alt="" />
           ) : null}
@@ -64,7 +99,12 @@ export function PublicProfile({ handle }: { handle: string }) {
             {profile.displayName.trim().slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <div className="flex min-w-0 flex-col gap-2">
+        <div
+          className={cn(
+            "flex min-w-0 flex-col gap-1",
+            !hasBanner && "sm:self-center"
+          )}
+        >
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl font-semibold break-words">
               {profile.displayName}
@@ -76,26 +116,7 @@ export function PublicProfile({ handle }: { handle: string }) {
           <p className="break-words text-muted-foreground">@{profile.handle}</p>
         </div>
       </header>
-      {profile.bio ? (
-        <p className="max-w-3xl leading-7 break-words whitespace-pre-wrap">
-          {profile.bio}
-        </p>
-      ) : null}
-      {profile.artist ? <ArtistCatalogue profile={profile} /> : null}
-    </section>
-  )
-}
-
-function ProfileBanner({ src }: { src: string }) {
-  return (
-    <img
-      src={src}
-      alt=""
-      className="aspect-3/1 max-h-64 w-full rounded-2xl object-cover"
-      onError={(event) => {
-        event.currentTarget.hidden = true
-      }}
-    />
+    </div>
   )
 }
 
@@ -107,14 +128,23 @@ function ArtistCatalogue({ profile }: { profile: Profile }) {
   if (!catalogue?.ready) return <DiscoveryLoading />
   return (
     <Tabs defaultValue="songs" className="gap-6">
-      <TabsList variant="line" className="w-full justify-start">
-        <TabsTrigger value="songs">
-          {t("discovery.songs")} · {catalogue.songCount}
+      <TabsList
+        variant="line"
+        className="w-full justify-start border-b border-border"
+      >
+        <TabsTrigger value="songs" className="min-w-0 flex-1 px-1 sm:px-4">
+          <span className="truncate">
+            {t("discovery.songs")} · {catalogue.songCount}
+          </span>
         </TabsTrigger>
-        <TabsTrigger value="albums">
-          {t("discovery.albums")} · {catalogue.albumCount}
+        <TabsTrigger value="albums" className="min-w-0 flex-1 px-1 sm:px-4">
+          <span className="truncate">
+            {t("discovery.albums")} · {catalogue.albumCount}
+          </span>
         </TabsTrigger>
-        <TabsTrigger value="about">{t("discovery.about")}</TabsTrigger>
+        <TabsTrigger value="about" className="min-w-0 flex-1 px-1 sm:px-4">
+          <span className="truncate">{t("discovery.about")}</span>
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="songs" className="flex flex-col gap-6">
         <div className="grid gap-7 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">

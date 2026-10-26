@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react"
 import { useState } from "react"
 import { Link } from "@tanstack/react-router"
-import { ImagePlus, UserRound } from "lucide-react"
+import { ArrowUpRight, ImagePlus, UserRound } from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
@@ -208,18 +208,29 @@ function ReadyProfileEditor({
 
   return (
     <section className="flex min-w-0 flex-col gap-8">
-      <header className="flex flex-wrap items-center gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {t("navigation.myProfile")}
-        </h1>
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary">
-            {current.member.role === "artist"
-              ? t("common.artist")
-              : t("common.fan")}
-          </Badge>
-          {current.member.isAdmin ? <Badge>{t("common.admin")}</Badge> : null}
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("navigation.myProfile")}
+          </h1>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary">
+              {current.member.role === "artist"
+                ? t("common.artist")
+                : t("common.fan")}
+            </Badge>
+            {current.member.isAdmin ? <Badge>{t("common.admin")}</Badge> : null}
+          </div>
         </div>
+        <Button asChild variant="outline">
+          <Link
+            to="/profiles/$handle"
+            params={{ handle: current.profile.handle }}
+          >
+            {t("profile.viewPublic")}
+            <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+          </Link>
+        </Button>
       </header>
       <form
         onSubmit={(event) => {
@@ -477,15 +488,7 @@ function ReadyProfileEditor({
           ) : null}
         </FieldGroup>
         <Separator />
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <Button asChild variant="ghost">
-            <Link
-              to="/profiles/$handle"
-              params={{ handle: current.profile.handle }}
-            >
-              {t("profile.viewPublic")}
-            </Link>
-          </Button>
+        <div className="flex flex-wrap items-center justify-end gap-4">
           <form.AppForm>
             <form.SubmitButton size="lg">{t("profile.save")}</form.SubmitButton>
           </form.AppForm>

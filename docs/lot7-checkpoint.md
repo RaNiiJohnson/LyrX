@@ -4,7 +4,7 @@
 
 The visual work pending at `2e48b37` is now implemented and verified. See
 [progress](progress.md) and [final verification](lot7-verification.md).
-Root `pnpm check` passes 373 tests (29 shared, 83 backend, 261 web), all static
+Root `pnpm check` passes 380 tests (29 shared, 83 backend, 268 web), all static
 checks and client/SSR builds. Primary local entire-lot review from `9f83883` and
 the applicable Convex review have no unresolved blocking findings.
 
@@ -14,6 +14,11 @@ by role. All three preference/account targets are equal 36px with 6px spacing.
 Grouped Sheet navigation, minimal artwork controls, circular avatar and FR/EN
 Intro/Outro are complete. Earlier pending lists below are historical and must
 not be used to undo these clarified decisions. No lot 8 is authorized.
+
+Profile polish supplied after `8d5a2b5` is complete too: avatar/banner overlap,
+tighter aligned name/handle, three equal-width underlined profile tabs and the
+public-profile action moved to the editor header. Radix state selectors were
+fixed in the shared Tabs primitive; Studio and profile regressions pass.
 
 Delivery remains commit/push this branch, then prepare the English PR in Chrome
 and stop before Create pull request. No PR is to be created by the agent.
