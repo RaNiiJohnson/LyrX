@@ -5,6 +5,7 @@ import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
 import { SignedOutOnly } from "@/features/auth/signed-out-only"
 import { SignUpForm } from "@/features/auth/sign-up-form"
+import { SignUpLayout } from "@/features/auth/sign-up-layout"
 
 export const Route = createFileRoute("/auth/sign-up")({
   ...appRouteBoundaries,
@@ -13,10 +14,12 @@ export const Route = createFileRoute("/auth/sign-up")({
 
 function SignUpPage() {
   return (
-    <PageShell>
+    <PageShell width="wide">
       <BackendRequired>
         <SignedOutOnly>
-          <SignUpForm />
+          <SignUpLayout>
+            <SignUpForm />
+          </SignUpLayout>
         </SignedOutOnly>
       </BackendRequired>
     </PageShell>

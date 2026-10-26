@@ -13,7 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as AlbumsIndexRouteImport } from './routes/albums/index'
 import { Route as AlbumsAlbumIdRouteImport } from './routes/albums/$albumId'
+import { Route as ArtistsIndexRouteImport } from './routes/artists/index'
+import { Route as ArtistsHandleRouteImport } from './routes/artists/$handle'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
@@ -24,6 +27,7 @@ import { Route as CommunityContributionIdRouteImport } from './routes/community/
 import { Route as CommunityMineRouteImport } from './routes/community/mine'
 import { Route as CommunityNewRouteImport } from './routes/community/new'
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
+import { Route as SongsIndexRouteImport } from './routes/songs/index'
 import { Route as SongsSongIdRouteImport } from './routes/songs/$songId'
 import { Route as StudioIndexRouteImport } from './routes/studio/index'
 import { Route as AdminCommunityIndexRouteImport } from './routes/admin/community/index'
@@ -60,9 +64,24 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlbumsIndexRoute = AlbumsIndexRouteImport.update({
+  id: '/albums/',
+  path: '/albums/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlbumsAlbumIdRoute = AlbumsAlbumIdRouteImport.update({
   id: '/albums/$albumId',
   path: '/albums/$albumId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistsIndexRoute = ArtistsIndexRouteImport.update({
+  id: '/artists/',
+  path: '/artists/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistsHandleRoute = ArtistsHandleRouteImport.update({
+  id: '/artists/$handle',
+  path: '/artists/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
@@ -113,6 +132,11 @@ const CommunityNewRoute = CommunityNewRouteImport.update({
 const ProfilesHandleRoute = ProfilesHandleRouteImport.update({
   id: '/profiles/$handle',
   path: '/profiles/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SongsIndexRoute = SongsIndexRouteImport.update({
+  id: '/songs/',
+  path: '/songs/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SongsSongIdRoute = SongsSongIdRouteImport.update({
@@ -202,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
+  '/artists/$handle': typeof ArtistsHandleRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -212,7 +237,10 @@ export interface FileRoutesByFullPath {
   '/community/new': typeof CommunityNewRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/songs/$songId': typeof SongsSongIdRoute
+  '/albums/': typeof AlbumsIndexRoute
+  '/artists/': typeof ArtistsIndexRoute
   '/community/': typeof CommunityIndexRoute
+  '/songs/': typeof SongsIndexRoute
   '/studio/': typeof StudioIndexRoute
   '/admin/community/$reportId': typeof AdminCommunityReportIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -234,6 +262,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
+  '/artists/$handle': typeof ArtistsHandleRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -243,7 +272,10 @@ export interface FileRoutesByTo {
   '/community/new': typeof CommunityNewRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/songs/$songId': typeof SongsSongIdRoute
+  '/albums': typeof AlbumsIndexRoute
+  '/artists': typeof ArtistsIndexRoute
   '/community': typeof CommunityIndexRoute
+  '/songs': typeof SongsIndexRoute
   '/studio': typeof StudioIndexRoute
   '/admin/community/$reportId': typeof AdminCommunityReportIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -264,6 +296,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
+  '/artists/$handle': typeof ArtistsHandleRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -274,7 +307,10 @@ export interface FileRoutesById {
   '/community/new': typeof CommunityNewRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/songs/$songId': typeof SongsSongIdRoute
+  '/albums/': typeof AlbumsIndexRoute
+  '/artists/': typeof ArtistsIndexRoute
   '/community/': typeof CommunityIndexRoute
+  '/songs/': typeof SongsIndexRoute
   '/studio/': typeof StudioIndexRoute
   '/admin/community/$reportId': typeof AdminCommunityReportIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -298,6 +334,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
+    | '/artists/$handle'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/sign-in'
@@ -308,7 +345,10 @@ export interface FileRouteTypes {
     | '/community/new'
     | '/profiles/$handle'
     | '/songs/$songId'
+    | '/albums/'
+    | '/artists/'
     | '/community/'
+    | '/songs/'
     | '/studio/'
     | '/admin/community/$reportId'
     | '/api/auth/$'
@@ -330,6 +370,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
+    | '/artists/$handle'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/sign-in'
@@ -339,7 +380,10 @@ export interface FileRouteTypes {
     | '/community/new'
     | '/profiles/$handle'
     | '/songs/$songId'
+    | '/albums'
+    | '/artists'
     | '/community'
+    | '/songs'
     | '/studio'
     | '/admin/community/$reportId'
     | '/api/auth/$'
@@ -359,6 +403,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
+    | '/artists/$handle'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/sign-in'
@@ -369,7 +414,10 @@ export interface FileRouteTypes {
     | '/community/new'
     | '/profiles/$handle'
     | '/songs/$songId'
+    | '/albums/'
+    | '/artists/'
     | '/community/'
+    | '/songs/'
     | '/studio/'
     | '/admin/community/$reportId'
     | '/api/auth/$'
@@ -392,6 +440,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
   AlbumsAlbumIdRoute: typeof AlbumsAlbumIdRoute
+  ArtistsHandleRoute: typeof ArtistsHandleRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
@@ -402,7 +451,10 @@ export interface RootRouteChildren {
   CommunityNewRoute: typeof CommunityNewRoute
   ProfilesHandleRoute: typeof ProfilesHandleRoute
   SongsSongIdRoute: typeof SongsSongIdRoute
+  AlbumsIndexRoute: typeof AlbumsIndexRoute
+  ArtistsIndexRoute: typeof ArtistsIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
+  SongsIndexRoute: typeof SongsIndexRoute
   StudioIndexRoute: typeof StudioIndexRoute
   AdminCommunityReportIdRoute: typeof AdminCommunityReportIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -443,11 +495,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/albums/': {
+      id: '/albums/'
+      path: '/albums'
+      fullPath: '/albums/'
+      preLoaderRoute: typeof AlbumsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/albums/$albumId': {
       id: '/albums/$albumId'
       path: '/albums/$albumId'
       fullPath: '/albums/$albumId'
       preLoaderRoute: typeof AlbumsAlbumIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artists/': {
+      id: '/artists/'
+      path: '/artists'
+      fullPath: '/artists/'
+      preLoaderRoute: typeof ArtistsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artists/$handle': {
+      id: '/artists/$handle'
+      path: '/artists/$handle'
+      fullPath: '/artists/$handle'
+      preLoaderRoute: typeof ArtistsHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/forgot-password': {
@@ -518,6 +591,13 @@ declare module '@tanstack/react-router' {
       path: '/profiles/$handle'
       fullPath: '/profiles/$handle'
       preLoaderRoute: typeof ProfilesHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/songs/': {
+      id: '/songs/'
+      path: '/songs'
+      fullPath: '/songs/'
+      preLoaderRoute: typeof SongsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/songs/$songId': {
@@ -676,6 +756,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,
   AlbumsAlbumIdRoute: AlbumsAlbumIdRoute,
+  ArtistsHandleRoute: ArtistsHandleRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,
@@ -686,7 +767,10 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityNewRoute: CommunityNewRoute,
   ProfilesHandleRoute: ProfilesHandleRoute,
   SongsSongIdRoute: SongsSongIdRoute,
+  AlbumsIndexRoute: AlbumsIndexRoute,
+  ArtistsIndexRoute: ArtistsIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
+  SongsIndexRoute: SongsIndexRoute,
   StudioIndexRoute: StudioIndexRoute,
   AdminCommunityReportIdRoute: AdminCommunityReportIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

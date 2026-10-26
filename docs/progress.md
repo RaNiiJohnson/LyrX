@@ -2,6 +2,36 @@
 
 ## Active lot
 
+### Lot 7 — public discovery and approved layouts (in progress, 26 October 2026)
+
+**Paused at the user's explicit quota stop.** All implementation agents are
+frozen. Read [the detailed checkpoint](lot7-checkpoint.md) before resuming:
+backend TypeScript errors, final tests/review, development backfill and browser
+acceptance remain pending. Discovery currently returns `ready:false` by design
+until its migration runs. This is a WIP checkpoint, not a completed lot.
+
+Authorized after Git verification: PR #4 merged lot 6 into `main` at `9f83883`.
+The new branch `codex/public-discovery-layouts` starts from that fixed point.
+Commit `06deac9` preserves the user's previously uncommitted roadmap/design
+decisions for this and future lots, including ignored local PNG references.
+
+- Implement one public Artist/Fan song projection, coherent numbered pages,
+  counts, visibility maintenance and bounded home/artist/album selections.
+- Apply `design/` layouts with the current Caffeine theme unchanged; keep Fan
+  contribution tools and moderation while replacing separate public discovery.
+- Add role-aware mobile navigation, normal-flow desktop footer, responsive
+  Studio/form layouts and optional heading insertion in the canonical textarea.
+- Search remains explicitly unavailable until lot 8; likes, comments, notebooks,
+  sharing and artist claim/replacement remain in their own lots.
+- Ranking uses real deduplicated signed-in-member views over seven UTC days;
+  anonymous reading stays public and does not contribute to that metric. No
+  fictitious ranking, playback or likes are claimed.
+- Implementation may be delegated with explicit ownership. The primary agent
+  retains the mandatory entire local diff review and applicable Convex review.
+  Completion, root gate and real browser evidence are still pending. Push is
+  authorized by the user's standing workflow, but PR creation is not: stop at
+  the prepared English description in Chrome. No production deployment.
+
 ### Lot 6 community follow-up — completed locally 26 October 2026
 
 Resumed from checkpoint `b54177d` on `codex/community-fan-lyrics`. The original

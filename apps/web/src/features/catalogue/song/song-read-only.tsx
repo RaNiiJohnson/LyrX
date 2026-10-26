@@ -204,7 +204,7 @@ export function SongReadOnly({
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,41.25rem)_18.75rem] lg:justify-between lg:gap-12">
-        <main className="order-2 min-w-0 lg:order-1">
+        <div className="order-2 min-w-0 lg:order-1">
           {detail.song.context ? (
             <blockquote className="mt-7 max-w-[41.25rem] text-base leading-7 text-muted-foreground italic">
               {detail.song.context}
@@ -228,7 +228,7 @@ export function SongReadOnly({
               </div>
             ))}
           </section>
-        </main>
+        </div>
         <aside className="order-1 flex min-w-0 flex-col gap-5 lg:sticky lg:top-[4.5rem] lg:order-2 lg:self-start">
           <SongListeningLinks
             artworkUrl={detail.artworkUrl}

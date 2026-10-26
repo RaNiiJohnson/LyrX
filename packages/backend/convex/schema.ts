@@ -1,6 +1,12 @@
 import { defineSchema, defineTable } from "convex/server"
 import { v } from "convex/values"
 import {
+  kind as discoveryKind,
+  origin as discoveryOrigin,
+  sourceId as discoverySourceId,
+  phase as discoveryPhase,
+} from "./discovery/model"
+import {
   contributionInput,
   contributionStatus,
   moderationAction,
@@ -20,6 +26,54 @@ import {
 } from "./model"
 
 export default defineSchema({
+  // Public read projection only. Ownership and canonical content stay in their
+  // existing artist/community domains; no raw lyrics or auth data are copied.
+  discoveryEntries: defineTable({
+    sourceId: discoverySourceId,
+    memberId: v.id("members"),
+    kind: discoveryKind,
+    origin: v.optional(discoveryOrigin),
+    titleKey: v.string(),
+    publishedAt: v.number(),
+    genre: v.optional(songGenreValidator),
+    recentViews: v.number(),
+  })
+    .index("by_source_id", ["sourceId"])
+    .index("by_member_id_and_kind", ["memberId", "kind"]),
+  discoveryState: defineTable({
+    key: v.literal("public"),
+    initialized: v.boolean(),
+    pendingJobs: v.number(),
+  }).index("by_key", ["key"]),
+  discoveryJobs: defineTable({
+    memberId: v.optional(v.id("members")),
+    phase: discoveryPhase,
+    cursor: v.union(v.string(), v.null()),
+    updatedAt: v.number(),
+  })
+    .index("by_member_id", ["memberId"])
+    .index("by_updated_at", ["updatedAt"]),
+  discoveryViews: defineTable({
+    sourceId: v.union(v.id("songs"), v.id("communityContributions")),
+    viewerMemberId: v.id("members"),
+    day: v.number(),
+    expiresAt: v.number(),
+  })
+    .index("by_viewer_member_id_and_source_id_and_day", [
+      "viewerMemberId",
+      "sourceId",
+      "day",
+    ])
+    .index("by_viewer_member_id", ["viewerMemberId"])
+    .index("by_source_id", ["sourceId"])
+    .index("by_expires_at", ["expiresAt"]),
+  discoveryViewCleanup: defineTable({
+    sourceId: v.union(v.id("songs"), v.id("communityContributions")),
+  }).index("by_source_id", ["sourceId"]),
+  discoveryScores: defineTable({
+    sourceId: v.union(v.id("songs"), v.id("communityContributions")),
+    recentViews: v.number(),
+  }).index("by_source_id", ["sourceId"]),
   // Minimal permanent revocation marker: an unexpired JWT must not recreate a
   // deleted account. New sign-ups receive a different authentication identity.
   accountDeletions: defineTable({

@@ -19,7 +19,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@lyrx/ui/components/tabs"
-import { cn } from "@lyrx/ui/lib/utils"
+import { ToggleGroup, ToggleGroupItem } from "@lyrx/ui/components/toggle-group"
 
 import { useLocale } from "@/app/locale-provider"
 import { CatalogueListSkeleton } from "@/features/catalogue/shared/catalogue-loading"
@@ -52,9 +52,6 @@ export function CatalogueDashboard() {
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           {t("studio.title")}
         </h1>
-        <p className="max-w-2xl text-muted-foreground">
-          {t("studio.description")}
-        </p>
       </div>
       <Tabs
         value={activeKind}
@@ -66,31 +63,24 @@ export function CatalogueDashboard() {
           })
         }
       >
-        <TabsList
-          className="grid w-full grid-cols-2"
-          aria-label={t("studio.title")}
-        >
-          <TabsTrigger
-            value="songs"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground"
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <TabsList
+            className="grid h-11 w-full grid-cols-2 lg:max-w-sm"
+            aria-label={t("studio.title")}
           >
-            <FileMusic /> {t("studio.songs")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="albums"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground"
-          >
-            <Disc3 /> {t("studio.albums")}
-          </TabsTrigger>
-        </TabsList>
+            <TabsTrigger value="songs">
+              <FileMusic /> {t("studio.songs")}
+            </TabsTrigger>
+            <TabsTrigger value="albums">
+              <Disc3 /> {t("studio.albums")}
+            </TabsTrigger>
+          </TabsList>
+          <CreateButton kind={activeKind === "albums" ? "album" : "song"} />
+        </div>
 
         <StatusFilters value={status} onChange={setStatus} />
 
-        <TabsContent
-          value="songs"
-          className="flex flex-col gap-4 pt-1 pb-20 sm:pb-0"
-        >
-          <CreateButton kind="song" placement="desktop" />
+        <TabsContent value="songs" className="flex flex-col gap-4 pt-1">
           <CatalogueListState
             loading={songs.status === "LoadingFirstPage"}
             empty={songs.results.length === 0}
@@ -104,13 +94,8 @@ export function CatalogueDashboard() {
             status={songs.status}
             onLoadMore={() => songs.loadMore(24)}
           />
-          <CreateButton kind="song" placement="mobile" />
         </TabsContent>
-        <TabsContent
-          value="albums"
-          className="flex flex-col gap-4 pt-1 pb-20 sm:pb-0"
-        >
-          <CreateButton kind="album" placement="desktop" />
+        <TabsContent value="albums" className="flex flex-col gap-4 pt-1">
           <CatalogueListState
             loading={albums.status === "LoadingFirstPage"}
             empty={albums.results.length === 0}
@@ -124,7 +109,6 @@ export function CatalogueDashboard() {
             status={albums.status}
             onLoadMore={() => albums.loadMore(24)}
           />
-          <CreateButton kind="album" placement="mobile" />
         </TabsContent>
       </Tabs>
     </section>
@@ -145,63 +129,38 @@ function StatusFilters({
     { label: t("catalogue.publishedPlural"), value: "published" },
   ] as const
   return (
-    <div
-      className="flex items-center gap-2 overflow-x-auto border-b py-3"
+    <ToggleGroup
+      type="single"
+      variant="outline"
+      size="sm"
+      value={value}
+      onValueChange={(next) => {
+        if (next === "all" || next === "draft" || next === "published")
+          onChange(next)
+      }}
+      className="max-w-full flex-wrap py-3"
       aria-label={t("catalogue.filterByStatus")}
     >
       {options.map((option) => (
-        <Button
-          key={option.value}
-          type="button"
-          size="sm"
-          variant={value === option.value ? "secondary" : "outline"}
-          aria-pressed={value === option.value}
-          className={cn(
-            "rounded-full",
-            value === option.value && "font-semibold"
-          )}
-          onClick={() => onChange(option.value)}
-        >
+        <ToggleGroupItem key={option.value} value={option.value}>
           {option.label}
-        </Button>
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   )
 }
 
-function CreateButton({
-  kind,
-  placement,
-}: {
-  kind: "song" | "album"
-  placement: "desktop" | "mobile"
-}) {
+function CreateButton({ kind }: { kind: "song" | "album" }) {
   const { t } = useLocale()
   const song = kind === "song"
   return (
-    <Button
-      asChild
-      className={cn(
-        "self-end",
-        placement === "desktop"
-          ? "hidden sm:inline-flex"
-          : "fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20 rounded-full shadow-lg sm:hidden"
-      )}
-    >
+    <Button asChild className="w-full lg:w-auto">
       <Link
         to={song ? "/studio/songs/new" : "/studio/albums/new"}
         search={song ? { albumId: undefined } : undefined}
       >
         <Plus data-icon="inline-start" />
-        {t(
-          song
-            ? placement === "mobile"
-              ? "studio.newSongShort"
-              : "studio.newSong"
-            : placement === "mobile"
-              ? "studio.newAlbumShort"
-              : "studio.newAlbum"
-        )}
+        {t(song ? "studio.newSong" : "studio.newAlbum")}
       </Link>
     </Button>
   )

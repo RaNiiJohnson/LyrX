@@ -310,6 +310,12 @@ function EditorForm({ detail }: { detail?: CommunityDetail }) {
                     {(field) => (
                       <field.TextareaField
                         label={t("studio.lyricsEditor")}
+                        headings={[
+                          t("studio.headingVerse"),
+                          t("studio.headingChorus"),
+                          t("studio.headingBridge"),
+                        ]}
+                        headingToolsLabel={t("studio.headingTools")}
                         placeholder={t("studio.lyricsEditorPlaceholder")}
                         description={t("studio.lyricsEditorDescription")}
                         maxLength={MAX_LYRICS_TEXT_LENGTH}

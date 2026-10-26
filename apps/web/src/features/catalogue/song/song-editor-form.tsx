@@ -87,22 +87,19 @@ export function SongEditorForm({
           {songId ? t("studio.songEditTitle") : t("studio.songNewTitle")}
         </h1>
       </div>
-      <CatalogueArtworkCard
-        artworkUrl={controller.artworkPreviewUrl}
-        inputId="song-artwork"
-        pending={controller.artworkPending || controller.saving}
-        selectedFile={controller.selectedArtwork}
-        onSelect={controller.selectArtwork}
-      />
       <form
+        className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start"
         onSubmit={(event) => {
           event.preventDefault()
           event.stopPropagation()
           void controller.form.handleSubmit()
         }}
       >
+        <aside className="min-w-0 lg:col-start-2 lg:row-start-1">
+          <CatalogueArtworkCard artworkUrl={controller.artworkPreviewUrl} inputId="song-artwork" pending={controller.artworkPending || controller.saving} selectedFile={controller.selectedArtwork} onSelect={controller.selectArtwork} />
+        </aside>
         <controller.form.AppForm>
-          <Card>
+          <Card className="min-w-0 lg:col-start-1 lg:row-start-1">
             <CardHeader>
               <CardTitle>{t("studio.essentialInformation")}</CardTitle>
               <CardDescription>
@@ -122,7 +119,8 @@ export function SongEditorForm({
                 <SongCreditsStep form={controller.form} />
               </FieldGroup>
             </CardContent>
-            <CardFooter className="justify-end border-t">
+            <CardFooter className="flex-wrap justify-end gap-3 border-t">
+              <Button asChild variant="outline"><Link to={returnAlbumId ? "/studio/albums/$albumId/preview" : "/studio"} params={returnAlbumId ? { albumId: returnAlbumId } : undefined} search={returnAlbumId ? undefined : { tab: "songs" }}>{t("common.cancel")}</Link></Button>
               <controller.form.SubmitButton
                 disabled={controller.artworkPending || controller.saving}
               >

@@ -3,11 +3,13 @@ import { ConvexError, v } from "convex/values"
 import { internalMutation } from "./_generated/server"
 import { normalizeEmail } from "./lib/validation"
 import { isDeletedIdentity } from "./lib/authz"
+import { catalogueAggregateTriggers } from "./catalogue/aggregates"
 
 export const bootstrapFirstAdmin = internalMutation({
   args: { email: v.string() },
   returns: v.id("members"),
-  handler: async (ctx, args) => {
+  handler: async (rawCtx, args) => {
+    const ctx = catalogueAggregateTriggers.wrapDB(rawCtx)
     const existingAdmin = await ctx.db
       .query("members")
       .withIndex("by_is_admin", (q) => q.eq("isAdmin", true))
@@ -44,7 +46,8 @@ export const setAccountSuspension = internalMutation({
     suspended: v.boolean(),
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
+  handler: async (rawCtx, args) => {
+    const ctx = catalogueAggregateTriggers.wrapDB(rawCtx)
     const member = await ctx.db.get("members", args.memberId)
     if (!member || (await isDeletedIdentity(ctx, member.authUserId))) {
       throw new ConvexError({

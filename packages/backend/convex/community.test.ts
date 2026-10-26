@@ -17,6 +17,7 @@ function backend() {
     "catalogueAlbums",
     "catalogueAlbumsByStatus",
     "catalogueAlbumTracks",
+    "publicDiscovery",
   ])
     aggregateTest.register(t, name)
   return t

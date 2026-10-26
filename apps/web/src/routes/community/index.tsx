@@ -1,19 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { BackendRequired } from "@/app/backend-required"
-import { PageShell } from "@/app/page-shell"
-import { appRouteBoundaries } from "@/app/route-states"
-import { CommunityList } from "@/features/community/community-list"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/community/")({
-  ...appRouteBoundaries,
-  component: CommunityPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/songs" })
+  },
 })
-function CommunityPage() {
-  return (
-    <PageShell width="wide">
-      <BackendRequired>
-        <CommunityList />
-      </BackendRequired>
-    </PageShell>
-  )
-}

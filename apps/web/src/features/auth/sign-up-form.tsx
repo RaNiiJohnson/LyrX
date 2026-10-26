@@ -74,6 +74,7 @@ export function SignUpForm() {
 
   return (
     <AuthCard
+      appearance="plain"
       title={t("signUp.title")}
       description={t("signUp.description")}
       error={error}
@@ -100,6 +101,28 @@ export function SignUpForm() {
           </AlertDescription>
         </Alert>
       ) : null}
+      {capabilities === undefined ? (
+        <Skeleton
+          className="h-10 w-full"
+          aria-label={t("auth.googleLoading")}
+        />
+      ) : (
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              disabled={isSubmitting || googlePending || !capabilities.google}
+              onClick={signUpWithGoogle}
+            >
+              {googlePending ? <Spinner data-icon="inline-start" /> : null}
+              {t("auth.googleContinue")}
+            </Button>
+          )}
+        </form.Subscribe>
+      )}
+      <FieldSeparator>{t("auth.or")}</FieldSeparator>
       <FieldGroup>
         <form.AppField
           name="name"
@@ -167,28 +190,6 @@ export function SignUpForm() {
           {t("signUp.submit")}
         </form.SubmitButton>
       </form.AppForm>
-      <FieldSeparator>{t("auth.or")}</FieldSeparator>
-      {capabilities === undefined ? (
-        <Skeleton
-          className="h-10 w-full"
-          aria-label={t("auth.googleLoading")}
-        />
-      ) : (
-        <form.Subscribe selector={(state) => state.isSubmitting}>
-          {(isSubmitting) => (
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              disabled={isSubmitting || googlePending || !capabilities.google}
-              onClick={signUpWithGoogle}
-            >
-              {googlePending ? <Spinner data-icon="inline-start" /> : null}
-              {t("auth.googleContinue")}
-            </Button>
-          )}
-        </form.Subscribe>
-      )}
     </AuthCard>
   )
 }

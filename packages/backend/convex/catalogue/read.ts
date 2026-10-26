@@ -29,6 +29,7 @@ import {
 } from "./values"
 import { ownedSong, ownedAlbum } from "./access"
 import { lyricsTextForSong } from "./lyrics"
+import { eligibleMember } from "../discovery/projection"
 
 export const listMySongs = artistQuery({
   args: {
@@ -213,8 +214,7 @@ export const getPublishedSong = query({
   handler: async (ctx, args) => {
     const song = await ctx.db.get("songs", args.songId)
     if (!song || song.status !== "published") return null
-    const owner = await ctx.db.get("members", song.ownerMemberId)
-    if (!owner || owner.status !== "active") return null
+    if (!(await eligibleMember(ctx, song.ownerMemberId, "artist"))) return null
     const candidate = await ctx.db
       .query("albumTracks")
       .withIndex("by_song_id", (q) => q.eq("songId", song._id))
@@ -249,8 +249,7 @@ export const getPublishedAlbum = query({
   handler: async (ctx, args) => {
     const album = await ctx.db.get("albums", args.albumId)
     if (!album || album.status !== "published") return null
-    const owner = await ctx.db.get("members", album.ownerMemberId)
-    if (!owner || owner.status !== "active") return null
+    if (!(await eligibleMember(ctx, album.ownerMemberId, "artist"))) return null
     const rows = await ctx.db
       .query("albumTracks")
       .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))

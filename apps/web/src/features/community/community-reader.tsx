@@ -29,6 +29,7 @@ import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { toast } from "@lyrx/ui/lib/toast"
 import { useLocale } from "@/app/locale-provider"
 import { SongReadOnly } from "@/features/catalogue/song/song-read-only"
+import { RecordPublicView } from "@/features/discovery/record-public-view"
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage } from "@/lib/errors"
 
@@ -50,6 +51,7 @@ export function CommunityReader({
     )
   return (
     <section className="flex flex-col gap-6">
+      <RecordPublicView origin="community" sourceId={contributionId} />
       <div className="flex flex-wrap items-center gap-3">
         <Badge variant="secondary">{t("community.label")}</Badge>
         <p>

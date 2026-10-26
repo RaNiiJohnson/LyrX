@@ -16,6 +16,7 @@
     "lint": "eslint src convex vitest.config.ts",
     "migrate:catalogue-aggregates": "convex run catalogue/aggregates:backfill '{\"phase\":\"songs\",\"cursor\":null}'",
     "migrate:lyrics": "convex run catalogue/lyricsMigration:backfillSongLyricsText '{\"cursor\":null}'",
+    "migrate:discovery": "convex run discovery/maintenance:backfill '{}'",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

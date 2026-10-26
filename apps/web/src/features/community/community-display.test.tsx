@@ -8,6 +8,8 @@ import { CommunityList, MyContributions } from "./community-list"
 import { CommunityModeration } from "./community-moderation"
 import { CommunityReader } from "./community-reader"
 
+vi.mock("@/features/discovery/record-public-view", () => ({ RecordPublicView: () => null }))
+
 type DisplayState = {
   locale: SupportedLocale
   account:

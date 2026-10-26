@@ -5,6 +5,7 @@ import { v } from "convex/values"
 import { components, internal } from "../_generated/api"
 import type { DataModel, Id } from "../_generated/dataModel"
 import { internalMutation } from "../_generated/server"
+import { registerDiscoveryTriggers } from "../discovery/projection"
 
 type CatalogueStatus = "draft" | "published"
 
@@ -59,6 +60,7 @@ export const albumTracksByAlbum = new TableAggregate<{
 })
 
 export const catalogueAggregateTriggers = new Triggers<DataModel>()
+registerDiscoveryTriggers(catalogueAggregateTriggers)
 catalogueAggregateTriggers.register("songs", songsByOwner.idempotentTrigger())
 catalogueAggregateTriggers.register(
   "songs",
