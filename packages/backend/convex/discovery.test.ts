@@ -7,6 +7,7 @@ import { api, internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { catalogueAggregateTriggers } from "./catalogue/aggregates"
 import { beginAccountDeletion } from "./accounts/deletion"
+import { changeViews } from "./discovery/projection"
 import schema from "./schema"
 
 const modules = import.meta.glob("./**/*.ts")
@@ -359,7 +360,7 @@ describe("unified public discovery", () => {
   it("bounds home selections and exposes matching artist/album counts", async () => {
     const t = await backend(),
       owner = await member(t, "home-owner")
-    const ids = []
+    const ids: Array<Id<"songs">> = []
     for (let i = 0; i < 10; i++)
       ids.push(await song(t, owner.memberId, `Public ${i}`, i))
     const albumId = await t.run(async (rawCtx) => {
@@ -389,7 +390,7 @@ describe("unified public discovery", () => {
       ready: true,
       rankingWindowDays: 7,
       countedAudience: "signed-in",
-      albums: [{ id: albumId, publishedTrackCount: 2 }],
+      albums: [{ id: albumId }],
       artists: [{ handle: "home-owner", songCount: 10, albumCount: 1 }],
     })
     expect(home.songs).toHaveLength(6)
@@ -403,6 +404,88 @@ describe("unified public discovery", () => {
         artistHandle: "absent",
       })
     ).toMatchObject({ ready: true, total: 0 })
+  })
+
+  it("propagates large album inheritance through bounded discovery jobs without stale counts", async () => {
+    const t = await backend(),
+      owner = await member(t, "inherit-owner")
+    const albumId = await owner.client.mutation(
+      api.catalogue.albums.createAlbum,
+      {
+        title: "Inherited album",
+        genre: "pop",
+        credits: [],
+      }
+    )
+    const ids: Array<Id<"songs">> = []
+    for (let i = 0; i < 12; i++) {
+      const id = await song(t, owner.memberId, `Inherited ${i}`, i, "draft")
+      await owner.client.mutation(api.catalogue.albums.attachSongToAlbum, {
+        albumId,
+        songId: id,
+        inheritance: {
+          inheritArtwork: true,
+          inheritGenre: true,
+          inheritLabel: true,
+          inheritCredits: true,
+        },
+      })
+      await owner.client.mutation(api.catalogue.songs.publishSong, {
+        songId: id,
+      })
+      ids.push(id)
+    }
+    expect(
+      await t.query(api.discovery.read.listSongs, { page: 1, genre: "pop" })
+    ).toMatchObject({ ready: true, total: 12 })
+    await owner.client.mutation(api.catalogue.albums.updateAlbum, {
+      albumId,
+      title: "New inherited album",
+      genre: "rock",
+      credits: ["Updated credit"],
+      songIds: ids,
+    })
+    expect(
+      await t.query(api.discovery.read.listSongs, { page: 1 })
+    ).toMatchObject({ ready: false, total: 0, items: [] })
+    const jobs = await t.run((ctx) => ctx.db.query("discoveryJobs").take(2))
+    expect(jobs).toHaveLength(1)
+    const job = jobs.at(0)
+    if (!job) throw new Error("Expected owner discovery job.")
+    // Publishing while an owner refresh is pending restarts the durable cursor.
+    const first = ids.at(0)
+    if (!first) throw new Error("Expected inherited track.")
+    await t.mutation(internal.discovery.maintenance.processJob, {
+      jobId: job._id,
+    })
+    await owner.client.mutation(api.catalogue.songs.publishSong, {
+      songId: first,
+    })
+    await drainJobs(t)
+    expect(
+      await t.query(api.discovery.read.listSongs, { page: 1, genre: "pop" })
+    ).toMatchObject({ ready: true, total: 0 })
+    expect(
+      await t.query(api.discovery.read.listSongs, { page: 1, genre: "rock" })
+    ).toMatchObject({
+      ready: true,
+      total: 1,
+      items: [{ id: first, genre: "rock" }],
+    })
+    // Deleting a large album preserves sources and inherited metadata, while
+    // its own public positions disappear before discovery becomes ready again.
+    await owner.client.mutation(api.catalogue.albums.deleteAlbum, { albumId })
+    expect(
+      await t.query(api.discovery.read.listSongs, { page: 1 })
+    ).toMatchObject({ ready: false })
+    await drainJobs(t)
+    expect(
+      await t.query(api.discovery.read.listSongs, { page: 1, genre: "rock" })
+    ).toMatchObject({ ready: true, total: 1, items: [{ id: first }] })
+    expect(await t.run((ctx) => ctx.db.get("songs", first))).toMatchObject({
+      genre: "rock",
+      additionalCredits: ["Updated credit"],
+    })
   })
 })
 
@@ -512,5 +595,162 @@ describe("honest recent-view ranking", () => {
     expect(
       await t.query(api.discovery.read.listSongs, { page: 1 })
     ).toMatchObject({ ready: true, total: 1, items: [{ recentViews: 0 }] })
+  })
+
+  it("limits distinct-source view bursts without charging deduplicated retries", async () => {
+    const t = await backend(),
+      owner = await member(t, "limit-owner"),
+      viewer = await member(t, "limit-viewer", "fan")
+    const ids: Array<Id<"songs">> = []
+    for (let i = 0; i < 11; i++)
+      ids.push(await song(t, owner.memberId, `View ${i}`, i))
+    for (const id of ids.slice(0, 10)) {
+      expect(
+        await viewer.client.mutation(api.discovery.views.recordView, {
+          sourceId: id,
+          origin: "artist",
+        })
+      ).toEqual({ counted: true })
+      // An idempotent retry must not spend the next source's token.
+      expect(
+        await viewer.client.mutation(api.discovery.views.recordView, {
+          sourceId: id,
+          origin: "artist",
+        })
+      ).toEqual({ counted: false })
+    }
+    const last = ids.at(-1)
+    if (!last) throw new Error("Expected throttled source.")
+    expect(
+      await viewer.client.mutation(api.discovery.views.recordView, {
+        sourceId: last,
+        origin: "artist",
+      })
+    ).toEqual({ counted: false })
+    vi.setSystemTime(Date.now() + 2_001)
+    expect(
+      await viewer.client.mutation(api.discovery.views.recordView, {
+        sourceId: last,
+        origin: "artist",
+      })
+    ).toEqual({ counted: true })
+    await expect(
+      viewer.client.mutation(api.discovery.views.recordView, {
+        sourceId: last,
+        origin: "artist",
+        ...{ viewerMemberId: owner.memberId },
+      })
+    ).rejects.toThrow()
+    expect(
+      await viewer.client.mutation(api.discovery.views.recordView, {
+        sourceId: last,
+        origin: "community",
+      })
+    ).toEqual({ counted: false })
+  })
+
+  it("expires at most 25 view records per transaction and materializes a seven-day score", async () => {
+    const t = await backend(),
+      owner = await member(t, "expiry-owner"),
+      viewer = await member(t, "expiry-viewer", "fan")
+    const id = await song(t, owner.memberId, "Expiring views", 1)
+    await t.run(async (ctx) => {
+      for (let i = 0; i < 53; i++)
+        await ctx.db.insert("discoveryViews", {
+          sourceId: id,
+          viewerMemberId: viewer.memberId,
+          day: i,
+          expiresAt: Date.now() - 1,
+        })
+      await changeViews(ctx, id, 53)
+    })
+    for (const remaining of [28, 3, 0]) {
+      await t.mutation(internal.discovery.maintenance.expireViews, {})
+      expect(
+        await t.run((ctx) => ctx.db.query("discoveryViews").take(60))
+      ).toHaveLength(remaining)
+      expect(
+        await t.query(api.discovery.read.listSongs, {
+          page: 1,
+          sort: "popular",
+        })
+      ).toMatchObject({ total: 1, items: [{ recentViews: remaining }] })
+    }
+    // Duplicate scheduled executions cannot make scores negative.
+    await t.mutation(internal.discovery.maintenance.expireViews, {})
+    expect(
+      await t.run((ctx) => ctx.db.query("discoveryScores").first())
+    ).toMatchObject({ recentViews: 0 })
+  })
+
+  it("cleans deleted source views in bounded retryable batches without touching another source", async () => {
+    const t = await backend(),
+      owner = await member(t, "cleanup-owner"),
+      fan = await member(t, "cleanup-author", "fan"),
+      viewer = await member(t, "cleanup-viewer", "fan")
+    const removed = await song(t, owner.memberId, "Delete me", 1)
+    const kept = await contribution(t, fan.memberId, "Keep me", 2)
+    await viewer.client.mutation(api.discovery.views.recordView, {
+      sourceId: kept,
+      origin: "community",
+    })
+    await t.run(async (ctx) => {
+      for (let i = 0; i < 53; i++)
+        await ctx.db.insert("discoveryViews", {
+          sourceId: removed,
+          viewerMemberId: viewer.memberId,
+          day: i,
+          expiresAt: Date.now() + 10_000,
+        })
+      await changeViews(ctx, removed, 53)
+    })
+    await owner.client.mutation(api.catalogue.songs.deleteSong, {
+      songId: removed,
+    })
+    expect(
+      await t.query(api.discovery.read.listSongs, { page: 1 })
+    ).toMatchObject({ total: 1, items: [{ id: kept, recentViews: 1 }] })
+    expect(
+      await t.run((ctx) =>
+        ctx.db
+          .query("discoveryScores")
+          .withIndex("by_source_id", (q) => q.eq("sourceId", removed))
+          .unique()
+      )
+    ).toBeNull()
+    for (const remaining of [28, 3, 0]) {
+      await t.mutation(internal.discovery.maintenance.cleanSourceViews, {
+        sourceId: removed,
+      })
+      expect(
+        await t.run((ctx) =>
+          ctx.db
+            .query("discoveryViews")
+            .withIndex("by_source_id", (q) => q.eq("sourceId", removed))
+            .take(60)
+        )
+      ).toHaveLength(remaining)
+    }
+    expect(
+      await t.run((ctx) => ctx.db.query("discoveryViewCleanup").first())
+    ).toBeNull()
+    await t.mutation(internal.discovery.maintenance.cleanSourceViews, {
+      sourceId: removed,
+    })
+    expect(
+      await t.run((ctx) => ctx.db.query("discoveryViews").take(2))
+    ).toHaveLength(1)
+    // A deleted community source uses the same cleanup path.
+    await t.run((rawCtx) =>
+      catalogueAggregateTriggers
+        .wrapDB(rawCtx)
+        .db.delete("communityContributions", kept)
+    )
+    await t.mutation(internal.discovery.maintenance.cleanSourceViews, {
+      sourceId: kept,
+    })
+    expect(
+      await t.run((ctx) => ctx.db.query("discoveryViews").take(2))
+    ).toHaveLength(0)
   })
 })

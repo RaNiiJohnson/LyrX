@@ -2,7 +2,6 @@ import { ConvexError, v, type Infer } from "convex/values"
 import type { Doc, Id } from "../_generated/dataModel"
 import { query, type QueryCtx } from "../_generated/server"
 import { songGenreValidator } from "../model"
-import { MAX_TRACKS } from "../catalogue/values"
 import { normalizeHandle } from "../lib/validation"
 import {
   albumCard,
@@ -120,20 +119,6 @@ async function album(
   if (!eligible || !id || entry.kind !== "album") return null
   const source = await ctx.db.get("albums", id)
   if (source?.status !== "published") return null
-  const tracks = await ctx.db
-    .query("albumTracks")
-    .withIndex("by_album_id_and_position", (q) => q.eq("albumId", id))
-    .take(MAX_TRACKS + 1)
-  if (tracks.length > MAX_TRACKS) throw new Error("Album track limit exceeded.")
-  const published = await Promise.all(
-    tracks.map(async (track) => {
-      const candidate = await ctx.db.get("songs", track.songId)
-      return (
-        candidate?.status === "published" &&
-        candidate.ownerMemberId === entry.memberId
-      )
-    })
-  )
   return {
     id: String(id),
     title: source.title,
@@ -144,7 +129,6 @@ async function album(
       : null,
     firstPublishedAt: entry.publishedAt,
     href: `/albums/${id}`,
-    publishedTrackCount: published.filter(Boolean).length,
   }
 }
 async function artist(
@@ -153,7 +137,7 @@ async function artist(
 ): Promise<Infer<typeof artistCard> | null> {
   const eligible = await eligibleMember(ctx, entry.memberId, "artist")
   if (!eligible || entry.kind !== "artist") return null
-  const [songCount, albumCount] = await publicIndex.countBatch(ctx, [
+  const counts = await publicIndex.countBatch(ctx, [
     { namespace: namespace("song", "newest", "*", "*", entry.memberId) },
     { namespace: namespace("album", "newest", "*", "*", entry.memberId) },
   ])
@@ -163,8 +147,8 @@ async function artist(
     avatarUrl: eligible.profile.avatarStorageId
       ? await ctx.storage.getUrl(eligible.profile.avatarStorageId)
       : null,
-    songCount,
-    albumCount,
+    songCount: counts.at(0) ?? 0,
+    albumCount: counts.at(1) ?? 0,
     href: `/artists/${eligible.profile.handle}`,
   }
 }

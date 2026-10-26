@@ -10,6 +10,7 @@ import {
 } from "@lyrx/ui/components/card"
 import { Field, FieldDescription, FieldLabel } from "@lyrx/ui/components/field"
 import { Input } from "@lyrx/ui/components/input"
+import { cn } from "@lyrx/ui/lib/utils"
 
 import { useLocale } from "@/app/locale-provider"
 import { OptionalLabel } from "./optional-label"
@@ -20,12 +21,14 @@ export function CatalogueArtworkCard({
   pending,
   onSelect,
   selectedFile,
+  stacked = false,
 }: {
   artworkUrl?: string | null
   inputId: string
   pending: boolean
   onSelect: (file: File | undefined) => void
   selectedFile?: File
+  stacked?: boolean
 }) {
   const { t } = useLocale()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -35,7 +38,12 @@ export function CatalogueArtworkCard({
       <CardHeader>
         <CardTitle>{t("catalogue.artwork")}</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[10rem_minmax(0,1fr)]">
+      <CardContent
+        className={cn(
+          "grid min-w-0 grid-cols-[6rem_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[10rem_minmax(0,1fr)]",
+          stacked && "lg:grid-cols-1"
+        )}
+      >
         <div className="size-24 overflow-hidden rounded-xl bg-muted sm:size-40">
           {artworkUrl ? (
             <img src={artworkUrl} alt="" className="size-full object-cover" />

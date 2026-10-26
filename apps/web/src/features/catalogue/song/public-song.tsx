@@ -24,5 +24,10 @@ export function PublicSong({ songId }: { songId: Id<"songs"> }) {
     )
   }
 
-  return <><RecordPublicView origin="artist" sourceId={songId} /><SongReadOnly detail={detail} /></>
+  return (
+    <>
+      <RecordPublicView origin="artist" sourceId={songId} />
+      <SongReadOnly detail={detail} />
+    </>
+  )
 }

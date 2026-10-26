@@ -187,19 +187,36 @@ export const recover = internalMutation({
       {}
     )
     const cleanups = await ctx.db.query("discoveryViewCleanup").take(10)
-    for (const cleanup of cleanups) await ctx.scheduler.runAfter(0, internal.discovery.maintenance.cleanSourceViews, { sourceId: cleanup.sourceId })
+    for (const cleanup of cleanups)
+      await ctx.scheduler.runAfter(
+        0,
+        internal.discovery.maintenance.cleanSourceViews,
+        { sourceId: cleanup.sourceId }
+      )
     return null
   },
 })
 
 export const cleanSourceViews = internalMutation({
-  args: { sourceId: v.union(v.id("songs"), v.id("communityContributions")) }, returns: v.null(),
+  args: { sourceId: v.union(v.id("songs"), v.id("communityContributions")) },
+  returns: v.null(),
   handler: async (ctx, { sourceId }) => {
-    const cleanup = await ctx.db.query("discoveryViewCleanup").withIndex("by_source_id", (q) => q.eq("sourceId", sourceId)).unique()
+    const cleanup = await ctx.db
+      .query("discoveryViewCleanup")
+      .withIndex("by_source_id", (q) => q.eq("sourceId", sourceId))
+      .unique()
     if (!cleanup) return null
-    const views = await ctx.db.query("discoveryViews").withIndex("by_source_id", (q) => q.eq("sourceId", sourceId)).take(25)
+    const views = await ctx.db
+      .query("discoveryViews")
+      .withIndex("by_source_id", (q) => q.eq("sourceId", sourceId))
+      .take(25)
     for (const view of views) await ctx.db.delete("discoveryViews", view._id)
-    if (views.length === 25) await ctx.scheduler.runAfter(0, internal.discovery.maintenance.cleanSourceViews, { sourceId })
+    if (views.length === 25)
+      await ctx.scheduler.runAfter(
+        0,
+        internal.discovery.maintenance.cleanSourceViews,
+        { sourceId }
+      )
     else await ctx.db.delete("discoveryViewCleanup", cleanup._id)
     return null
   },

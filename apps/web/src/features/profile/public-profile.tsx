@@ -50,7 +50,10 @@ export function PublicProfile({ handle }: { handle: string }) {
   return (
     <section className="flex min-w-0 flex-col gap-7">
       {profile.artist?.bannerUrl ? (
-        <ProfileBanner src={profile.artist.bannerUrl} />
+        <ProfileBanner
+          key={profile.artist.bannerUrl}
+          src={profile.artist.bannerUrl}
+        />
       ) : null}
       <header className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
         <Avatar className="size-24 sm:size-32">

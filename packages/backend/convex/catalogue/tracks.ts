@@ -9,6 +9,7 @@ import {
   type validatedSong,
 } from "./values"
 import { ownedAlbum } from "./access"
+import { queueOwnerRefresh } from "../discovery/projection"
 
 type AlbumInheritance = Infer<typeof albumInheritanceValidator>
 
@@ -61,6 +62,7 @@ export async function patchInheritedSongs(
     .take(MAX_TRACKS + 1)
   if (tracks.length > MAX_TRACKS)
     bad("CATALOGUE_INVARIANT", "Too many tracks in the album.")
+  if (tracks.length > 10) await queueOwnerRefresh(ctx, album.ownerMemberId)
   const now = Date.now()
   for (const track of tracks) {
     const inheritance = trackInheritance(track)

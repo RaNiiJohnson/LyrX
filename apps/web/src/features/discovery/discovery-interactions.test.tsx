@@ -131,4 +131,94 @@ describe("public discovery interactions", () => {
         ?.textContent
     ).toBe("Albums")
   })
+  it("updates desktop overflow controls on scroll and both resize paths", async () => {
+    let resize = () => undefined
+    const observed: Array<Element> = []
+    const disconnect = vi.fn()
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(update: () => undefined) {
+          resize = update
+        }
+        observe(element: Element) {
+          observed.push(element)
+        }
+        disconnect = disconnect
+      }
+    )
+    await render(
+      <HorizontalRow title="Artists" href="/artists">
+        <a href="/artists/one">One artist</a>
+        <a href="/artists/two">Another artist</a>
+      </HorizontalRow>
+    )
+    const region = container.querySelector<HTMLElement>('[role="region"]')!
+    let width = 300
+    Object.defineProperties(region, {
+      clientWidth: { configurable: true, get: () => width },
+      scrollWidth: { configurable: true, value: 900 },
+    })
+    const scroll = vi.fn()
+    region.scrollBy = scroll
+    const media = vi.spyOn(window, "matchMedia").mockReturnValue({
+      matches: false,
+    } as MediaQueryList)
+    await act(async () => {
+      resize()
+      await Promise.resolve()
+    })
+    const previous = () =>
+      container.querySelector<HTMLButtonElement>(
+        '[aria-label="Éléments précédents"]'
+      )
+    const next = () =>
+      container.querySelector<HTMLButtonElement>(
+        '[aria-label="Éléments suivants"]'
+      )
+    expect(previous()?.disabled).toBe(true)
+    expect(next()?.disabled).toBe(false)
+    expect(observed).toEqual([region, ...region.children])
+    await act(async () => {
+      next()?.click()
+      await Promise.resolve()
+    })
+    expect(scroll).toHaveBeenLastCalledWith({ left: 240, behavior: "smooth" })
+    await act(async () => {
+      region.scrollLeft = 600
+      region.dispatchEvent(new Event("scroll"))
+      await Promise.resolve()
+    })
+    expect(previous()?.disabled).toBe(false)
+    expect(next()?.disabled).toBe(true)
+    media.mockReturnValue({ matches: true } as MediaQueryList)
+    await act(async () => {
+      previous()?.click()
+      await Promise.resolve()
+    })
+    expect(scroll).toHaveBeenLastCalledWith({ left: -240, behavior: "instant" })
+    await act(async () => {
+      region.scrollLeft = 0
+      width = 1000
+      resize()
+      await Promise.resolve()
+    })
+    expect(next()).toBeNull()
+    await act(async () => {
+      width = 300
+      window.dispatchEvent(new Event("resize"))
+      await Promise.resolve()
+    })
+    expect(next()?.disabled).toBe(false)
+    await render(
+      <HorizontalRow title="Artists" href="/artists" empty>
+        <p>No artists are available</p>
+      </HorizontalRow>
+    )
+    expect(next()).toBeNull()
+    expect(container.querySelector('[role="region"]')).toBeNull()
+    expect(container.textContent).toContain("No artists are available")
+    await render(<span>Unmounted row</span>)
+    expect(disconnect).toHaveBeenCalledOnce()
+  })
 })

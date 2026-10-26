@@ -1,5 +1,8 @@
+// @vitest-environment happy-dom
+import { act } from "react"
+import { createRoot } from "react-dom/client"
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { LocaleProvider } from "@/app/locale-provider"
 import { CatalogueArtwork } from "./catalogue-artwork"
@@ -71,5 +74,46 @@ describe("catalogue artwork controls", () => {
     expect(html).toContain("sm:size-40")
     expect(html).toContain("grid-cols-[6rem_minmax(0,1fr)]")
     expect(html).not.toContain("aspect-square")
+  })
+
+  it("falls back after an image error and renders a replacement URL without losing the owner action", async () => {
+    vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true)
+    const container = document.createElement("div")
+    document.body.append(container)
+    const root = createRoot(container)
+    const render = async (artworkUrl: string) => {
+      await act(async () => {
+        root.render(
+          <LocaleProvider>
+            <CatalogueArtwork
+              kind="song"
+              artworkUrl={artworkUrl}
+              action={{ pending: false, onSelect: () => {} }}
+            />
+          </LocaleProvider>
+        )
+        await Promise.resolve()
+      })
+    }
+    try {
+      await render("/broken.webp")
+      await act(async () => {
+        container.querySelector("img")?.dispatchEvent(new Event("error"))
+        await Promise.resolve()
+      })
+      expect(container.querySelector("img")).toBeNull()
+      expect(container.querySelector(".lucide-file-music")).not.toBeNull()
+      expect(
+        container.querySelector('button[aria-label="Modifier la pochette"]')
+      ).not.toBeNull()
+      await render("/replacement.webp")
+      expect(container.querySelector("img")?.getAttribute("src")).toBe(
+        "/replacement.webp"
+      )
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+      vi.unstubAllGlobals()
+    }
   })
 })

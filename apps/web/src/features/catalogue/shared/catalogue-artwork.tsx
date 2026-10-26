@@ -33,7 +33,12 @@ export function CatalogueArtwork({
     <div className={cn("relative shrink-0", className)}>
       <div className="grid size-full place-items-center overflow-hidden rounded-2xl bg-muted text-muted-foreground">
         {artworkUrl && failedUrl !== artworkUrl ? (
-          <img src={artworkUrl} alt="" className="size-full object-cover" onError={() => setFailedUrl(artworkUrl)} />
+          <img
+            src={artworkUrl}
+            alt=""
+            className="size-full object-cover"
+            onError={() => setFailedUrl(artworkUrl)}
+          />
         ) : (
           <Placeholder className="size-8" />
         )}

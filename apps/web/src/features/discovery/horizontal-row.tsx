@@ -42,7 +42,7 @@ export function HorizontalRow({
       element.removeEventListener("scroll", update)
       window.removeEventListener("resize", update)
     }
-  }, [children])
+  }, [children, empty])
   function scroll(direction: number) {
     const element = ref.current
     if (element)
@@ -60,7 +60,7 @@ export function HorizontalRow({
           {title}
         </h2>
         <div className="flex items-center gap-2">
-          {edges.before || edges.after ? (
+          {!empty && (edges.before || edges.after) ? (
             <div className="hidden gap-1 lg:flex">
               <Button
                 variant="outline"

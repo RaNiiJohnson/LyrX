@@ -1,5 +1,90 @@
 # Lot 7 quota checkpoint — 26 October 2026
 
+## Latest stop — supersedes the first checkpoint below
+
+The user explicitly asked **“sauvegarde et on continue après”** after supplying
+eight new visual comments. All three active UI agents were interrupted; no new
+visual-feedback implementation has been saved yet. Do not close lot 7 or prepare
+its PR before completing these additions. Branch/base remain
+`codex/public-discovery-layouts` / `9f83883`. Previous remote WIP was `4609f8a`.
+
+### Work completed since the first pause
+
+- Backend type errors fixed. 83 backend tests pass, including large inheritance
+  fan-out, rate limits/retry, bounded expiry and source-view cleanup. Large album
+  changes defer discovery positions to durable owner jobs. Album discovery cards
+  omit the optional track count to avoid reading every track's full lyrics.
+- Development `convex dev --once` succeeded; discovery backfill now ran and is
+  complete: `initialized:true,pendingJobs:0`, no jobs. Live anonymous queries:
+  three public Fan contributions, zero public official songs/albums, one artist.
+- Root **`pnpm check` PASSED** at this stop: format, lint, TypeScript, **339 tests**
+  (29 shared + 83 backend + 227 web), client/SSR builds. Expected Happy DOM
+  blocked-iframe diagnostics test fallback, not successful provider playback.
+  Log: `/tmp/lyrx-lot7-final-check.log` (not a committed source artifact).
+- Primary reviewed the entire implemented diff from `9f83883` locally and used
+  Convex reviewer before the latest visual feedback. That review found/fixed the
+  album read fan-out, narrow sidebar-field layout, image replacement state and
+  stale horizontal arrows. Repeat review of all subsequently changed files.
+- Removed the user's rejected “L’essentiel du morceau” heading/introduction and
+  duplicate identity legend. Single/Album is a ToggleGroup; desktop optional
+  fields/artwork/actions are a right column, mobile remains normal flow.
+- New tests cover lyric insertion, native edit/caret, telemetry, artwork, Studio,
+  real Radix/router filters, profile banner replacement and player fallback.
+- Chrome native Ctrl+Z and selection replacement verified without saving a draft.
+  Desktop 1280×900, mobile390×844, FR/dark and EN/light, Fan/Artist/admin navigation,
+  live lists/filter/empty/profile/attribution/legacy redirect checked. Mobile
+  actions clear the bottom navigation; desktop footer is static at viewport end.
+  No browser warnings/errors on the test tab. Details in `lot7-verification.md`:
+  this is an **intermediate** record, not final acceptance of the new comments.
+
+### New user comments still to implement (do not forget)
+
+1. Remove duplicate local Songs/Albums/Artists navigation below catalogue title;
+   it repeats the header. Keep destinations reachable on mobile via the sidebar.
+2. Catalogue headers/filters should follow `design/Voir tout – Morceaux@2x.png`,
+   its mobile version, and equivalent Albums/Artists mockups: clearer compact
+   title/count/filter hierarchy, not the current tall stack of labels/controls.
+   Keep real origin/genre/sort/page URL behavior and reset-on-filter.
+3. Replace the dense account dropdown with a **simple shadcn sidebar** (offcanvas
+   panel), spaced sections with genuinely different hierarchy. Improve spacing
+   among locale/theme/account controls. Preserve auth/role/admin navigation,
+   keyboard focus/close, mobile safe-area navigation and normal-flow footer.
+4. Minimalist artwork upload for **all** song/album/Fan forms, closer to the
+   design's outlined upload tile. Remove big duplicated Card labels/native file
+   control prominence. Keep real upload, constraints, pending/error/retry/clear,
+   keyboard access and compact 96/160px previews; no fake drag/drop behavior.
+5. Add **Intro and Outro** optional heading buttons in **French and English**
+   for Artist and Fan lyric editors. Preserve native insertion/undo/caret/max.
+6. Fix profile avatar: the Fan screenshot shows a stretched horizontal capsule,
+   not a circular avatar. Inspect Field descendant CSS vs Avatar width/shrink;
+   follow `design/Modifier le profil@2x.png` for the upload control. Preserve
+   profile values, image pipeline, Artist banner and account deletion access.
+
+User clarified: references may be adapted when genuinely better, but existing
+designs often look better; follow them more closely without changing theme.
+
+### Paused ownership / resumption
+
+- `lot7_sidebar`: shell/tests + new sidebar-related app files/UI primitive only.
+- `lot7_web_finish`: catalogue header/filter layout and discovery tests only.
+- `lot7_editor_tests`: shared ArtworkCard/tests + private ProfileEditor/tests.
+- Primary: Intro/Outro, any Fan layout integration, docs, browser and mandatory
+  final local review. Agent noted toolbar disabled state reads textarea.ref during
+  render: pending transition may leave buttons visually enabled one render,
+  although click guard prevents editing; pass explicit disabled prop and test.
+- No new agent edits from this visual pass were present at stop. Check status
+  before resuming, re-read shadcn skill/required docs, coordinate ownership.
+- Re-run root checks/browser/review after feedback, update progress/verification,
+  commit and push; standing workflow stops at English PR description in Chrome.
+  Never click Create pull request. No lot 8, production, role/account deletion.
+
+Browser test Chrome tab is temporary and can close. Original user IAB tab is
+being used by the user; do not overwrite their current page. Restore test-only
+Chrome viewport/locale/theme before ending when possible. No live publication,
+profile save, account deletion or role change was performed.
+
+## Historical first pause (resolved technical failures)
+
 STOP requested by user at 1% quota. Work is incomplete, all agents frozen.
 Branch: `codex/public-discovery-layouts`, base `9f83883` (lot 6 PR #4 merged).
 Commit `06deac9` records the user's newly approved roadmap/design documents.

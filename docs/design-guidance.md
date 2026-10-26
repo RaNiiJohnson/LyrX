@@ -111,6 +111,12 @@ optional bracket headings. Important instructions must remain available after
 the placeholder disappears. Retain existing optional details omitted by the
 mockup and the established compact artwork behavior unless explicitly revised.
 
+The user reaffirmed the mockup on 26 October: do not display the repeated
+“L’essentiel du morceau” title or its introductory paragraph. Present the
+Single/Album choice, identity fields and lyrics directly. Desktop uses a side
+column for compact artwork, optional details and actions; mobile keeps these in
+normal flow. Optional details must remain usable at the side column's width.
+
 ## Lot boundaries and acceptance
 
 Lot 7 implements necessary mockups for public pages/discovery and the shared

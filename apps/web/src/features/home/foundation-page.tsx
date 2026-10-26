@@ -44,7 +44,7 @@ export function FoundationPage() {
               {t("home.titleEmphasis")}
             </span>
           </h1>
-          <Field className="max-w-xl">
+          <Field className="max-w-xl rounded-xl bg-card p-3 text-card-foreground">
             <FieldLabel htmlFor="home-search" className="sr-only">
               {t("discovery.searchPlaceholder")}
             </FieldLabel>

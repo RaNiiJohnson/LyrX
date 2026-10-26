@@ -43,7 +43,6 @@ export const albumCard = v.object({
   artworkUrl: v.union(v.string(), v.null()),
   firstPublishedAt: v.number(),
   href: v.string(),
-  publishedTrackCount: v.number(),
 })
 export const artistCard = v.object({
   handle: v.string(),

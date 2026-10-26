@@ -20,7 +20,8 @@ export function TextareaHeadingTools({
     // standard API for programmatic textarea edits with undo history yet.
     setSupported(
       typeof document.execCommand === "function" &&
-        document.queryCommandSupported?.("insertText") === true
+        typeof document.queryCommandSupported === "function" &&
+        document.queryCommandSupported("insertText") === true
     )
   }, [])
   if (!supported) return null

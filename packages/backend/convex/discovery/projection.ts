@@ -24,9 +24,13 @@ export function namespace(
     ? `${kind}|${sort}|owner:${owner}|${genre}`
     : `${kind}|${sort}|${origin}|${genre}`
 }
-function sortKey(entry: Entry, sort: Sort): [number | string, number | string, string] {
+function sortKey(
+  entry: Entry,
+  sort: Sort
+): [number | string, number | string, string] {
   if (sort === "title") return [entry.titleKey, 0, String(entry.sourceId)]
-  if (sort === "popular") return [entry.recentViews, entry.publishedAt, String(entry.sourceId)]
+  if (sort === "popular")
+    return [entry.recentViews, entry.publishedAt, String(entry.sourceId)]
   return [entry.publishedAt, 0, String(entry.sourceId)]
 }
 function positions(entry: Entry) {
@@ -135,9 +139,9 @@ export async function changeViews(
   const after = positions(next).filter((position) =>
     position.namespace.includes("|popular|")
   )
-  for (let i = 0; i < before.length; i++) {
-    const current = before[i],
-      replacement = after[i]
+  for (const [i, current] of before.entries()) {
+    const replacement = after.at(i)
+    if (!replacement) throw new Error("Popularity projection is inconsistent.")
     await publicIndex.replaceOrInsert(ctx, current, replacement)
   }
   await ctx.db.patch("discoveryEntries", old._id, {
@@ -222,14 +226,30 @@ export async function syncContribution(
     id
   )
 }
-async function queueViewCleanup(ctx: MutationCtx, sourceId: Id<"songs"> | Id<"communityContributions">) {
-  const score = await ctx.db.query("discoveryScores").withIndex("by_source_id", (q) => q.eq("sourceId", sourceId)).unique()
+async function queueViewCleanup(
+  ctx: MutationCtx,
+  sourceId: Id<"songs"> | Id<"communityContributions">
+) {
+  const score = await ctx.db
+    .query("discoveryScores")
+    .withIndex("by_source_id", (q) => q.eq("sourceId", sourceId))
+    .unique()
   if (score) await ctx.db.delete("discoveryScores", score._id)
-  const first = await ctx.db.query("discoveryViews").withIndex("by_source_id", (q) => q.eq("sourceId", sourceId)).first()
+  const first = await ctx.db
+    .query("discoveryViews")
+    .withIndex("by_source_id", (q) => q.eq("sourceId", sourceId))
+    .first()
   if (!first) return
-  const existing = await ctx.db.query("discoveryViewCleanup").withIndex("by_source_id", (q) => q.eq("sourceId", sourceId)).unique()
+  const existing = await ctx.db
+    .query("discoveryViewCleanup")
+    .withIndex("by_source_id", (q) => q.eq("sourceId", sourceId))
+    .unique()
   if (!existing) await ctx.db.insert("discoveryViewCleanup", { sourceId })
-  await ctx.scheduler.runAfter(0, internal.discovery.maintenance.cleanSourceViews, { sourceId })
+  await ctx.scheduler.runAfter(
+    0,
+    internal.discovery.maintenance.cleanSourceViews,
+    { sourceId }
+  )
 }
 export async function syncAlbum(
   ctx: MutationCtx,
@@ -286,9 +306,8 @@ export async function queueOwnerRefresh(
       cursor: null,
       updatedAt: Date.now(),
     })
-    await ctx.scheduler.runAfter(0, internal.discovery.maintenance.processJob, {
-      jobId: existing._id,
-    })
+    // The existing continuation reads the restarted cursor. If it previously
+    // failed, recovery resumes it; do not schedule once per bulk source write.
     return
   }
   const state = await ctx.db
@@ -316,9 +335,22 @@ export async function queueOwnerRefresh(
   })
 }
 export function registerDiscoveryTriggers(triggers: Triggers<DataModel>) {
-  triggers.register("songs", async (ctx, change) =>
-    syncSong(ctx, change.newDoc, change.id)
-  )
+  triggers.register("songs", async (ctx, change) => {
+    const next = change.newDoc
+    if (next) {
+      const pending = await ctx.db
+        .query("discoveryJobs")
+        .withIndex("by_member_id", (q) => q.eq("memberId", next.ownerMemberId))
+        .unique()
+      if (pending) {
+        // Large album inheritance mutations keep their source writes atomic,
+        // while their many public Aggregate positions refresh in bounded jobs.
+        await queueOwnerRefresh(ctx, next.ownerMemberId)
+        return
+      }
+    }
+    await syncSong(ctx, change.newDoc, change.id)
+  })
   triggers.register("communityContributions", async (ctx, change) =>
     syncContribution(ctx, change.newDoc, change.id)
   )

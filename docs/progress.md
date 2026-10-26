@@ -4,11 +4,20 @@
 
 ### Lot 7 — public discovery and approved layouts (in progress, 26 October 2026)
 
-**Paused at the user's explicit quota stop.** All implementation agents are
-frozen. Read [the detailed checkpoint](lot7-checkpoint.md) before resuming:
-backend TypeScript errors, final tests/review, development backfill and browser
-acceptance remain pending. Discovery currently returns `ready:false` by design
-until its migration runs. This is a WIP checkpoint, not a completed lot.
+**Paused again at the user's explicit quota stop.** All UI agents are frozen.
+Read the **latest** section of [the checkpoint](lot7-checkpoint.md): technical
+failures from the first pause are resolved. Development discovery is initialized;
+root `pnpm check` passes **339 tests**, types, lint, formatting and builds.
+The primary local/Convex review and browser evidence for that intermediate state
+are recorded in [verification](lot7-verification.md).
+
+The user then supplied eight new visual comments: remove duplicate catalogue
+navigation, follow reference list headers/filters more closely, replace the
+account dropdown with a simple shadcn sidebar and clearer spacing/hierarchy,
+minimalist artwork controls everywhere, Intro/Outro in both locales, and fix the
+stretched profile avatar. These remain **pending**, with no saved implementation
+from the new UI pass. Re-run checks and review after them. Lot 7 is not complete;
+no PR has been created or prepared in Chrome.
 
 Authorized after Git verification: PR #4 merged lot 6 into `main` at `9f83883`.
 The new branch `codex/public-discovery-layouts` starts from that fixed point.

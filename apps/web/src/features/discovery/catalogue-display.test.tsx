@@ -105,6 +105,82 @@ describe("discovery public display states", () => {
     expect(html).toContain('id="home-search"')
     expect(html).toContain("disabled")
     expect(html).not.toContain("<form")
+    expect(html).toContain("bg-card p-3 text-card-foreground")
+  })
+  it("keeps the home hero available without false results during backfill", () => {
+    state.data = { ready: false, songs: [], albums: [], artists: [] }
+    const html = renderToStaticMarkup(<FoundationPage />)
+    expect(html).toContain('id="home-search"')
+    expect(html).toContain('data-slot="skeleton"')
+    expect(html).not.toContain(formatMessage("fr", "discovery.emptyTitle"))
+  })
+  it("renders the server's unified order and total without regrouping origins", () => {
+    state.data = {
+      ready: true,
+      total: 3,
+      page: 1,
+      pageCount: 1,
+      items: [
+        {
+          id: "one",
+          origin: "community",
+          href: "/community/one",
+          title: "First fan song",
+          primaryArtist: "Credited",
+          artworkUrl: null,
+        },
+        {
+          id: "two",
+          origin: "artist",
+          href: "/songs/two",
+          title: "Second artist song",
+          primaryArtist: "Credited",
+          artworkUrl: null,
+        },
+        {
+          id: "three",
+          origin: "community",
+          href: "/community/three",
+          title: "Third fan song",
+          primaryArtist: "Credited",
+          artworkUrl: null,
+        },
+      ],
+    }
+    const html = renderToStaticMarkup(
+      <CataloguePage kind="songs" search={search} onSearch={vi.fn()} />
+    )
+    expect(html).toContain("3 · Morceaux")
+    expect(html.indexOf("First fan song")).toBeLessThan(
+      html.indexOf("Second artist song")
+    )
+    expect(html.indexOf("Second artist song")).toBeLessThan(
+      html.indexOf("Third fan song")
+    )
+    expect(html.match(/data-slot="badge"/g)).toHaveLength(3)
+  })
+  it("retains stable artist identity while catalogue counts are unavailable", () => {
+    state.profile = {
+      role: "artist",
+      handle: "author",
+      displayName: "Artist identity",
+      avatarUrl: null,
+      bio: "Stable biography",
+      artist: { bannerUrl: null },
+    }
+    state.data = {
+      ready: false,
+      songCount: 0,
+      albumCount: 0,
+      songs: [],
+      albums: [],
+    }
+    const html = renderToStaticMarkup(<PublicProfile handle="author" />)
+    expect(html).toContain("Artist identity")
+    expect(html).toContain("Stable biography")
+    expect(html).toContain('data-slot="skeleton"')
+    expect(html).not.toContain('role="tablist"')
+    expect(html).not.toContain(formatMessage("fr", "discovery.emptyTitle"))
   })
   it("renders localized bounded numbered controls and the current page", () => {
     const html = renderToStaticMarkup(

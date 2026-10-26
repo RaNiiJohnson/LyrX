@@ -51,7 +51,7 @@ export const SongCreditsStep = withForm({
   render: function SongCreditsStepFields({ form }) {
     const { t } = useLocale()
     return (
-      <section className="flex flex-col gap-4">
+      <section className="@container flex min-w-0 flex-col gap-4">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">
             {t("studio.additionalMetadata")}
@@ -67,7 +67,7 @@ export const SongCreditsStep = withForm({
               {t("studio.releaseAndPresentation")}
             </FieldLegend>
             <FieldGroup>
-              <FieldGroup className="grid gap-5 md:grid-cols-2">
+              <FieldGroup className="grid gap-5 @md:grid-cols-2">
                 <form.AppField name="releaseDate">
                   {(field) => (
                     <field.TextField
@@ -144,7 +144,7 @@ export const SongCreditsStep = withForm({
               {t("studio.creditsAndContributors")}
             </FieldLegend>
             <FieldGroup>
-              <FieldGroup className="grid gap-5 md:grid-cols-2">
+              <FieldGroup className="grid gap-5 @md:grid-cols-2">
                 {(
                   [
                     ["guestArtists", "studio.guestArtists"],
@@ -230,7 +230,7 @@ export const SongCreditsStep = withForm({
                     {linksField.state.value.map((_, index) => (
                       <FieldGroup
                         key={index}
-                        className="grid gap-3 rounded-xl border p-4 md:grid-cols-[12rem_1fr_auto] md:items-end"
+                        className="grid min-w-0 gap-3 rounded-xl border p-4 @2xl:grid-cols-[12rem_minmax(0,1fr)_auto] @2xl:items-end"
                       >
                         <form.AppField
                           name={`listeningLinks[${index}].provider`}

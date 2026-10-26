@@ -7,7 +7,9 @@ import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { LocaleProvider } from "@/app/locale-provider"
 import { CommunityReader } from "./community-reader"
 
-vi.mock("@/features/discovery/record-public-view", () => ({ RecordPublicView: () => null }))
+vi.mock("@/features/discovery/record-public-view", () => ({
+  RecordPublicView: () => null,
+}))
 
 type ReportMocks = {
   current: undefined | { state: string; profile?: { handle: string } }

@@ -21,7 +21,6 @@ export type DiscoveryAlbum = {
   artistHandle: string
   artworkUrl: string | null
   href: string
-  publishedTrackCount: number
 }
 export type DiscoveryArtist = {
   handle: string
@@ -93,7 +92,6 @@ export function SongCard({ song }: { song: DiscoverySong }) {
 }
 
 export function AlbumCard({ album }: { album: DiscoveryAlbum }) {
-  const { t } = useLocale()
   return (
     <Link
       to={album.href}
@@ -110,9 +108,6 @@ export function AlbumCard({ album }: { album: DiscoveryAlbum }) {
         </h3>
         <p className="line-clamp-2 text-sm break-words text-muted-foreground">
           {album.artistName}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {t("discovery.songsCount", { count: album.publishedTrackCount })}
         </p>
       </div>
     </Link>
