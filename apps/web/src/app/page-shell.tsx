@@ -70,8 +70,8 @@ function ShellFrame({ children, width, current }: ShellFrameProps) {
 
   return (
     <div className="grid min-h-svh grid-rows-[auto_1fr_auto]">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6 lg:gap-6">
+      <header className="sticky top-3 z-40 mx-auto mt-3 w-[calc(100%-2rem)] max-w-5xl rounded-full border bg-background/85 shadow-lg backdrop-blur-xl sm:w-[calc(100%-3rem)]">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-6 lg:gap-6">
           <Link
             to="/"
             className="group mr-auto flex shrink-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:mr-0"

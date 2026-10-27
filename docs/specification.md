@@ -17,9 +17,9 @@ delivery status and proof remain in [progress.md](progress.md).
   earlier Soft Pop tokens while retaining coral `#DF4F55` as the Lyr'X
   brand mark. DM Sans is the interface and long-form editorial family;
   Newsreader is reserved for the landing display headline, and Space Mono is the
-  monospace family. The landing hero uses locally served editorial music
-  photography instead of decorative gradients. All adaptations must preserve
-  readable contrast.
+  monospace family. The landing hero presents public releases with overlaid
+  context and actions; a locally served editorial music photograph is the
+  missing-artwork backdrop. All adaptations must preserve readable contrast.
 - Light, dark, and system preferences are supported and remembered. Lyrics must
   remain comfortable to read.
 
@@ -169,8 +169,8 @@ the creation/editing forms.
   is actually supported.
 - Lot 8 uses native relevance search with OR term matching and a prefix on the
   final term only. Exact phrases, arbitrary substrings, typo correction, accent
-  folding and Malagasy stemming are not promised. It submits explicitly and
-  navigates bounded native cursor pages without a full-result count. Official
+  folding and Malagasy stemming are not promised. It searches after a short typing
+  pause or explicit submission and navigates bounded native cursor pages without a full-result count. Official
   album matches return albums; Fan album references remain reference metadata.
   See [the verified contract](lot8-verification.md) for limits and costs.
 - Drafts, hidden or removed content, and private notebooks never enter public

@@ -12,12 +12,17 @@ and owns the full local review and delivery.
 
 - Public Artist/Fan search uses one native relevance index, canonical source
   eligibility checks, visible Fan attribution and bounded matching lyric
-  excerpts. Navbar/home triggers open an accessible shadcn Dialog. Explicit
+  excerpts. The navbar opens an accessible shadcn Dialog. Debounced
   submission avoids intermediate-keystroke requests; native cursor pages contain
   at most 12 results. No full-result count or exact-phrase claim is made.
-- A bounded six-release home slider reuses existing public songs/albums, native
-  touch scrolling, keyboard arrows and reduced-motion-aware controls. Existing
-  Caffeine colors, typography and publication/write boundaries are retained.
+- The bounded six-release slider now replaces the old static hero, with large
+  background imagery, overlaid release context/actions, indicators and seven-second
+  rotation. Hover, focus, touch, hidden documents and reduced motion stop automatic
+  movement. Pause/resume is explicit; media never autoplays. A decorative existing
+  local photo fills missing artwork. The header floats in a rounded Caffeine frame.
+  This follows the user's 27 October SkyStream interaction reference; no third-party
+  branding/assets/content were copied. Search now starts after a 450 ms typing pause
+  (Enter/button still immediate); the help paragraph is visually hidden.
 - The primary reviewed the entire lot diff locally from fixed point `a6644da`,
   including retained user scope notes, new files and tests. The branch diff is
   non-empty. Standards/specification review and the `convex:convex-reviewer`
@@ -29,7 +34,7 @@ and owns the full local review and delivery.
   was corrected before the final gate. Accepted trade-off: public search text
   increases discovery projection storage/read size; a separate lifecycle is
   deferred until catalogue size justifies it.
-- **`pnpm check` passes 398 tests** (29 shared, 92 backend, 277 web), formatting,
+- **`pnpm check` passes 399 tests** (29 shared, 92 backend, 278 web), formatting,
   lint, TypeScript and production client/SSR builds. Security/lifecycle tests
   cover public-only indexing, stale candidates, suspension, revocation, missing
   profiles, withdrawals, edits, album-name refresh and versioned backfill.
@@ -47,6 +52,14 @@ and owns the full local review and delivery.
   relevance/tokenization, physical touch and cross-engine behavior are not
   inferred from the test adapter. Details and costs are in
   [lot8-verification.md](lot8-verification.md).
+- The primary re-reviewed every follow-up change (hero replacement, floating
+  header, debounce, tests and scope docs). No blocking standards/specification
+  findings remain; Convex files were unchanged by this follow-up. Browser evidence
+  includes automatic slide changes, manual indicators/arrow navigation, automatic
+  MISS/Niavou searches without submission, clearing results, visually removed help,
+  mobile header/hero/overlay at 390×844 with no horizontal overflow, and Escape
+  restoring focus. The public Fan result successfully opened its canonical detail.
+  The final gate includes formatting, lint, TypeScript, tests and client/SSR builds.
 - Commit/push and an English Markdown PR form in Chrome are authorized; PR
   creation remains with the user. No lot 9, merge or production deployment.
 

@@ -1,5 +1,6 @@
 import {
   Component,
+  useEffect,
   useRef,
   useState,
   type ReactNode,
@@ -67,7 +68,7 @@ export function SearchOverlay({ prominent = false }: { prominent?: boolean }) {
             </Button>
           </DialogClose>
         </div>
-        <DialogDescription className="shrink-0">
+        <DialogDescription className="sr-only">
           {t("search.help")}
         </DialogDescription>
         <BackendRequired>
@@ -87,14 +88,25 @@ function SearchForm({
 }) {
   const { t } = useLocale()
   const [text, setText] = useState("")
+  const [draft, setDraft] = useState("")
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const composing = useRef(false)
   const [attempt, setAttempt] = useState(0)
   const form = useForm({
     defaultValues: { text: "" },
     onSubmit: ({ value }) => {
+      if (timer.current) clearTimeout(timer.current)
       setText(value.text.trim())
       setAttempt((n) => n + 1)
     },
   })
+  useEffect(() => {
+    if (!draft.trim()) return
+    timer.current = setTimeout(() => void form.handleSubmit(), 450)
+    return () => {
+      if (timer.current) clearTimeout(timer.current)
+    }
+  }, [draft, form])
   return (
     <>
       <form
@@ -109,6 +121,7 @@ function SearchForm({
             name="text"
             validators={{
               onSubmit: ({ value }) => {
+                if (timer.current) clearTimeout(timer.current)
                 const terms = value.match(/[\p{L}\p{N}]+/gu) ?? []
                 return !terms.length ||
                   terms.length > 16 ||
@@ -130,7 +143,21 @@ function SearchForm({
                     ref={inputRef}
                     id="public-search"
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      setText("")
+                      field.handleChange(event.target.value)
+                      if (!composing.current) setDraft(event.target.value)
+                    }}
+                    onCompositionStart={() => {
+                      setText("")
+                      setDraft("")
+                      composing.current = true
+                      if (timer.current) clearTimeout(timer.current)
+                    }}
+                    onCompositionEnd={(event) => {
+                      composing.current = false
+                      setDraft(event.currentTarget.value)
+                    }}
                     onBlur={field.handleBlur}
                     maxLength={200}
                     placeholder={t("search.placeholder")}
@@ -158,7 +185,7 @@ function SearchForm({
           </form.Field>
         </FieldGroup>
       </form>
-      {text ? (
+      {text && text === draft.trim() ? (
         <SearchErrorBoundary
           key={`${text}:${attempt}`}
           fallback={

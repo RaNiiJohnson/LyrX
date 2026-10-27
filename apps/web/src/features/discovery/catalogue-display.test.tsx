@@ -122,20 +122,12 @@ describe("discovery public display states", () => {
       genre: undefined,
     })
   })
-  it("opens search from the hero through an accessible dialog trigger", () => {
-    const html = renderToStaticMarkup(<FoundationPage />)
-    expect(html).toContain('aria-haspopup="dialog"')
-    expect(html).toContain(formatMessage("fr", "discovery.searchPlaceholder"))
-    expect(html).not.toContain(
-      formatMessage("fr", "discovery.searchUnavailable")
-    )
-  })
-  it("keeps the home hero available without false results during backfill", () => {
+  it("shows loading without false releases while home discovery initializes", () => {
     state.data = { ready: false, songs: [], albums: [], artists: [] }
     const html = renderToStaticMarkup(<FoundationPage />)
-    expect(html).toContain('aria-haspopup="dialog"')
     expect(html).toContain('data-slot="skeleton"')
     expect(html).not.toContain(formatMessage("fr", "discovery.emptyTitle"))
+    expect(html).not.toContain(formatMessage("fr", "home.titleLead"))
   })
   it("renders the server's unified order and total without regrouping origins", () => {
     state.data = {

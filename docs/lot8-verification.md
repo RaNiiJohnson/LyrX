@@ -8,20 +8,30 @@ The pre-existing documentation edits and new direction file were preserved in
 the lot. One standard sub-agent researched native search in read-only mode.
 Removed `design/` references and guidance were not restored.
 
-The navbar and home hero open the installed shadcn Dialog. TanStack Form submits
-search deliberately; editing the input alone issues no queries. Each request
+The navbar opens the installed shadcn Dialog. TanStack Form validates search
+after a 450 ms typing pause; Enter or the button submits immediately. Intermediate
+keystrokes cancel pending work, composition waits until completion, clearing the
+input cancels search, and changed input hides previous results. The long search
+explanation is screen-reader-only as requested. Each request
 asks for 12 relevance-ranked results, with native cursor next/previous controls.
 Only the current page is rendered. There is no estimated full-result count.
 Loading, empty, unavailable/backfill, short continuing pages, validation and
 technical-error recovery have separate localized feedback. Close/Escape, initial
 input focus and focus restoration use the dialog's focus lifecycle.
 
-The home slider combines the existing bounded public home song/album selections,
+The home slider replaces the former static hero. It combines the existing
+bounded public home song/album selections,
 sorts by first-publication time and keeps at most six. It uses native horizontal
 scroll/snap for touch, keyboard arrows and labelled previous/next controls. Zero
 entries show the existing empty state; one entry has no controls. Missing or
-broken artwork uses the existing music placeholder. There is no autoplay, new
-project model, editorial administration, or new media provider.
+broken artwork uses the existing local music photograph as a decorative backdrop,
+not invented release artwork. Titles, context, badges and actions overlay the
+background; indicators and pause/resume sit along the bottom. Rotation runs every
+seven seconds, pauses on hover, focus or touch interaction and when the document
+is hidden, and is disabled by reduced motion. Focus/touch pause requires explicit
+resume. No media autoplay, new project model, editorial administration or media
+provider is introduced. The floating rounded header preserves existing navigation,
+auth controls, mobile bottom navigation and Caffeine tokens.
 
 ## Search contract and costs
 
@@ -42,7 +52,7 @@ used rather than collecting that window or offset-scanning the catalogue.
 Search does not enforce `maximumRowsRead`/`maximumBytesRead`; the application
 bounds page cardinality instead. Reactive relevance pages can move after edits;
 there is no snapshot/exhaustive-count guarantee. Each search is billed against
-the whole index size in query-GBs even when few matches are returned. Deliberate
+the whole index size in query-GBs even when few matches are returned. Debounced
 submission avoids intermediate-keystroke requests; no external search service
 or browser-side catalogue download is introduced.
 
@@ -77,9 +87,11 @@ Backend regression tests cover both origins and routes, public metadata/genres,
 lyrics excerpts, Fan attribution, drafts/hidden/removed content, edits removing
 old terms, suspension, revocation, missing profiles, stale source hydration,
 cursor boundaries, input limits and versioned backfill. DOM checks cover
-submit-only requests, native cursor navigation, result links, state feedback,
+debounced and immediate requests, native cursor navigation, result links,
+state feedback,
 retry, validation and zero/one/multiple slider entries, bounded selection,
-keyboard movement and reduced motion. Tests do not claim to reproduce native
+keyboard movement, automatic rotation, hover/focus/explicit pause and reduced
+motion. Tests do not claim to reproduce native
 Convex tokenization/relevance; live development queries supply that evidence.
 
 Development deployment and index creation succeeded on `lovely-dolphin-50`.

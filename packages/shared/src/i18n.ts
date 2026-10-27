@@ -8,7 +8,7 @@ const frenchMessages = {
   "search.submit": "Lancer la recherche",
   "search.invalid":
     "Saisissez 1 à 16 mots de 32 caractères maximum (200 caractères au total).",
-  "search.start": "Saisissez votre recherche puis validez.",
+  "search.start": "Saisissez votre recherche…",
   "search.error":
     "Recherche indisponible. Relancez votre recherche pour réessayer.",
   "search.unavailable":
@@ -21,6 +21,9 @@ const frenchMessages = {
   "releases.title": "À découvrir",
   "releases.carousel": "Carrousel",
   "releases.open": "Découvrir le projet",
+  "releases.pause": "Mettre le défilement en pause",
+  "releases.play": "Activer le défilement automatique",
+  "releases.slide": "Aller au projet {{number}}",
 
   "common.close": "Fermer",
   "discovery.artistsCount": "{{count}} artistes",
@@ -633,7 +636,7 @@ const englishMessages = {
   "search.submit": "Run search",
   "search.invalid":
     "Enter 1\u201316 words of up to 32 characters (200 characters in total).",
-  "search.start": "Enter your search and submit.",
+  "search.start": "Enter your search…",
   "search.error": "Search is unavailable. Submit your search again to retry.",
   "search.unavailable": "The public index is updating. Try again shortly.",
   "search.empty": "No public results. Try another word.",
@@ -643,6 +646,9 @@ const englishMessages = {
   "releases.title": "Discover releases",
   "releases.carousel": "Carousel",
   "releases.open": "Discover release",
+  "releases.pause": "Pause slideshow",
+  "releases.play": "Start automatic slideshow",
+  "releases.slide": "Go to release {{number}}",
 
   "common.close": "Close",
   "discovery.artistsCount": "{{count}} artists",

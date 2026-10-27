@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import { ArrowRight } from "lucide-react"
 import { api } from "@lyrx/backend/convex/_generated/api"
-import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
 import { BackendRequired } from "@/app/backend-required"
 import { useLocale } from "@/app/locale-provider"
@@ -15,38 +14,12 @@ import {
   DiscoveryEmpty,
   DiscoveryLoading,
 } from "@/features/discovery/discovery-states"
-import { SearchOverlay } from "@/features/discovery/search-overlay"
 import { ReleaseSlider } from "./release-slider"
 import { HorizontalRow } from "@/features/discovery/horizontal-row"
 
 export function FoundationPage() {
-  const { t } = useLocale()
   return (
     <div className="flex min-w-0 flex-col gap-10 sm:gap-14">
-      <section className="relative isolate flex min-h-80 items-center justify-center overflow-hidden rounded-3xl bg-muted px-5 py-12 text-center sm:min-h-96 sm:px-10">
-        <img
-          src="/images/lyrx-songwriter-hero.webp"
-          alt={t("home.heroImageAlt")}
-          width={1536}
-          height={1024}
-          fetchPriority="high"
-          className="absolute inset-0 -z-20 size-full object-cover object-[58%_center] sm:object-center"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-brand-foreground/65"
-        />
-        <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-6 text-hero-foreground">
-          <Badge variant="secondary">{t("home.eyebrow")}</Badge>
-          <h1 className="font-serif text-4xl leading-tight tracking-tight text-balance sm:text-6xl">
-            <span>{t("home.titleLead")}</span>{" "}
-            <span className="font-normal italic">
-              {t("home.titleEmphasis")}
-            </span>
-          </h1>
-          <SearchOverlay prominent />
-        </div>
-      </section>
       <BackendRequired>
         <HomeDiscovery />
       </BackendRequired>

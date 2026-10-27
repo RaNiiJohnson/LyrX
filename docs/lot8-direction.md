@@ -27,6 +27,15 @@ only. They are not a request to copy its branding, colors, assets or content:
   Escape/close, focus restoration and a mobile-safe layout. Preserve an accessible
   label and separate loading, empty, unavailable and error feedback.
 
+Follow-up direction from the user on 27 October: the slider replaces the old
+static hero, using a large background, overlaid release title/context/actions and
+slide indicators. It rotates automatically, with pause/resume, pause on hover or
+focus and reduced-motion support. This is presentation rotation, not media
+playback. The header also follows the floating, rounded composition while keeping
+Lyr’X navigation and Caffeine tokens. The navbar overlay hides the explanatory
+paragraph visually and starts a validated search after a 450 ms typing pause;
+Enter and the submit button remain immediate actions.
+
 The home slider is an explicitly requested presentation addition to lot 8.
 Other later-lot product features remain deferred. Use existing project assets;
 the supplied reference screenshots are sufficient unless behavior needs checking.
