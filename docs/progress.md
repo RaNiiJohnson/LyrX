@@ -60,8 +60,12 @@ and owns the full local review and delivery.
   mobile header/hero/overlay at 390×844 with no horizontal overflow, and Escape
   restoring focus. The public Fan result successfully opened its canonical detail.
   The final gate includes formatting, lint, TypeScript, tests and client/SSR builds.
-- Commit/push and an English Markdown PR form in Chrome are authorized; PR
-  creation remains with the user. No lot 9, merge or production deployment.
+- Implementation and follow-up commits `e08edf7` and `ce0d59a` are pushed to
+  `origin/codex/lot8-public-search`; user documentation was preserved in `231ce72`.
+  Chrome PR preparation is blocked: GitHub navigation repeatedly timed out.
+  The new tab stayed blank; the verified localhost tab never reached GitHub.
+  The English Markdown title/body are saved in [lot8-pr.md](lot8-pr.md). No PR was
+  created. No lot 9, merge or production deployment.
 
 
 ### Lot 8 handoff decisions — 26 October 2026
