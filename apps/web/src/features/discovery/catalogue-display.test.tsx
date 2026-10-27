@@ -122,18 +122,18 @@ describe("discovery public display states", () => {
       genre: undefined,
     })
   })
-  it("makes search visibly unavailable with no dead submitting form", () => {
+  it("opens search from the hero through an accessible dialog trigger", () => {
     const html = renderToStaticMarkup(<FoundationPage />)
-    expect(html).toContain(formatMessage("fr", "discovery.searchUnavailable"))
-    expect(html).toContain('id="home-search"')
-    expect(html).toContain("disabled")
-    expect(html).not.toContain("<form")
-    expect(html).toContain("bg-card p-3 text-card-foreground")
+    expect(html).toContain('aria-haspopup="dialog"')
+    expect(html).toContain(formatMessage("fr", "discovery.searchPlaceholder"))
+    expect(html).not.toContain(
+      formatMessage("fr", "discovery.searchUnavailable")
+    )
   })
   it("keeps the home hero available without false results during backfill", () => {
     state.data = { ready: false, songs: [], albums: [], artists: [] }
     const html = renderToStaticMarkup(<FoundationPage />)
-    expect(html).toContain('id="home-search"')
+    expect(html).toContain('aria-haspopup="dialog"')
     expect(html).toContain('data-slot="skeleton"')
     expect(html).not.toContain(formatMessage("fr", "discovery.emptyTitle"))
   })

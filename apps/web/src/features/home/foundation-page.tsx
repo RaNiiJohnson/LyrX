@@ -4,8 +4,6 @@ import { ArrowRight } from "lucide-react"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
-import { Input } from "@lyrx/ui/components/input"
-import { Field, FieldDescription, FieldLabel } from "@lyrx/ui/components/field"
 import { BackendRequired } from "@/app/backend-required"
 import { useLocale } from "@/app/locale-provider"
 import {
@@ -17,6 +15,8 @@ import {
   DiscoveryEmpty,
   DiscoveryLoading,
 } from "@/features/discovery/discovery-states"
+import { SearchOverlay } from "@/features/discovery/search-overlay"
+import { ReleaseSlider } from "./release-slider"
 import { HorizontalRow } from "@/features/discovery/horizontal-row"
 
 export function FoundationPage() {
@@ -44,20 +44,7 @@ export function FoundationPage() {
               {t("home.titleEmphasis")}
             </span>
           </h1>
-          <Field className="max-w-xl rounded-xl bg-card p-3 text-card-foreground">
-            <FieldLabel htmlFor="home-search" className="sr-only">
-              {t("discovery.searchPlaceholder")}
-            </FieldLabel>
-            <Input
-              id="home-search"
-              disabled
-              placeholder={t("discovery.searchPlaceholder")}
-              aria-describedby="home-search-availability"
-            />
-            <FieldDescription id="home-search-availability">
-              {t("discovery.searchUnavailable")}
-            </FieldDescription>
-          </Field>
+          <SearchOverlay prominent />
         </div>
       </section>
       <BackendRequired>
@@ -73,6 +60,7 @@ function HomeDiscovery() {
   if (!data?.ready) return <DiscoveryLoading />
   return (
     <>
+      <ReleaseSlider songs={data.songs} albums={data.albums} />
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-semibold">{t("discovery.newest")}</h2>

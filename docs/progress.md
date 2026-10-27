@@ -2,6 +2,55 @@
 
 ## Active lot
 
+### Lot 8 — implemented and locally reviewed (27 October 2026)
+
+Work is on `codex/lot8-public-search`, based on up-to-date `main` at `a6644da`
+(after merged lots 5, T1, 6 and 7). The user's local documentation changes were
+preserved in `231ce72`; removed design references were not restored. One standard
+sub-agent researched Convex search read-only. The primary agent made all edits
+and owns the full local review and delivery.
+
+- Public Artist/Fan search uses one native relevance index, canonical source
+  eligibility checks, visible Fan attribution and bounded matching lyric
+  excerpts. Navbar/home triggers open an accessible shadcn Dialog. Explicit
+  submission avoids intermediate-keystroke requests; native cursor pages contain
+  at most 12 results. No full-result count or exact-phrase claim is made.
+- A bounded six-release home slider reuses existing public songs/albums, native
+  touch scrolling, keyboard arrows and reduced-motion-aware controls. Existing
+  Caffeine colors, typography and publication/write boundaries are retained.
+- The primary reviewed the entire lot diff locally from fixed point `a6644da`,
+  including retained user scope notes, new files and tests. The branch diff is
+  non-empty. Standards/specification review and the `convex:convex-reviewer`
+  security/performance/quality passes leave no blocking finding.
+- Review corrections: initial search-input focus, small-height dialog scrolling,
+  equal 36px navbar targets, search-text-only updates preserving Aggregate keys,
+  album artist-name invalidation, canonical owner rechecks without duplicate
+  source reads, and a 12-result server cap. A test-fixture typing/formatting issue
+  was corrected before the final gate. Accepted trade-off: public search text
+  increases discovery projection storage/read size; a separate lifecycle is
+  deferred until catalogue size justifies it.
+- **`pnpm check` passes 398 tests** (29 shared, 92 backend, 277 web), formatting,
+  lint, TypeScript and production client/SSR builds. Security/lifecycle tests
+  cover public-only indexing, stale candidates, suspension, revocation, missing
+  profiles, withdrawals, edits, album-name refresh and versioned backfill.
+- Convex development index creation/push succeeded. Backfill completion was
+  observed as `initialized:true,searchVersion:1,pendingJobs:0`. Browser checks
+  exercised FR/EN, dark/light, desktop and 390×844 layouts, 390×280 scrolling,
+  initial focus, Escape/restoration, live title/artist/lyrics results, final-term
+  prefixes, OR multi-word semantics, empty results and attribution. Native
+  pagination boundaries, zero/one/many slider states and reduced motion are
+  additionally isolated-test evidence.
+- Live connectivity was intermittent: some auth/SSR requests, CLI operations
+  and detail navigations failed or reconnected. Successful read-only searches
+  used existing public content; no real publication, account/role change,
+  moderation or destructive cleanup was used to populate tests. Full native
+  relevance/tokenization, physical touch and cross-engine behavior are not
+  inferred from the test adapter. Details and costs are in
+  [lot8-verification.md](lot8-verification.md).
+- Commit/push and an English Markdown PR form in Chrome are authorized; PR
+  creation remains with the user. No lot 9, merge or production deployment.
+
+
 ### Lot 8 handoff decisions — 26 October 2026
 
 Git now confirms merged lot 7, PR #5 at `62dd6eb`, on local `main`. The user
@@ -1179,11 +1228,10 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Lots 5, T1, 6 and 7 are merged and closed. The next implementation session follows
-[the lot 8 handoff](lot8-direction.md) and [roadmap](roadmap.md), including read-only
-sub-agent research, primary-only edits, search and the approved home slider.
-That session may commit/push and prepare an English PR form in Chrome, stopping
-before PR creation. Merge, production deployment and account/role changes are
-not authorized. This documentation session has not started lot 8 product code.
-Artist claim/replacement, the writing notebook with local audio and the sharing-card
-refinement retain their deferred/proposal-only status.
+Lot 8 is implemented and reviewed on `codex/lot8-public-search`. The user creates
+and reviews the prepared PR, then decides whether to merge. Lot 9 (likes,
+comments and reports) requires separate approval and has not begun. Production
+deployment and account/role changes remain unauthorized. Historical proposals
+for artist claim/replacement, notebook audio and sharing-card refinements retain
+their deferred status. See [lot8-verification.md](lot8-verification.md) for actual
+search limits and evidence.

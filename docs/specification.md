@@ -167,6 +167,12 @@ the creation/editing forms.
 - The implemented UI must describe the real Convex search behavior, especially
   for Malagasy and multi-word text; do not promise exact phrase search unless it
   is actually supported.
+- Lot 8 uses native relevance search with OR term matching and a prefix on the
+  final term only. Exact phrases, arbitrary substrings, typo correction, accent
+  folding and Malagasy stemming are not promised. It submits explicitly and
+  navigates bounded native cursor pages without a full-result count. Official
+  album matches return albums; Fan album references remain reference metadata.
+  See [the verified contract](lot8-verification.md) for limits and costs.
 - Drafts, hidden or removed content, and private notebooks never enter public
   lists or search. Lists, search, and comments paginate or load incrementally.
 

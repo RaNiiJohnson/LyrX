@@ -28,6 +28,7 @@ async function backend(initialized = true) {
       ctx.db.insert("discoveryState", {
         key: "public",
         initialized: true,
+        searchVersion: 1,
         pendingJobs: 0,
       })
     )
@@ -752,5 +753,256 @@ describe("honest recent-view ranking", () => {
     expect(
       await t.run((ctx) => ctx.db.query("discoveryViews").take(2))
     ).toHaveLength(0)
+  })
+})
+
+describe("public search", () => {
+  const find = (
+    t: Backend,
+    text: string,
+    cursor: string | null = null,
+    numItems = 12
+  ) =>
+    t.query(api.discovery.read.search, {
+      text,
+      paginationOpts: { cursor, numItems },
+    })
+  it("searches one public index across origins, artist names, albums, genres and lyrics with bounded excerpts", async () => {
+    const t = await backend(),
+      artist = await member(t, "search-artist"),
+      fan = await member(t, "search-fan", "fan")
+    const official = await song(
+      t,
+      artist.memberId,
+      "Hira",
+      1,
+      "published",
+      "pop"
+    )
+    const community = await contribution(t, fan.memberId, "Fan song", 2)
+    await t.run(async (raw) => {
+      const ctx = catalogueAggregateTriggers.wrapDB(raw)
+      await ctx.db.patch("songs", official, {
+        primaryArtist: "Mahaleo",
+        lyricsText: "[Refrain]\nTiako ny tanindrazako mandrakizay",
+      })
+      await ctx.db.patch("communityContributions", community, {
+        primaryArtist: "Mahaleo",
+        albumTitle: "Reference",
+        genre: "rock",
+        lyricsText: "Tiako koa ny hira",
+      })
+      await ctx.db.insert("albums", {
+        ownerMemberId: artist.memberId,
+        title: "Public album",
+        status: "published",
+        credits: [],
+        firstPublishedAt: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        genre: "jazz",
+      })
+    })
+    expect((await find(t, "Mahaleo")).page.map((x) => x.id).sort()).toEqual(
+      [official, community].sort()
+    )
+    const lyric = await find(t, "tanindrazako")
+    expect(lyric.page).toHaveLength(1)
+    expect(lyric.page[0]).toMatchObject({
+      id: official,
+      excerpt: "[Refrain]\nTiako ny tanindrazako mandrakizay",
+      origin: "artist",
+      href: `/songs/${official}`,
+    })
+    expect(
+      (await find(t, "Tiako")).page.find((x) => x.id === community)
+    ).toMatchObject({
+      contributor: "search-fan",
+      origin: "community",
+      href: `/community/${community}`,
+    })
+    expect((await find(t, "pop")).page.map((x) => x.id)).toEqual([official])
+    expect((await find(t, "Reference")).page.map((x) => x.id)).toEqual([
+      community,
+    ])
+    expect((await find(t, "jazz")).page[0]?.kind).toBe("album")
+    expect(
+      (await find(t, "search-artist")).page.some((x) => x.kind === "artist")
+    ).toBe(true)
+    expect(JSON.stringify(lyric)).not.toMatch(
+      /authUserId|email|lyricsText|searchText|ownerMemberId|reason/
+    )
+  })
+  it("never indexes drafts, hidden or removed contributions and removes old lyric terms on edits", async () => {
+    const t = await backend(),
+      artist = await member(t, "private-artist"),
+      fan = await member(t, "private-fan", "fan")
+    await song(t, artist.memberId, "secretword", 1, "draft")
+    await contribution(t, fan.memberId, "secretword", 2, "hidden")
+    await contribution(t, fan.memberId, "secretword", 3, "removed")
+    expect((await find(t, "secretword")).page).toEqual([])
+    const id = await contribution(t, fan.memberId, "Visible", 4)
+    await t.run((ctx) =>
+      catalogueAggregateTriggers
+        .wrapDB(ctx)
+        .db.patch("communityContributions", id, { lyricsText: "oldword" })
+    )
+    expect((await find(t, "oldword")).page).toHaveLength(1)
+    await t.run((ctx) =>
+      catalogueAggregateTriggers
+        .wrapDB(ctx)
+        .db.patch("communityContributions", id, { lyricsText: "newword" })
+    )
+    expect((await find(t, "oldword")).page).toEqual([])
+    expect((await find(t, "newword")).page).toHaveLength(1)
+    await t.run((ctx) =>
+      catalogueAggregateTriggers
+        .wrapDB(ctx)
+        .db.patch("communityContributions", id, { status: "hidden" })
+    )
+    expect((await find(t, "newword")).page).toEqual([])
+    expect(
+      await t.run((ctx) =>
+        ctx.db
+          .query("discoveryEntries")
+          .withIndex("by_source_id", (q) => q.eq("sourceId", id))
+          .unique()
+      )
+    ).toBeNull()
+  })
+  it("fails closed during owner jobs and rechecks suspension, revocation and missing profiles even for stale entries", async () => {
+    const t = await backend(),
+      artist = await member(t, "revoke-artist")
+    await song(t, artist.memberId, "Findme", 1)
+    await t.run((ctx) =>
+      catalogueAggregateTriggers
+        .wrapDB(ctx)
+        .db.patch("members", artist.memberId, { status: "suspended" })
+    )
+    expect(await find(t, "Findme")).toMatchObject({ ready: false, page: [] })
+    await drainJobs(t)
+    expect((await find(t, "Findme")).page).toEqual([])
+    await t.run((ctx) =>
+      catalogueAggregateTriggers
+        .wrapDB(ctx)
+        .db.patch("members", artist.memberId, { status: "active" })
+    )
+    await drainJobs(t)
+    expect((await find(t, "Findme")).page).toHaveLength(1)
+    await t.run((ctx) =>
+      ctx.db.insert("accountDeletions", {
+        authUserId: "issuer|revoke-artist",
+        requestedAt: Date.now(),
+      })
+    )
+    expect((await find(t, "Findme")).page).toEqual([])
+    const second = await member(t, "profile-artist")
+    await song(t, second.memberId, "Findme", 2)
+    await t.run(async (ctx) => {
+      const profile = await ctx.db
+        .query("profiles")
+        .withIndex("by_member_id", (q) => q.eq("memberId", second.memberId))
+        .unique()
+      await ctx.db.delete("profiles", profile!._id)
+    })
+    expect((await find(t, "Findme")).page).toEqual([])
+  })
+  it("uses native cursors for a unified bounded relevance stream, including short pages", async () => {
+    const t = await backend(),
+      artist = await member(t, "page-artist"),
+      fan = await member(t, "page-fan", "fan")
+    const a = await song(t, artist.memberId, "Common A", 1)
+    const b = await contribution(t, fan.memberId, "Common B", 2)
+    const first = await find(t, "Common", null, 1)
+    expect(first.page).toHaveLength(1)
+    expect(first.isDone).toBe(false)
+    const second = await find(t, "Common", first.continueCursor, 1)
+    expect(new Set([...first.page, ...second.page].map((x) => x.id))).toEqual(
+      new Set([a, b])
+    )
+    // A stale source still cannot leak even when its index row remains.
+    await t.run((ctx) => ctx.db.patch("songs", a, { status: "draft" }))
+    const all = await find(t, "Common")
+    expect(all.page.map((x) => x.id)).toEqual([b])
+  })
+  it("requires an explicit completed search backfill for historical discovery state", async () => {
+    const t = await backend(),
+      artist = await member(t, "legacy-search")
+    await song(t, artist.memberId, "Legacy", 1)
+    await t.run(async (ctx) => {
+      const state = await ctx.db.query("discoveryState").unique()
+      await ctx.db.patch("discoveryState", state!._id, {
+        searchVersion: undefined,
+      })
+    })
+    expect(await find(t, "Legacy")).toMatchObject({ ready: false, page: [] })
+    await t.mutation(internal.discovery.maintenance.backfill, {})
+    await drainJobs(t)
+    expect(await find(t, "Legacy")).toMatchObject({ ready: true })
+    expect(
+      (await find(t, "Legacy")).page.some((x) => x.title === "Legacy")
+    ).toBe(true)
+  })
+  it("refreshes album artist names through bounded jobs and deletes withdrawn source text", async () => {
+    const t = await backend(),
+      artist = await member(t, "beforeword")
+    const id = await t.run((ctx) =>
+      catalogueAggregateTriggers.wrapDB(ctx).db.insert("albums", {
+        ownerMemberId: artist.memberId,
+        title: "Release",
+        status: "published",
+        credits: [],
+        firstPublishedAt: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      })
+    )
+    expect((await find(t, "beforeword")).page.some((x) => x.id === id)).toBe(
+      true
+    )
+    await t.run(async (raw) => {
+      const ctx = catalogueAggregateTriggers.wrapDB(raw)
+      const profile = await ctx.db
+        .query("profiles")
+        .withIndex("by_member_id", (q) => q.eq("memberId", artist.memberId))
+        .unique()
+      await ctx.db.patch("profiles", profile!._id, { displayName: "afterword" })
+    })
+    expect((await find(t, "afterword")).ready).toBe(false)
+    await drainJobs(t)
+    expect((await find(t, "afterword")).page.some((x) => x.id === id)).toBe(
+      true
+    )
+    // The old handle remains searchable on the artist, but not on album metadata.
+    expect((await find(t, "beforeword")).page.some((x) => x.id === id)).toBe(
+      false
+    )
+    await t.run((ctx) =>
+      catalogueAggregateTriggers.wrapDB(ctx).db.delete("albums", id)
+    )
+    expect((await find(t, "Release")).page).toEqual([])
+    expect(
+      await t.run((ctx) =>
+        ctx.db
+          .query("discoveryEntries")
+          .withIndex("by_source_id", (q) => q.eq("sourceId", id))
+          .unique()
+      )
+    ).toBeNull()
+  })
+  it("rejects oversized or tokenless requests and invalid page bounds", async () => {
+    const t = await backend()
+    for (const text of [
+      "",
+      "!!!",
+      "a".repeat(33),
+      "one ".repeat(17),
+      "a ".repeat(101),
+    ])
+      await expect(find(t, text)).rejects.toThrow(/Search requires/)
+    for (const size of [0, -1, 13, 25, 1.5])
+      await expect(find(t, "word", null, size)).rejects.toThrow(
+        /Search requires/
+      )
   })
 })

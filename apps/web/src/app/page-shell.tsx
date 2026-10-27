@@ -16,6 +16,8 @@ import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { getPublicRuntimeConfig } from "@/lib/runtime-config"
 
+import { SearchOverlay } from "@/features/discovery/search-overlay"
+
 import { AccountSidebar, type AccountNavigationProps } from "./account-sidebar"
 import { LocaleMenu } from "./locale-menu"
 import { useLocale } from "./locale-provider"
@@ -98,6 +100,7 @@ function ShellFrame({ children, width, current }: ShellFrameProps) {
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5">
+            <SearchOverlay />
             <LocaleMenu />
             <ThemeMenu />
             <ConfiguredAccountNavigation current={current} />

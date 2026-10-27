@@ -36,6 +36,7 @@ import type * as discovery_maintenance from "../discovery/maintenance.js";
 import type * as discovery_model from "../discovery/model.js";
 import type * as discovery_projection from "../discovery/projection.js";
 import type * as discovery_read from "../discovery/read.js";
+import type * as discovery_searchText from "../discovery/searchText.js";
 import type * as discovery_views from "../discovery/views.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
@@ -82,6 +83,7 @@ declare const fullApi: ApiFromModules<{
   "discovery/model": typeof discovery_model;
   "discovery/projection": typeof discovery_projection;
   "discovery/read": typeof discovery_read;
+  "discovery/searchText": typeof discovery_searchText;
   "discovery/views": typeof discovery_views;
   emails: typeof emails;
   http: typeof http;

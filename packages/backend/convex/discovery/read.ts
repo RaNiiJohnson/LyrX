@@ -1,3 +1,9 @@
+import {
+  paginationOptsValidator,
+  paginationResultValidator,
+} from "convex/server"
+import { lyricsTextForSong } from "../catalogue/lyrics"
+import { matchingExcerpt, searchTerms } from "./searchText"
 import { ConvexError, v, type Infer } from "convex/values"
 import type { Doc, Id } from "../_generated/dataModel"
 import { query, type QueryCtx } from "../_generated/server"
@@ -382,5 +388,124 @@ export const artistByHandle = query({
       songs: songs.filter((item) => item !== null),
       albums: albums.filter((item) => item !== null),
     }
+  },
+})
+
+const searchItem = v.object({
+  id: v.string(),
+  kind: v.union(v.literal("song"), v.literal("album"), v.literal("artist")),
+  title: v.string(),
+  context: v.string(),
+  href: v.string(),
+  artworkUrl: v.union(v.string(), v.null()),
+  origin: v.optional(origin),
+  contributor: v.optional(v.string()),
+  excerpt: v.union(v.string(), v.null()),
+})
+
+export const search = query({
+  args: { text: v.string(), paginationOpts: paginationOptsValidator },
+  returns: v.object({
+    ...paginationResultValidator(searchItem).fields,
+    ready: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    const text = args.text.trim()
+    const terms = searchTerms(text)
+    if (
+      text.length > 200 ||
+      terms.length < 1 ||
+      terms.length > 16 ||
+      terms.some((term) => term.length > 32) ||
+      !Number.isInteger(args.paginationOpts.numItems) ||
+      args.paginationOpts.numItems < 1 ||
+      args.paginationOpts.numItems > 12
+    )
+      throw new ConvexError({
+        code: "INVALID_INPUT",
+        message:
+          "Search requires 1–16 terms of at most 32 characters and pages of 1–12 items.",
+      })
+    const state = await ctx.db
+      .query("discoveryState")
+      .withIndex("by_key", (q) => q.eq("key", "public"))
+      .unique()
+    if (!state?.initialized || state.pendingJobs || state.searchVersion !== 1)
+      return { ready: false, page: [], isDone: true, continueCursor: "" }
+    const result = await ctx.db
+      .query("discoveryEntries")
+      .withSearchIndex("search_text", (q) => q.search("searchText", text))
+      .paginate(args.paginationOpts)
+    const page = []
+    for (const entry of result.page) {
+      // Hydrate from canonical data: a stale projection is never permission.
+      if (entry.kind === "song") {
+        if (!entry.origin) continue
+        const source =
+          entry.origin === "artist"
+            ? await ctx.db.get("songs", entry.sourceId as Id<"songs">)
+            : await ctx.db.get(
+                "communityContributions",
+                entry.sourceId as Id<"communityContributions">
+              )
+        if (!source || source.status !== "published") continue
+        const owner = await eligibleMember(
+          ctx,
+          "ownerMemberId" in source
+            ? source.ownerMemberId
+            : source.authorMemberId,
+          entry.origin === "artist" ? "artist" : "fan"
+        )
+        if (!owner) continue
+        const lyrics =
+          "ownerMemberId" in source
+            ? await lyricsTextForSong(ctx, source)
+            : source.lyricsText
+        page.push({
+          id: String(entry.sourceId),
+          kind: entry.kind,
+          title: source.title,
+          context: source.primaryArtist,
+          href:
+            entry.origin === "artist"
+              ? `/songs/${source._id}`
+              : `/community/${source._id}`,
+          artworkUrl: source.artworkStorageId
+            ? await ctx.storage.getUrl(source.artworkStorageId)
+            : null,
+          origin: entry.origin,
+          ...(entry.origin === "community"
+            ? { contributor: owner.profile.displayName }
+            : {}),
+          excerpt: matchingExcerpt(lyrics, text),
+        })
+      } else if (entry.kind === "album") {
+        const card = await album(ctx, entry)
+        if (card)
+          page.push({
+            id: String(entry.sourceId),
+            kind: entry.kind,
+            title: card.title,
+            context: card.artistName,
+            href: card.href,
+            artworkUrl: card.artworkUrl,
+            excerpt: null,
+          })
+      } else {
+        const card = await artist(ctx, entry)
+        if (card)
+          page.push({
+            id: String(entry.sourceId),
+            kind: entry.kind,
+            title: card.displayName,
+            context: `@${card.handle}`,
+            href: card.href,
+            artworkUrl: card.avatarUrl,
+            excerpt: null,
+          })
+      }
+    }
+    // Preserve the native cursor even when visibility hydration shortens a page.
+    return { ...result, page, ready: true }
   },
 })

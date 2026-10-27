@@ -1,3 +1,5 @@
+import { lyricsTextForSong } from "../catalogue/lyrics"
+import { genreSearchText } from "./searchText"
 import { DirectAggregate } from "@convex-dev/aggregate"
 import type { Triggers } from "convex-helpers/server/triggers"
 import { components, internal } from "../_generated/api"
@@ -86,8 +88,13 @@ export async function putEntry(
     old.titleKey === input.titleKey &&
     old.publishedAt === input.publishedAt &&
     old.genre === input.genre
-  )
+  ) {
+    if (old.searchText !== input.searchText)
+      await ctx.db.patch("discoveryEntries", old._id, {
+        searchText: input.searchText,
+      })
     return
+  }
   const score =
     input.kind === "song"
       ? await ctx.db
@@ -193,6 +200,13 @@ export async function syncSong(
           memberId: row.ownerMemberId,
           kind: "song",
           origin: "artist",
+          searchText: [
+            row.title,
+            row.primaryArtist,
+            ...row.guestArtists,
+            genreSearchText(row.genre, row.otherGenre),
+            await lyricsTextForSong(ctx, row),
+          ].join("\n"),
           titleKey: row.title.toLocaleLowerCase(),
           publishedAt: row.firstPublishedAt ?? row.createdAt,
           ...(row.genre ? { genre: row.genre } : {}),
@@ -218,6 +232,16 @@ export async function syncContribution(
           memberId: row.authorMemberId,
           kind: "song",
           origin: "community",
+          searchText: [
+            row.title,
+            row.primaryArtist,
+            ...(row.guestArtists ?? []),
+            row.albumTitle,
+            genreSearchText(row.genre, row.otherGenre),
+            row.lyricsText,
+          ]
+            .filter(Boolean)
+            .join("\n"),
           titleKey: row.title.toLocaleLowerCase(),
           publishedAt: row.firstPublishedAt,
           ...(row.genre ? { genre: row.genre } : {}),
@@ -266,6 +290,11 @@ export async function syncAlbum(
           sourceId: id,
           memberId: row.ownerMemberId,
           kind: "album",
+          searchText: [
+            row.title,
+            eligible.profile.displayName,
+            genreSearchText(row.genre, row.otherGenre),
+          ].join("\n"),
           titleKey: row.title.toLocaleLowerCase(),
           publishedAt: row.firstPublishedAt ?? row.createdAt,
           ...(row.genre ? { genre: row.genre } : {}),
@@ -283,6 +312,7 @@ export async function syncArtist(ctx: MutationCtx, id: Id<"members">) {
           sourceId: id,
           memberId: id,
           kind: "artist",
+          searchText: `${eligible.profile.displayName}\n${eligible.profile.handle}`,
           titleKey: eligible.profile.displayName.toLocaleLowerCase(),
           publishedAt: eligible.member.createdAt,
         }
@@ -361,7 +391,11 @@ export function registerDiscoveryTriggers(triggers: Triggers<DataModel>) {
     const memberId = change.newDoc?.memberId ?? change.oldDoc?.memberId
     if (!memberId) return
     await syncArtist(ctx, memberId)
-    if (!change.newDoc) await queueOwnerRefresh(ctx, memberId)
+    if (
+      !change.newDoc ||
+      (change.oldDoc && change.newDoc.displayName !== change.oldDoc.displayName)
+    )
+      await queueOwnerRefresh(ctx, memberId)
     else if (!change.oldDoc) {
       const [song, contribution, album] = await Promise.all([
         ctx.db

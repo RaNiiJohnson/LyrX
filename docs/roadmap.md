@@ -70,3 +70,7 @@ Lots 2–12 stabilize the web and shared backend before Expo. Search follows the
 public content model so its visibility rules are testable. Notebook excerpts and
 sharing both depend on a source-text snapshot. Visual-card generation waits
 until managed image access and withdrawal rules exist.
+
+Lot 8 implementation and actual capability limits are recorded in
+[lot8-verification.md](lot8-verification.md). The user retains PR creation and
+merge. Lot 9 requires a new approval and has not begun.

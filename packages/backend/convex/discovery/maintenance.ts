@@ -20,6 +20,7 @@ async function finish(ctx: MutationCtx, job: Doc<"discoveryJobs">) {
   await ctx.db.patch("discoveryState", state._id, {
     pendingJobs: Math.max(0, state.pendingJobs - 1),
     initialized: job.memberId ? state.initialized : true,
+    ...(!job.memberId ? { searchVersion: 1 as const } : {}),
   })
   await ctx.db.delete("discoveryJobs", job._id)
 }
