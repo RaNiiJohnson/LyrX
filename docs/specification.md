@@ -151,10 +151,12 @@ the creation/editing forms.
   on details. There is no separate public Community discovery page in the lot 7
   target. Fan publication/personal contributions and admin moderation remain
   accessible, with their existing ownership and visibility rules.
-- Lot 7 applies [the approved design guidance](design-guidance.md) to the public
-  screens and necessary existing views, retaining the current Caffeine colors.
-  It displays the search entry with an explicit unavailable state; real search
-  is delivered in lot 8. Other future interactions retain their roadmap lots.
+- The implemented lot 7 interface is the visual reference, retaining the current
+  Caffeine colors. Removed local design references need not be restored. Lot 8
+  activates the navbar search entry through an accessible search overlay and
+  adds a bounded public musical-release slider on the home page, following
+  [the lot 8 direction](lot8-direction.md). Other future interactions retain
+  their roadmap lots.
 - **New releases** sort by first public publication date descending. Ordinary
   edits do not make content new again.
 - **Popular** uses a documented, recent activity window, principally deduplicated

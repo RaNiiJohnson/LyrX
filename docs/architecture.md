@@ -143,7 +143,9 @@ write/moderation domain, private author tools, and existing detail links. A unif
 public read projection must apply consistent ordering, pagination, counts, and
 visibility across both origins; concatenating two independently paginated lists
 is insufficient. Its maintenance must cover moderation, withdrawal, and account
-deletion as well as publication. See [design guidance](design-guidance.md).
+deletion as well as publication. The implemented lot 7 interface now owns the
+visual reference; subsequent search/slider decisions are recorded in
+[the lot 8 direction](lot8-direction.md).
 
 ## Public discovery projection (lot 7)
 

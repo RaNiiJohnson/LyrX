@@ -67,9 +67,9 @@ code-like labels. Landing imagery favors real, tactile music photography over
 decorative gradients. All token adaptations must preserve readable contrast and
 comfortable long-form lyrics in light and dark modes.
 
-The approved `design/` mockups guide layout and interactions while the existing
-Caffeine theme and colors remain unchanged. Lot 7 integrates the necessary
-screens under [the approved design guidance](design-guidance.md), including one
-public song catalogue instead of a separate Community discovery page. Search is
-visually present in lot 7 with an explicit unavailable state; its behavior is
-delivered in lot 8.
+The implemented interface after lot 7 is the design reference for future screens;
+the current Caffeine theme and colors remain unchanged. The removed local
+`design/` images and design-guidance document are no longer prerequisites. Public
+song discovery remains unified across Artist/Fan publications. Lot 8 activates
+search with a navbar overlay and adds a public musical-release slider on the home
+page, following [the lot 8 direction](lot8-direction.md).

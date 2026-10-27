@@ -2,6 +2,17 @@
 
 ## Active lot
 
+### Lot 8 handoff decisions — 26 October 2026
+
+Git now confirms merged lot 7, PR #5 at `62dd6eb`, on local `main`. The user
+removed `docs/design-guidance.md` and the local image references; do not restore
+them. Future screens follow the implemented interface and existing Caffeine
+tokens. [Lot 8 direction](lot8-direction.md) records navbar overlay search, the
+explicitly requested public musical-release home slider, read-only delegation
+constraints and delivery workflow for the next implementation session. This
+entry supersedes older next-mission/design-reference instructions. No product
+code, account, deployment or Git delivery state was changed by this handoff.
+
 ### Lot 7 — completed locally, ready for user-created PR (26 October 2026)
 
 Resumed from remote checkpoint `2e48b37` on `codex/public-discovery-layouts`.
@@ -106,7 +117,8 @@ tools, contribution attribution, ownership, moderation, and old detail links
 must be preserved. Search gets an explicitly unavailable visual entry in lot 7;
 functional search stays in lot 8. Responsive layout, shadcn reuse, footer/bottom
 navigation, horizontal home rows, Studio tabs/actions, and lyric heading insertion
-are recorded in [design guidance](design-guidance.md). No product code was changed
+were recorded in the former design-guidance document (subsequently removed by
+the user). No product code was changed
 for this decision, and this entry does not claim lot 7 has started or authorize
 push, PR, merge, or production deployment.
 
@@ -1167,10 +1179,11 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Lot 6 is complete locally as recorded above; its older pause/resumption notes
-are historical. Prepare the next implementation handoff using the approved lot 7
-scope in [design guidance](design-guidance.md) and [roadmap](roadmap.md).
-This research/documentation session has not started lot 7 product code. Lot 5
-and T1 remain merged and closed. Artist claim/replacement remains future scope.
-No push, PR, merge, or production deployment is authorized. The writing notebook
-with local audio and the Genius-style sharing-card refinement remain proposal-only.
+Lots 5, T1, 6 and 7 are merged and closed. The next implementation session follows
+[the lot 8 handoff](lot8-direction.md) and [roadmap](roadmap.md), including read-only
+sub-agent research, primary-only edits, search and the approved home slider.
+That session may commit/push and prepare an English PR form in Chrome, stopping
+before PR creation. Merge, production deployment and account/role changes are
+not authorized. This documentation session has not started lot 8 product code.
+Artist claim/replacement, the writing notebook with local audio and the sharing-card
+refinement retain their deferred/proposal-only status.
