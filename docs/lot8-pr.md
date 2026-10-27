@@ -17,7 +17,10 @@ Public discovery now searches Artist and Fan releases, artist profiles, albums,
 genres and supported lyric terms from the navbar, with matching excerpts and
 native cursor pagination. The home hero presents existing public releases with
 automatic rotation, overlaid context/actions and accessible controls. The rounded
-floating header keeps the existing Caffeine theme and navigation.
+floating header keeps the existing Caffeine theme and navigation. Variant A
+uses a real active-only blurred artwork image behind the same sharp square cover;
+mobile centers the cover/text and stretches the action. Light/dark modes,
+temporary hold/hover pauses and full-delay resumption are preserved.
 
 ```text
 Navbar search → 450 ms debounce / immediate submit
@@ -36,8 +39,8 @@ withdrawals and deletion maintain the existing projection lifecycle.
 - **Before:** no unified lyric search; home used a static editorial hero.
   **After:** navbar overlay searches after a typing pause, with up to 12 results
   per native cursor page. Existing public releases replace the static hero.
-- `pnpm check`: formatting, lint, TypeScript, **399 tests** (29 shared, 92 backend,
-  278 web), production client and SSR builds pass.
+- `pnpm check`: formatting, lint, TypeScript, **401 tests** (29 shared, 92 backend,
+  280 web), production client and SSR builds pass.
 - Primary-agent full-diff standards/specification review from `a6644da`, including
   follow-up changes; Convex security/performance/quality review: no blocking findings.
 - Convex development index push and idempotent discovery backfill succeeded:

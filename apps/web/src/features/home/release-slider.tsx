@@ -1,6 +1,6 @@
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState, type ReactNode } from "react"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react"
+import { ArrowLeft, ArrowRight, Music2, Pause, Play } from "lucide-react"
 import { Button } from "@lyrx/ui/components/button"
 import { Badge } from "@lyrx/ui/components/badge"
 import { useLocale } from "@/app/locale-provider"
@@ -27,6 +27,9 @@ export function ReleaseSlider({
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const [held, setHeld] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const [cycle, setCycle] = useState(0)
   const [reduced, setReduced] = useState(true)
   const [hidden, setHidden] = useState(false)
   const releases = [
@@ -60,13 +63,22 @@ export function ReleaseSlider({
     visibility()
     preference.addEventListener("change", update)
     document.addEventListener("visibilitychange", visibility)
+    const release = () => setHeld(false)
+    window.addEventListener("pointerup", release)
+    window.addEventListener("pointercancel", release)
+    window.addEventListener("blur", release)
     return () => {
+      window.removeEventListener("pointerup", release)
+      window.removeEventListener("pointercancel", release)
+      window.removeEventListener("blur", release)
       preference.removeEventListener("change", update)
       document.removeEventListener("visibilitychange", visibility)
     }
   }, [])
+  const stopped =
+    count < 2 || paused || hovered || held || focused || hidden || reduced
   useEffect(() => {
-    if (count < 2 || paused || hovered || hidden || reduced) return
+    if (stopped) return
     const timer = setTimeout(() => {
       const next = (index + 1) % count
       ref.current?.scrollTo({
@@ -76,8 +88,9 @@ export function ReleaseSlider({
       setActive(next)
     }, 7000)
     return () => clearTimeout(timer)
-  }, [count, index, paused, hovered, hidden, reduced])
+  }, [count, index, stopped, cycle])
   function go(next: number) {
+    setCycle((value) => value + 1)
     setActive(next)
     ref.current?.scrollTo({
       left: next * ref.current.clientWidth,
@@ -88,16 +101,34 @@ export function ReleaseSlider({
     <section
       aria-labelledby={id}
       aria-roledescription={t("releases.carousel")}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onFocusCapture={(event) => {
-        if (!(
-          event.target instanceof Element &&
-          event.target.closest("[data-rotation]")
-        ))
-          setPaused(true)
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "touch") setHovered(true)
       }}
-      className="relative isolate -mt-20 min-w-0 overflow-hidden rounded-3xl bg-muted sm:-mt-24"
+      onPointerLeave={(event) => {
+        if (event.pointerType !== "touch") setHovered(false)
+      }}
+      onPointerDown={() => {
+        setFocused(false)
+        setHeld(true)
+      }}
+      onPointerUp={() => setHeld(false)}
+      onPointerCancel={() => setHeld(false)}
+      onFocusCapture={(event) => {
+        if (
+          event.target instanceof HTMLElement &&
+          event.target.matches(":focus-visible") &&
+          !event.target.closest("[data-rotation]")
+        )
+          setFocused(true)
+      }}
+      onBlurCapture={(event) => {
+        if (!(
+          event.relatedTarget instanceof Node &&
+          event.currentTarget.contains(event.relatedTarget)
+        ))
+          setFocused(false)
+      }}
+      className="relative isolate min-w-0 overflow-hidden bg-muted"
     >
       <h1 id={id} className="sr-only">
         {t("releases.title")}
@@ -109,7 +140,6 @@ export function ReleaseSlider({
       ) : (
         <>
           <div
-            onPointerDown={() => setPaused(true)}
             ref={ref}
             tabIndex={0}
             role="region"
@@ -138,56 +168,49 @@ export function ReleaseSlider({
                 key={release.id}
                 aria-label={`${position + 1} / ${count}`}
                 inert={position !== index}
-                className="relative isolate flex min-h-[30rem] w-full shrink-0 snap-start items-end overflow-hidden px-6 pt-24 pb-24 text-hero-foreground sm:min-h-[36rem] sm:px-12 sm:pb-28"
+                className="relative isolate flex min-h-[46rem] w-full shrink-0 snap-start items-center overflow-hidden px-5 pt-24 pb-28 text-hero-foreground lg:min-h-[44rem] lg:px-6 lg:pt-40 lg:pb-36"
               >
-                <img
-                  src={
-                    release.artworkUrl ?? "/images/lyrx-songwriter-hero.webp"
-                  }
-                  alt=""
-                  fetchPriority={position === 0 ? "high" : "auto"}
-                  loading={position === 0 ? "eager" : "lazy"}
-                  onError={(event) => {
-                    if (
-                      event.currentTarget.getAttribute("src") !==
-                      "/images/lyrx-songwriter-hero.webp"
-                    ) {
-                      event.currentTarget.src =
-                        "/images/lyrx-songwriter-hero.webp"
-                    }
-                  }}
-                  className="absolute inset-0 -z-20 size-full object-cover object-center"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 -z-10 bg-linear-to-r from-brand-foreground/95 via-brand-foreground/65 to-brand-foreground/25"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 -z-10 bg-linear-to-t from-brand-foreground/90 via-transparent to-transparent"
-                />
-                <div className="flex w-full max-w-2xl flex-col items-start gap-4">
-                  <Badge variant="secondary">{release.label}</Badge>
-                  <h2 className="font-serif text-4xl leading-tight break-words sm:text-6xl">
-                    {release.title}
-                  </h2>
-                  <p className="text-lg break-words">{release.context}</p>
-                  <Button asChild size="lg">
-                    <Link to={release.href}>
-                      {t("releases.open")}
-                      <ArrowRight data-icon="inline-end" />
-                    </Link>
-                  </Button>
-                </div>
+                <ReleaseArtwork
+                  key={release.artworkUrl ?? "missing"}
+                  src={release.artworkUrl}
+                  active={position === index}
+                  eager={position === 0}
+                  title={release.title}
+                >
+                  <div className="order-2 flex w-full min-w-0 flex-col items-center gap-4 text-center lg:order-1 lg:items-start lg:gap-5 lg:text-left">
+                    <Badge
+                      variant="secondary"
+                      className="border-hero-foreground/10 bg-hero-foreground/15 text-hero-foreground"
+                    >
+                      {release.label}
+                    </Badge>
+                    <h2 className="font-serif text-5xl leading-tight break-words lg:text-7xl">
+                      {release.title}
+                    </h2>
+                    <p className="text-lg break-words text-hero-foreground/90 lg:text-xl">
+                      {release.context}
+                    </p>
+                    <Button
+                      asChild
+                      size="lg"
+                      className="mt-2 w-full rounded-full bg-hero-foreground px-6 text-brand-foreground hover:bg-hero-foreground/90 lg:w-auto"
+                    >
+                      <Link to={release.href}>
+                        {t("releases.open")}
+                        <ArrowRight data-icon="inline-end" />
+                      </Link>
+                    </Button>
+                  </div>
+                </ReleaseArtwork>
               </article>
             ))}
           </div>
           {count > 1 ? (
-            <div className="absolute inset-x-0 bottom-5 flex flex-wrap items-center justify-end gap-2 px-5 sm:bottom-7 sm:px-10">
-              <span className="mr-auto text-sm text-hero-foreground">
+            <div className="absolute inset-x-0 bottom-5 mx-auto flex max-w-6xl items-center gap-3 px-5 lg:bottom-8 lg:gap-4 lg:px-6">
+              <span className="mr-auto shrink-0 text-sm text-hero-foreground/80">
                 {index + 1} / {count}
               </span>
-              <div className="flex items-center gap-1">
+              <div className="flex flex-1 items-center gap-3 lg:flex-none lg:gap-1">
                 {releases.map((release, position) => (
                   <button
                     key={release.id}
@@ -195,20 +218,28 @@ export function ReleaseSlider({
                     aria-label={t("releases.slide", { number: position + 1 })}
                     aria-current={position === index ? "true" : undefined}
                     onClick={() => go(position)}
-                    className="group grid h-11 w-7 place-items-center rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring sm:w-9"
+                    className="group grid h-11 flex-1 items-center rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring lg:w-9 lg:flex-none"
                   >
-                    <span
-                      className={
-                        position === index
-                          ? "h-1 w-full rounded-full bg-brand"
-                          : "h-1 w-full rounded-full bg-hero-foreground/40 group-hover:bg-hero-foreground/80"
-                      }
-                    />
+                    <span className="relative h-0.5 w-full overflow-hidden rounded-full bg-hero-foreground/35">
+                      {position === index ? (
+                        <span
+                          key={`${release.id}:${cycle}:${stopped}`}
+                          className="absolute inset-0 origin-left bg-brand"
+                          style={{
+                            transform: "scaleX(1)",
+                            animation: !stopped
+                              ? "release-progress 7s linear both"
+                              : undefined,
+                          }}
+                        />
+                      ) : null}
+                    </span>
                   </button>
                 ))}
               </div>
               {!reduced ? (
                 <Button
+                  className="hidden rounded-xl border-hero-foreground/20 bg-background/30 text-hero-foreground hover:bg-background/50 lg:inline-flex"
                   data-rotation
                   variant="secondary"
                   size="icon"
@@ -221,6 +252,7 @@ export function ReleaseSlider({
               <Button
                 variant="secondary"
                 size="icon"
+                className="hidden rounded-xl border-hero-foreground/20 bg-background/30 text-hero-foreground hover:bg-background/50 lg:inline-flex"
                 aria-label={t("discovery.previousItems")}
                 onClick={() => go((index + count - 1) % count)}
               >
@@ -229,6 +261,7 @@ export function ReleaseSlider({
               <Button
                 variant="secondary"
                 size="icon"
+                className="hidden rounded-xl border-hero-foreground/20 bg-background/30 text-hero-foreground hover:bg-background/50 lg:inline-flex"
                 aria-label={t("discovery.nextItems")}
                 onClick={() => go((index + 1) % count)}
               >
@@ -239,5 +272,62 @@ export function ReleaseSlider({
         </>
       )}
     </section>
+  )
+}
+
+/** Only the active slide creates an expensive blurred image layer. */
+function ReleaseArtwork({
+  src,
+  active,
+  eager,
+  title,
+  children,
+}: {
+  src: string | null
+  active: boolean
+  eager: boolean
+  title: string
+  children: ReactNode
+}) {
+  const [failed, setFailed] = useState(false)
+  const image = src && !failed ? src : null
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-30 bg-brand-foreground"
+      />
+      {image && active ? (
+        <img
+          src={image}
+          alt=""
+          onError={() => setFailed(true)}
+          className="pointer-events-none absolute inset-0 -z-20 size-full scale-125 object-cover blur-[70px] saturate-150"
+        />
+      ) : null}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-linear-to-b from-background/20 via-brand-foreground/55 to-brand-foreground dark:from-background/35 dark:via-brand-foreground/65"
+      />
+      <div className="mx-auto grid w-full max-w-6xl min-w-0 items-end justify-items-center gap-7 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-20">
+        {children}
+        <div className="order-1 size-[min(66vw,17rem)] overflow-hidden rounded-2xl bg-hero-foreground/10 shadow-2xl shadow-brand-foreground/60 lg:order-2 lg:size-[380px]">
+          {image ? (
+            <img
+              src={image}
+              alt={title}
+              onError={() => setFailed(true)}
+              loading={eager ? "eager" : "lazy"}
+              fetchPriority={eager ? "high" : "auto"}
+              className="size-full object-cover"
+            />
+          ) : (
+            <div className="grid size-full place-items-center bg-muted text-muted-foreground">
+              <Music2 className="size-16" aria-hidden="true" />
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   )
 }

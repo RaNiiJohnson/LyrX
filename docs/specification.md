@@ -18,8 +18,9 @@ delivery status and proof remain in [progress.md](progress.md).
   brand mark. DM Sans is the interface and long-form editorial family;
   Newsreader is reserved for the landing display headline, and Space Mono is the
   monospace family. The landing hero presents public releases with overlaid
-  context and actions; a locally served editorial music photograph is the
-  missing-artwork backdrop. All adaptations must preserve readable contrast.
+  context and actions, a sharp square cover and its matching active-only blurred
+  backdrop. Missing artwork uses themed fallback colors and a music placeholder.
+  All adaptations must preserve readable contrast.
 - Light, dark, and system preferences are supported and remembered. Lyrics must
   remain comfortable to read.
 

@@ -26,16 +26,24 @@ import { ThemeMenu } from "./theme-menu"
 export function PageShell({
   children,
   width = "narrow",
+  fullBleed = false,
 }: {
   children: ReactNode
   /** Retained for existing callers; the footer now always follows normal flow. */
   footerBelowFold?: boolean
   width?: "narrow" | "wide"
+  fullBleed?: boolean
 }) {
   return getPublicRuntimeConfig() ? (
-    <ConfiguredPageShell width={width}>{children}</ConfiguredPageShell>
+    <ConfiguredPageShell width={width} fullBleed={fullBleed}>
+      {children}
+    </ConfiguredPageShell>
   ) : (
-    <ShellFrame width={width} current={{ state: "anonymous" }}>
+    <ShellFrame
+      width={width}
+      fullBleed={fullBleed}
+      current={{ state: "anonymous" }}
+    >
       {children}
     </ShellFrame>
   )
@@ -45,22 +53,24 @@ type CurrentAccount = FunctionReturnType<typeof api.members.current>
 type ShellFrameProps = {
   children: ReactNode
   width: "narrow" | "wide"
+  fullBleed?: boolean
   current: CurrentAccount | undefined
 }
 
 function ConfiguredPageShell({
   children,
   width,
+  fullBleed,
 }: Omit<ShellFrameProps, "current">) {
   const current = useQuery(api.members.current, {})
   return (
-    <ShellFrame width={width} current={current}>
+    <ShellFrame width={width} fullBleed={fullBleed} current={current}>
       {children}
     </ShellFrame>
   )
 }
 
-function ShellFrame({ children, width, current }: ShellFrameProps) {
+function ShellFrame({ children, width, current, fullBleed }: ShellFrameProps) {
   const { t } = useLocale()
   const account = current && getAccountNavigation(current.state)
   const primary =
@@ -70,7 +80,12 @@ function ShellFrame({ children, width, current }: ShellFrameProps) {
 
   return (
     <div className="grid min-h-svh grid-rows-[auto_1fr_auto]">
-      <header className="sticky top-3 z-40 mx-auto mt-3 w-[calc(100%-2rem)] max-w-5xl rounded-full border bg-background/85 shadow-lg backdrop-blur-xl sm:w-[calc(100%-3rem)]">
+      <header
+        className={cn(
+          "sticky top-3 z-40 mx-auto mt-3 w-[calc(100%-2rem)] max-w-5xl self-start rounded-full border bg-background/55 shadow-lg backdrop-blur-xl sm:w-[calc(100%-3rem)]",
+          fullBleed && "col-start-1 row-start-1"
+        )}
+      >
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-6 lg:gap-6">
           <Link
             to="/"
@@ -111,13 +126,22 @@ function ShellFrame({ children, width, current }: ShellFrameProps) {
       <main
         className={cn(
           "mx-auto flex w-full min-w-0 flex-col gap-6 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:pb-8",
-          width === "wide" ? "max-w-6xl" : "max-w-2xl"
+          fullBleed
+            ? "col-start-1 row-span-2 row-start-1 max-w-none px-0 pt-0 sm:px-0 sm:pt-0"
+            : width === "wide"
+              ? "max-w-6xl"
+              : "max-w-2xl"
         )}
       >
         {children}
       </main>
 
-      <footer className="hidden border-t lg:block">
+      <footer
+        className={cn(
+          "hidden border-t lg:block",
+          fullBleed && "col-start-1 row-start-3"
+        )}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6 text-sm text-muted-foreground">
           <p>
             © {new Date().getFullYear()} {PRODUCT_NAME}

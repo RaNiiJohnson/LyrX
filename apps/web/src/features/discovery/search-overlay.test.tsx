@@ -242,7 +242,7 @@ describe("release slider", () => {
     expect(container.querySelectorAll("article")).toHaveLength(0)
     await render(<ReleaseSlider songs={[release("1")]} albums={[]} />)
     expect(container.querySelectorAll("article")).toHaveLength(1)
-    expect(container.querySelector("img")?.getAttribute("alt")).toBe("")
+    expect(container.querySelector("img")).toBeNull()
     expect(container.querySelectorAll("button")).toHaveLength(0)
     expect(container.querySelector("a")?.getAttribute("href")).toBe("/songs/1")
   })
@@ -261,26 +261,38 @@ describe("release slider", () => {
         ?.getAttribute("aria-label")
     ).toBe("Aller au projet 2")
     await act(() =>
-      container
-        .querySelector("section")!
-        .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
+      container.querySelector("section")!.dispatchEvent(
+        new PointerEvent("pointerover", {
+          bubbles: true,
+          pointerType: "mouse",
+        })
+      )
     )
     await act(() => vi.advanceTimersByTimeAsync(14000))
     expect(region.scrollTo).toHaveBeenCalledTimes(1)
     await act(() =>
-      container
-        .querySelector("section")!
-        .dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
+      container.querySelector("section")!.dispatchEvent(
+        new PointerEvent("pointerout", {
+          bubbles: true,
+          pointerType: "mouse",
+        })
+      )
     )
     await act(() => vi.advanceTimersByTimeAsync(7000))
     expect(region.scrollTo).toHaveBeenCalledTimes(2)
+    vi.spyOn(region, "matches").mockReturnValue(true)
     await act(() =>
       region.dispatchEvent(new FocusEvent("focusin", { bubbles: true }))
     )
     await act(() => vi.advanceTimersByTimeAsync(14000))
     expect(region.scrollTo).toHaveBeenCalledTimes(2)
     await act(() =>
-      container.querySelector<HTMLButtonElement>("[data-rotation]")!.click()
+      region.dispatchEvent(
+        new FocusEvent("focusout", {
+          bubbles: true,
+          relatedTarget: document.body,
+        })
+      )
     )
     await act(() => vi.advanceTimersByTimeAsync(7000))
     expect(region.scrollTo).toHaveBeenCalledTimes(3)
@@ -289,6 +301,54 @@ describe("release slider", () => {
     )
     await act(() => vi.advanceTimersByTimeAsync(14000))
     expect(region.scrollTo).toHaveBeenCalledTimes(3)
+    await act(() =>
+      container.querySelector<HTMLButtonElement>("[data-rotation]")!.click()
+    )
+    await act(() => vi.advanceTimersByTimeAsync(7000))
+    expect(region.scrollTo).toHaveBeenCalledTimes(4)
+  })
+  it("restarts a full delay after releasing a held pointer, including outside the hero", async () => {
+    vi.useFakeTimers()
+    await render(
+      <ReleaseSlider songs={[release("1"), release("2")]} albums={[]} />
+    )
+    const region = container.querySelector<HTMLElement>('[role="region"]')!
+    region.scrollTo = vi.fn()
+    await act(() => vi.advanceTimersByTimeAsync(6000))
+    await act(() =>
+      region.dispatchEvent(new Event("pointerdown", { bubbles: true }))
+    )
+    await act(() => vi.advanceTimersByTimeAsync(14000))
+    expect(region.scrollTo).not.toHaveBeenCalled()
+    await act(() => window.dispatchEvent(new Event("pointerup")))
+    await act(() => vi.advanceTimersByTimeAsync(6999))
+    expect(region.scrollTo).not.toHaveBeenCalled()
+    await act(() => vi.advanceTimersByTimeAsync(1))
+    expect(region.scrollTo).toHaveBeenCalledTimes(1)
+  })
+  it("reuses artwork for the cover and only the active blurred layer, with a broken-image fallback", async () => {
+    await render(
+      <ReleaseSlider
+        songs={[
+          { ...release("2"), artworkUrl: "/cover-two.jpg" },
+          { ...release("1"), artworkUrl: "/cover-one.jpg" },
+        ]}
+        albums={[]}
+      />
+    )
+    const images = Array.from(container.querySelectorAll("img"))
+    expect(images).toHaveLength(3)
+    expect(
+      images.filter((img) => img.getAttribute("src") === "/cover-two.jpg")
+    ).toHaveLength(2)
+    expect(
+      images.filter((img) => img.getAttribute("src") === "/cover-one.jpg")
+    ).toHaveLength(1)
+    await act(() => images[0]!.dispatchEvent(new Event("error")))
+    expect(
+      container.querySelectorAll('img[src="/cover-two.jpg"]')
+    ).toHaveLength(0)
+    expect(container.querySelector('a[href="/songs/2"]')).not.toBeNull()
   })
   it("bounds selection, sorts existing releases and respects keyboard and reduced motion", async () => {
     window.matchMedia = vi.fn().mockReturnValue({

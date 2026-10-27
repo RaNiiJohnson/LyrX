@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   return (
-    <PageShell width="wide">
+    <PageShell width="wide" fullBleed>
       <FoundationPage />
     </PageShell>
   )

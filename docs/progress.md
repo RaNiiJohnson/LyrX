@@ -2,6 +2,35 @@
 
 ## Active lot
 
+### Lot 8 Variant A follow-up — 27 October 2026
+
+- Reworked the hero from the user's two Variant A attachments: full-width active
+  artwork blur (real img, 70px/saturate 1.5), same URL in the sharp square cover,
+  lower-left desktop text, centered mobile cover/text and full-width action.
+  Missing/broken artwork has a semantic-color/music fallback. Only the active
+  slide allocates the blurred layer. Shared light/dark themes are retained.
+- The home shell now overlaps header/main using grid placement. The hero starts
+  at y=0; unrelated routes keep their content sizing. Navbar glass is background/55.
+- Hover/hold pauses are temporary; pointer release/cancel, including outside the
+  hero, restarts a full seven-second delay. Touch does not set desktop hover state.
+  Keyboard focus pauses until blur; reduced motion and explicit desktop pause remain.
+  Desktop keeps discreet pause/arrows; mobile matches the counter/progress-bar view.
+- Selection is deterministic: up to six newest releases from bounded existing
+  public home selections, never a download of all 100 hypothetical lyrics.
+- Primary-agent local review covers the full follow-up diff from `cb39bd9`, plus
+  corrected files. Backend files and authorization are unchanged; the earlier
+  entire-lot/Convex review from `a6644da` remains applicable.
+- `pnpm check` passes 401 tests (29 shared, 92 backend, 280 web), formatting,
+  lint, types and client/SSR builds. Regression tests cover held-pointer release
+  outside the hero, full-delay restart, hover/keyboard/explicit pause, same-URL
+  cover/backdrop, active-only blur and broken-artwork fallback.
+- Browser verification in the Codex browser covers desktop light/dark, mobile
+  390×844, no horizontal overflow, real existing public artwork and missing-image
+  fallback, matching URLs, exactly one 70px/saturate(1.5) layer, sharp cover,
+  335px mobile action and hero top at y=0. Chrome navigation still timed out;
+  no GitHub form or PR creation is claimed. Physical touchscreen hold behavior
+  is covered by pointer-event tests rather than claimed as a real-device check.
+
 ### Lot 8 — implemented and locally reviewed (27 October 2026)
 
 Work is on `codex/lot8-public-search`, based on up-to-date `main` at `a6644da`
@@ -34,7 +63,7 @@ and owns the full local review and delivery.
   was corrected before the final gate. Accepted trade-off: public search text
   increases discovery projection storage/read size; a separate lifecycle is
   deferred until catalogue size justifies it.
-- **`pnpm check` passes 399 tests** (29 shared, 92 backend, 278 web), formatting,
+- **Previous `pnpm check` passed 399 tests** (29 shared, 92 backend, 278 web), formatting,
   lint, TypeScript and production client/SSR builds. Security/lifecycle tests
   cover public-only indexing, stale candidates, suspension, revocation, missing
   profiles, withdrawals, edits, album-name refresh and versioned backfill.

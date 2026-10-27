@@ -24,12 +24,19 @@ bounded public home song/album selections,
 sorts by first-publication time and keeps at most six. It uses native horizontal
 scroll/snap for touch, keyboard arrows and labelled previous/next controls. Zero
 entries show the existing empty state; one entry has no controls. Missing or
-broken artwork uses the existing local music photograph as a decorative backdrop,
-not invented release artwork. Titles, context, badges and actions overlay the
-background; indicators and pause/resume sit along the bottom. Rotation runs every
+broken artwork uses themed fallback colors and a music placeholder. Titles,
+context, badges and actions overlay the
+background. Variant A uses the same artwork URL in a real blurred backdrop image
+(70px, saturation 1.5) and a sharp 380px square cover on desktop. Only the active
+slide creates the blurred image layer. Mobile centers the cover above the text and
+full-width action, with counter/progress bars; desktop also offers pause/arrows.
+The hero begins at y=0 behind the glass header, with no negative-margin offset.
+Rotation runs every
 seven seconds, pauses on hover, focus or touch interaction and when the document
-is hidden, and is disabled by reduced motion. Focus/touch pause requires explicit
-resume. No media autoplay, new project model, editorial administration or media
+is hidden, and is disabled by reduced motion. Touch release/cancel and pointer
+exit restart a full delay; keyboard focus
+pauses until blur. Desktop explicit pause is independent. No media autoplay, new
+project model, editorial administration or media
 provider is introduced. The floating rounded header preserves existing navigation,
 auth controls, mobile bottom navigation and Caffeine tokens.
 

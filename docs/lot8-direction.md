@@ -88,3 +88,26 @@ English Markdown PR title/body in Chrome. Stop before `Create pull request`;
 the user creates and merges the PR. Do not deploy to production or change account
 roles. This research session only records the handoff and does not start that
 implementation or delivery workflow.
+
+## Variant A follow-up — 27 October
+
+The user's desktop/mobile Variant A attachments supersede the initial image-led
+hero layout: full-width background starts at the top of the viewport, square
+sharp artwork at the right (380px desktop), and the same URL rendered as an
+actual enlarged blurred image behind it (70px blur, saturation 1.5). Only the
+active slide renders the blur layer. Missing/broken artwork uses semantic themed
+fallback colors and a music placeholder; no fabricated artwork is added.
+Text stays at lower left on desktop; mobile places the cover above centered text
+and a full-width action. The floating header uses background/55 glass in both
+light and dark modes. Desktop has discreet rotation/arrow controls; mobile keeps
+the counter and progress bars. Touch hold and pointer hover pause temporarily;
+release/cancel or pointer exit restarts a full seven-second delay. Keyboard focus
+pauses until focus leaves; reduced motion disables automatic rotation. The explicit
+desktop pause remains available independently.
+
+Selection is deterministic, not random: combine the existing home selection (up
+to six newest public songs and eight newest public albums), sort by first-publication
+time, tie-break by id, and show at most six. A catalogue of 100 lyrics does not
+produce 100 slides or a full-catalogue browser download. The catalogue/search keeps
+its own pagination. No recommendation engine or catalogue-wide random sampling
+is introduced.
