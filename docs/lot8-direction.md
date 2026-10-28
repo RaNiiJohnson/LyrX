@@ -111,3 +111,27 @@ time, tie-break by id, and show at most six. A catalogue of 100 lyrics does not
 produce 100 slides or a full-catalogue browser download. The catalogue/search keeps
 its own pagination. No recommendation engine or catalogue-wide random sampling
 is introduced.
+
+
+## Final interaction refinements — 28 October
+
+These decisions supersede earlier control/debounce details above. The user
+validated the resulting visuals, scrollable rows and search bar in the browser.
+
+- Use the shadcn Carousel composition with Embla 8.6.0 for stable hero dragging.
+  Remove visible pause/previous/next buttons; retain progress navigation, keyboard
+  arrows and a pause action revealed on keyboard focus. Hover/hold/motion pauses
+  restart a full seven-second delay after interaction and settling.
+- Keep one stationary blurred artwork image, using the same URL as the sharp
+  cover nearest the viewport center. Update during dragging, before release;
+  only this dominant slide allocates a blurred image. Share broken-image fallback.
+- Newest and most-viewed songs form single horizontal draggable rows of square
+  cover cards, badges over the cover, title/artist below. Albums show the vinyl
+  edge from the supplied reference. Artist handle/count share a line when they fit.
+- On home, scope dark header tokens at the top (scrollY ≤ 64px), including in
+  light mode. After scrolling, restore the chosen theme; returning to the top
+  restores dark glass. Do not change the saved theme.
+- The search button resembles an input with a shortcut hint from the small
+  breakpoint, retaining a 44px mobile target. Ctrl+K/Cmd+K opens/focuses the dialog.
+  Submit after 500ms without typing, or immediately on Enter/button. Keep accepted
+  results visible while typing; clearing cancels, and IME waits for composition end.

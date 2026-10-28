@@ -2,6 +2,46 @@
 
 ## Active lot
 
+### Lot 8 final interaction follow-up — 28 October 2026
+
+- User browser validation: the visuals incorporating the annotations, horizontal
+  rows and search bar are approved. Newest/popular tracks are single draggable
+  rows of square cover cards; albums show a vinyl edge, artist handles/counts wrap.
+- Replaced custom hero scrolling with shadcn Carousel composition and pinned
+  Embla 8.6.0 (three lockfile packages only). The same engine drives song rows.
+  Small drags snap back, large drags change slides without selecting text or
+  opening links. Visible pause/arrows are removed as requested; progress buttons,
+  keyboard arrows and a focus-revealed pause remain. Seven-second rotation waits
+  for settling and respects hover/hold/focus/hidden/reduced-motion pauses.
+- One stationary blurred image follows the nearest slide during dragging, before
+  pointer release; sharp cover and blur reuse the same URL and failure fallback.
+  Light-mode home glass scopes dark tokens at scrollY ≤ 64px, restores light
+  after scrolling and reverts at the top. The chosen theme remains unchanged.
+- Search has a larger input-like trigger (44px mobile), Ctrl+K/Cmd+K opening/focus,
+  and a trailing 500ms debounce. Accepted results remain visible during typing;
+  Enter/button submit immediately, clearing cancels and IME waits for completion.
+- Primary-agent mandatory local review: entire lot fixed point `a6644da` remains
+  non-empty; all follow-up files, new files and lockfile were reviewed from
+  `3fdae62`, including standards/specification and corrected image failure handling.
+  No unresolved blocking finding. Earlier entire-lot Convex security/performance/
+  quality review remains applicable; this follow-up changes no backend functions.
+  Accepted trade-offs: bounded six-slide geometry reads during dragging and
+  mocked Embla API in DOM state tests; actual drag physics was browser-checked.
+- `pnpm check` passes: formatting, lint, types, **405 tests** (29 shared, 92 backend,
+  284 web), client and SSR builds. New regressions cover 500ms with intermediate
+  t/te/tes/test typing, result retention, both shortcut modifiers and blur switching
+  while the pointer remains held. Existing security tests pass unchanged.
+- Browser evidence: prior desktop/mobile/light/dark and real Embla small/large
+  drag checks, plus today's live Ctrl+K focus, delayed public `test` result and
+  Escape/focus restoration. User additionally tested and accepted scrolling and
+  search visually. Later public official songs/albums were supplied by the user;
+  the agent created no publications or account/role changes. Physical touchscreen
+  hold remains unverified on a real device. Native search limits remain documented
+  in [lot8-verification.md](lot8-verification.md); no lot 9, merge or production push.
+- Chrome reaches the GitHub compare URL on retry, but browser control of the page
+  times out. PR title/body are maintained in [lot8-pr.md](lot8-pr.md); filling the
+  actual form is not claimed. No pull request was created.
+
 ### Lot 8 Variant A follow-up — 27 October 2026
 
 - Reworked the hero from the user's two Variant A attachments: full-width active

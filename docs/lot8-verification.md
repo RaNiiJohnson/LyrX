@@ -9,9 +9,10 @@ the lot. One standard sub-agent researched native search in read-only mode.
 Removed `design/` references and guidance were not restored.
 
 The navbar opens the installed shadcn Dialog. TanStack Form validates search
-after a 450 ms typing pause; Enter or the button submits immediately. Intermediate
+after a 500 ms typing pause; Enter or the button submits immediately. Intermediate
 keystrokes cancel pending work, composition waits until completion, clearing the
-input cancels search, and changed input hides previous results. The long search
+input cancels search. Previous accepted results remain visible while typing, then
+are replaced after the idle delay; intermediate drafts never become queries. The long search
 explanation is screen-reader-only as requested. Each request
 asks for 12 relevance-ranked results, with native cursor next/previous controls.
 Only the current page is rendered. There is no estimated full-result count.
@@ -21,24 +22,33 @@ input focus and focus restoration use the dialog's focus lifecycle.
 
 The home slider replaces the former static hero. It combines the existing
 bounded public home song/album selections,
-sorts by first-publication time and keeps at most six. It uses native horizontal
-scroll/snap for touch, keyboard arrows and labelled previous/next controls. Zero
+sorts by first-publication time and keeps at most six. It uses the shadcn horizontal Carousel composition with Embla 8.6.0 for stable
+mouse/touch dragging, snap positions and keyboard arrows. Zero
 entries show the existing empty state; one entry has no controls. Missing or
 broken artwork uses themed fallback colors and a music placeholder. Titles,
 context, badges and actions overlay the
 background. Variant A uses the same artwork URL in a real blurred backdrop image
-(70px, saturation 1.5) and a sharp 380px square cover on desktop. Only the active
-slide creates the blurred image layer. Mobile centers the cover above the text and
-full-width action, with counter/progress bars; desktop also offers pause/arrows.
+(70px, saturation 1.5) and a sharp 380px square cover on desktop. A single stationary blurred image layer follows the slide nearest the viewport
+center during dragging, including while the pointer is held. Mobile centers the cover above the text and
+full-width action, with counter/progress bars. Visible pause/arrows were removed
+at the user’s request; a focus-revealed pause button remains for keyboard users.
 The hero begins at y=0 behind the glass header, with no negative-margin offset.
 Rotation runs every
 seven seconds, pauses on hover, focus or touch interaction and when the document
 is hidden, and is disabled by reduced motion. Touch release/cancel and pointer
 exit restart a full delay; keyboard focus
-pauses until blur. Desktop explicit pause is independent. No media autoplay, new
+pauses until blur. The keyboard-accessible explicit pause is independent. No media autoplay, new
 project model, editorial administration or media
 provider is introduced. The floating rounded header preserves existing navigation,
-auth controls, mobile bottom navigation and Caffeine tokens.
+auth controls, mobile bottom navigation and Caffeine tokens. In light mode the
+home header scopes dark tokens while scrollY ≤ 64px, then returns to the chosen
+light theme. This does not change the saved theme or dialog portals.
+
+The navbar search trigger is a 44px button on mobile and an input-like button
+with a shortcut hint from the small breakpoint; Ctrl+K and Cmd+K open/focus search.
+Newest/popular home songs use one horizontally draggable Carousel row of square
+cover cards with origin badges; catalogue rows retain their original layout.
+Albums have a decorative vinyl edge, and artist handles/counts wrap naturally.
 
 ## Search contract and costs
 
@@ -98,7 +108,11 @@ debounced and immediate requests, native cursor navigation, result links,
 state feedback,
 retry, validation and zero/one/multiple slider entries, bounded selection,
 keyboard movement, automatic rotation, hover/focus/explicit pause and reduced
-motion. Tests do not claim to reproduce native
+motion. The Carousel API is mocked in DOM tests: those verify application state,
+not Embla physics. A geometry regression checks blur changes before pointer
+release; timer tests verify no intermediate t/te/tes requests and a 500ms idle
+delay. User browser testing on 28 October confirms the visual/scroll/search
+remarks are satisfied. Tests do not claim to reproduce native
 Convex tokenization/relevance; live development queries supply that evidence.
 
 Development deployment and index creation succeeded on `lovely-dolphin-50`.

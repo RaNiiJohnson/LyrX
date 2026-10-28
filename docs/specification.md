@@ -171,7 +171,9 @@ the creation/editing forms.
 - Lot 8 uses native relevance search with OR term matching and a prefix on the
   final term only. Exact phrases, arbitrary substrings, typo correction, accent
   folding and Malagasy stemming are not promised. It searches after a short typing
-  pause or explicit submission and navigates bounded native cursor pages without a full-result count. Official
+  pause (500ms) or explicit submission and navigates bounded native cursor pages
+  without a full-result count. Accepted results stay visible during typing;
+  Ctrl+K/Cmd+K opens the navbar overlay. Official
   album matches return albums; Fan album references remain reference metadata.
   See [the verified contract](lot8-verification.md) for limits and costs.
 - Drafts, hidden or removed content, and private notebooks never enter public

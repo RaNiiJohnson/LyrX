@@ -1,8 +1,14 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react"
+import { useEffect, useId, useState, type ReactNode } from "react"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, ArrowRight, Music2, Pause, Play } from "lucide-react"
+import { ArrowRight, Music2, Pause, Play } from "lucide-react"
 import { Button } from "@lyrx/ui/components/button"
 import { Badge } from "@lyrx/ui/components/badge"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@lyrx/ui/components/carousel"
 import { useLocale } from "@/app/locale-provider"
 import type {
   DiscoverySong,
@@ -12,6 +18,25 @@ import { DiscoveryEmpty } from "@/features/discovery/discovery-states"
 
 type ReleaseSong = DiscoverySong & { firstPublishedAt: number }
 type ReleaseAlbum = DiscoveryAlbum & { firstPublishedAt: number }
+
+// Embla's selected target may wait until pointer release. Follow actual geometry
+// during dragging, including slides translated across the loop boundary.
+function visibleRelease(api: NonNullable<CarouselApi>) {
+  const viewport = api.rootNode().getBoundingClientRect()
+  if (!viewport.width) return api.selectedScrollSnap()
+  const center = viewport.left + viewport.width / 2
+  let distance = Infinity
+  let nearest = api.selectedScrollSnap()
+  api.slideNodes().forEach((slide, position) => {
+    const rect = slide.getBoundingClientRect()
+    const next = Math.abs(rect.left + rect.width / 2 - center)
+    if (next < distance) {
+      distance = next
+      nearest = position
+    }
+  })
+  return nearest
+}
 
 /** Existing public releases only; rotation never starts media playback. */
 export function ReleaseSlider({
@@ -23,8 +48,18 @@ export function ReleaseSlider({
 }) {
   const { t } = useLocale()
   const id = useId()
-  const ref = useRef<HTMLDivElement>(null)
+  const [api, setApi] = useState<CarouselApi>()
+  const [failedArtwork, setFailedArtwork] = useState<ReadonlySet<string>>(
+    () => new Set()
+  )
+  function artworkFailed(src: string | null) {
+    if (!src) return
+    setFailedArtwork((previous) =>
+      previous.has(src) ? previous : new Set(previous).add(src)
+    )
+  }
   const [active, setActive] = useState(0)
+  const [moving, setMoving] = useState(false)
   const [paused, setPaused] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [held, setHeld] = useState(false)
@@ -35,6 +70,10 @@ export function ReleaseSlider({
   const releases = [
     ...songs.map((song) => ({
       ...song,
+      artworkUrl:
+        song.artworkUrl && !failedArtwork.has(song.artworkUrl)
+          ? song.artworkUrl
+          : null,
       context: song.primaryArtist,
       label: t(
         song.origin === "community"
@@ -44,6 +83,10 @@ export function ReleaseSlider({
     })),
     ...albums.map((album) => ({
       ...album,
+      artworkUrl:
+        album.artworkUrl && !failedArtwork.has(album.artworkUrl)
+          ? album.artworkUrl
+          : null,
       context: album.artistName,
       label: t("discovery.albums"),
     })),
@@ -75,28 +118,60 @@ export function ReleaseSlider({
       document.removeEventListener("visibilitychange", visibility)
     }
   }, [])
+  useEffect(() => {
+    if (!api) return
+    const update = () => setActive(visibleRelease(api))
+    const scroll = () => {
+      setMoving(true)
+      update()
+    }
+    const settle = () => {
+      setMoving(false)
+      update()
+    }
+    const down = () => {
+      setFocused(false)
+      setHeld(true)
+    }
+    const up = () => setHeld(false)
+    update()
+    api
+      .on("select", update)
+      .on("reInit", settle)
+      .on("scroll", scroll)
+      .on("settle", settle)
+      .on("pointerDown", down)
+      .on("pointerUp", up)
+    return () => {
+      api
+        .off("select", update)
+        .off("reInit", settle)
+        .off("scroll", scroll)
+        .off("settle", settle)
+        .off("pointerDown", down)
+        .off("pointerUp", up)
+    }
+  }, [api])
   const stopped =
-    count < 2 || paused || hovered || held || focused || hidden || reduced
+    count < 2 ||
+    !api ||
+    paused ||
+    hovered ||
+    held ||
+    focused ||
+    moving ||
+    hidden ||
+    reduced
   useEffect(() => {
     if (stopped) return
-    const timer = setTimeout(() => {
-      const next = (index + 1) % count
-      ref.current?.scrollTo({
-        left: next * ref.current.clientWidth,
-        behavior: "smooth",
-      })
-      setActive(next)
-    }, 7000)
+    const timer = setTimeout(() => api.scrollNext(), 7000)
     return () => clearTimeout(timer)
-  }, [count, index, stopped, cycle])
+  }, [api, index, stopped, cycle])
   function go(next: number) {
     setCycle((value) => value + 1)
-    setActive(next)
-    ref.current?.scrollTo({
-      left: next * ref.current.clientWidth,
-      behavior: reduced ? "instant" : "smooth",
-    })
+    api?.scrollTo(next, reduced)
   }
+
   return (
     <section
       aria-labelledby={id}
@@ -130,6 +205,13 @@ export function ReleaseSlider({
       }}
       className="relative isolate min-w-0 overflow-hidden bg-muted"
     >
+      {count ? (
+        <ReleaseBackdrop
+          key={releases[index]?.artworkUrl ?? "missing"}
+          src={releases[index]?.artworkUrl ?? null}
+          onError={() => artworkFailed(releases[index]?.artworkUrl ?? null)}
+        />
+      ) : null}
       <h1 id={id} className="sr-only">
         {t("releases.title")}
       </h1>
@@ -139,72 +221,64 @@ export function ReleaseSlider({
         </div>
       ) : (
         <>
-          <div
-            ref={ref}
-            tabIndex={0}
-            role="region"
+          <Carousel
+            setApi={setApi}
+            opts={{
+              loop: count > 1,
+              align: "start",
+              duration: reduced ? 0 : 25,
+            }}
             aria-labelledby={id}
-            onScroll={(event) => {
-              const element = event.currentTarget
-              setActive(
-                Math.round(
-                  element.scrollLeft / Math.max(1, element.clientWidth)
-                )
-              )
-            }}
-            onKeyDown={(event) => {
-              if (event.target !== event.currentTarget) return
-              if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-                event.preventDefault()
-                go(
-                  (index + (event.key === "ArrowRight" ? 1 : count - 1)) % count
-                )
-              }
-            }}
-            className="flex snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto overscroll-x-contain outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-scrollbar]:hidden"
+            aria-roledescription={t("releases.carousel")}
+            tabIndex={0}
+            className="cursor-grab outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing"
           >
-            {releases.map((release, position) => (
-              <article
-                key={release.id}
-                aria-label={`${position + 1} / ${count}`}
-                inert={position !== index}
-                className="relative isolate flex min-h-[46rem] w-full shrink-0 snap-start items-center overflow-hidden px-5 pt-24 pb-28 text-hero-foreground lg:min-h-[44rem] lg:px-6 lg:pt-40 lg:pb-36"
-              >
-                <ReleaseArtwork
-                  key={release.artworkUrl ?? "missing"}
-                  src={release.artworkUrl}
-                  active={position === index}
-                  eager={position === 0}
-                  title={release.title}
+            <CarouselContent className="ml-0 items-stretch">
+              {releases.map((release, position) => (
+                <CarouselItem
+                  key={release.id}
+                  aria-label={`${position + 1} / ${count}`}
+                  inert={position !== index}
+                  className="flex pl-0"
                 >
-                  <div className="order-2 flex w-full min-w-0 flex-col items-center gap-4 text-center lg:order-1 lg:items-start lg:gap-5 lg:text-left">
-                    <Badge
-                      variant="secondary"
-                      className="border-hero-foreground/10 bg-hero-foreground/15 text-hero-foreground"
+                  <article className="relative isolate flex min-h-[46rem] w-full items-center overflow-hidden px-5 pt-24 pb-28 text-hero-foreground lg:min-h-[44rem] lg:px-6 lg:pt-40 lg:pb-36">
+                    <ReleaseArtwork
+                      key={release.artworkUrl ?? "missing"}
+                      src={release.artworkUrl}
+                      onError={() => artworkFailed(release.artworkUrl)}
+                      eager={position === 0}
+                      title={release.title}
                     >
-                      {release.label}
-                    </Badge>
-                    <h2 className="font-serif text-5xl leading-tight break-words lg:text-7xl">
-                      {release.title}
-                    </h2>
-                    <p className="text-lg break-words text-hero-foreground/90 lg:text-xl">
-                      {release.context}
-                    </p>
-                    <Button
-                      asChild
-                      size="lg"
-                      className="mt-2 w-full rounded-full bg-hero-foreground px-6 text-brand-foreground hover:bg-hero-foreground/90 lg:w-auto"
-                    >
-                      <Link to={release.href}>
-                        {t("releases.open")}
-                        <ArrowRight data-icon="inline-end" />
-                      </Link>
-                    </Button>
-                  </div>
-                </ReleaseArtwork>
-              </article>
-            ))}
-          </div>
+                      <div className="order-2 flex w-full min-w-0 flex-col items-center gap-4 text-center lg:order-1 lg:items-start lg:gap-5 lg:text-left">
+                        <Badge
+                          variant="secondary"
+                          className="border-hero-foreground/10 bg-hero-foreground/15 text-hero-foreground"
+                        >
+                          {release.label}
+                        </Badge>
+                        <h2 className="font-serif text-5xl leading-tight break-words lg:text-7xl">
+                          {release.title}
+                        </h2>
+                        <p className="text-lg break-words text-hero-foreground/90 lg:text-xl">
+                          {release.context}
+                        </p>
+                        <Button
+                          asChild
+                          size="lg"
+                          className="mt-2 w-full rounded-full bg-hero-foreground px-6 text-brand-foreground hover:bg-hero-foreground/90 lg:w-auto"
+                        >
+                          <Link to={release.href}>
+                            {t("releases.open")}
+                            <ArrowRight data-icon="inline-end" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </ReleaseArtwork>
+                  </article>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
           {count > 1 ? (
             <div className="absolute inset-x-0 bottom-5 mx-auto flex max-w-6xl items-center gap-3 px-5 lg:bottom-8 lg:gap-4 lg:px-6">
               <span className="mr-auto shrink-0 text-sm text-hero-foreground/80">
@@ -239,7 +313,7 @@ export function ReleaseSlider({
               </div>
               {!reduced ? (
                 <Button
-                  className="hidden rounded-xl border-hero-foreground/20 bg-background/30 text-hero-foreground hover:bg-background/50 lg:inline-flex"
+                  className="sr-only focus:not-sr-only focus:rounded-xl focus:bg-background focus:text-foreground"
                   data-rotation
                   variant="secondary"
                   size="icon"
@@ -249,24 +323,6 @@ export function ReleaseSlider({
                   {paused ? <Play /> : <Pause />}
                 </Button>
               ) : null}
-              <Button
-                variant="secondary"
-                size="icon"
-                className="hidden rounded-xl border-hero-foreground/20 bg-background/30 text-hero-foreground hover:bg-background/50 lg:inline-flex"
-                aria-label={t("discovery.previousItems")}
-                onClick={() => go((index + count - 1) % count)}
-              >
-                <ArrowLeft />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="hidden rounded-xl border-hero-foreground/20 bg-background/30 text-hero-foreground hover:bg-background/50 lg:inline-flex"
-                aria-label={t("discovery.nextItems")}
-                onClick={() => go((index + 1) % count)}
-              >
-                <ArrowRight />
-              </Button>
             </div>
           ) : null}
         </>
@@ -275,33 +331,26 @@ export function ReleaseSlider({
   )
 }
 
-/** Only the active slide creates an expensive blurred image layer. */
-function ReleaseArtwork({
+/** One stationary blur layer follows the most visible slide during a drag. */
+function ReleaseBackdrop({
   src,
-  active,
-  eager,
-  title,
-  children,
+  onError,
 }: {
   src: string | null
-  active: boolean
-  eager: boolean
-  title: string
-  children: ReactNode
+  onError: () => void
 }) {
-  const [failed, setFailed] = useState(false)
-  const image = src && !failed ? src : null
   return (
     <>
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-30 bg-brand-foreground"
       />
-      {image && active ? (
+      {src ? (
         <img
-          src={image}
+          src={src}
           alt=""
-          onError={() => setFailed(true)}
+          draggable={false}
+          onError={onError}
           className="pointer-events-none absolute inset-0 -z-20 size-full scale-125 object-cover blur-[70px] saturate-150"
         />
       ) : null}
@@ -309,14 +358,35 @@ function ReleaseArtwork({
         aria-hidden="true"
         className="absolute inset-0 -z-10 bg-linear-to-b from-background/20 via-brand-foreground/55 to-brand-foreground dark:from-background/35 dark:via-brand-foreground/65"
       />
+    </>
+  )
+}
+
+function ReleaseArtwork({
+  src,
+  onError,
+  eager,
+  title,
+  children,
+}: {
+  src: string | null
+  onError: () => void
+  eager: boolean
+  title: string
+  children: ReactNode
+}) {
+  const image = src
+  return (
+    <>
       <div className="mx-auto grid w-full max-w-6xl min-w-0 items-end justify-items-center gap-7 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-20">
         {children}
         <div className="order-1 size-[min(66vw,17rem)] overflow-hidden rounded-2xl bg-hero-foreground/10 shadow-2xl shadow-brand-foreground/60 lg:order-2 lg:size-[380px]">
           {image ? (
             <img
               src={image}
+              draggable={false}
               alt={title}
-              onError={() => setFailed(true)}
+              onError={onError}
               loading={eager ? "eager" : "lazy"}
               fetchPriority={eager ? "high" : "auto"}
               className="size-full object-cover"

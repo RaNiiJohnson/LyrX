@@ -38,16 +38,41 @@ export function SearchOverlay({ prominent = false }: { prominent?: boolean }) {
   const { t } = useLocale()
   const [open, setOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    const openSearch = (event: KeyboardEvent) => {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        event.key.toLowerCase() === "k"
+      ) {
+        event.preventDefault()
+        setOpen(true)
+        inputRef.current?.focus()
+      }
+    }
+    window.addEventListener("keydown", openSearch)
+    return () => window.removeEventListener("keydown", openSearch)
+  }, [])
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          variant={prominent ? "secondary" : "ghost"}
-          size={prominent ? "default" : "icon-lg"}
+          variant={prominent ? "secondary" : "outline"}
+          size="default"
+          className="h-11 w-11 justify-start rounded-full sm:w-52"
+          aria-keyshortcuts="Control+K Meta+K"
           aria-label={t("search.title")}
         >
           <Search data-icon="inline-start" />
-          {prominent ? t("discovery.searchPlaceholder") : null}
+          <span className="hidden flex-1 text-left text-sm text-muted-foreground sm:inline">
+            {t("search.title")}…
+          </span>
+          <kbd
+            className="hidden rounded border px-1 text-[10px] text-muted-foreground sm:inline"
+            aria-hidden="true"
+          >
+            ⌘ / Ctrl K
+          </kbd>
         </Button>
       </DialogTrigger>
       <DialogContent
@@ -102,7 +127,7 @@ function SearchForm({
   })
   useEffect(() => {
     if (!draft.trim()) return
-    timer.current = setTimeout(() => void form.handleSubmit(), 450)
+    timer.current = setTimeout(() => void form.handleSubmit(), 500)
     return () => {
       if (timer.current) clearTimeout(timer.current)
     }
@@ -144,12 +169,12 @@ function SearchForm({
                     id="public-search"
                     value={field.state.value}
                     onChange={(event) => {
-                      setText("")
+                      if (timer.current) clearTimeout(timer.current)
+                      if (!event.target.value.trim()) setText("")
                       field.handleChange(event.target.value)
                       if (!composing.current) setDraft(event.target.value)
                     }}
                     onCompositionStart={() => {
-                      setText("")
                       setDraft("")
                       composing.current = true
                       if (timer.current) clearTimeout(timer.current)
@@ -185,7 +210,7 @@ function SearchForm({
           </form.Field>
         </FieldGroup>
       </form>
-      {text && text === draft.trim() ? (
+      {text ? (
         <SearchErrorBoundary
           key={`${text}:${attempt}`}
           fallback={

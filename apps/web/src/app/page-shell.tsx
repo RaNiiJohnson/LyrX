@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
 import { Home, Library, Music2, PenLine, UserRound, Users } from "lucide-react"
-import type { ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { PRODUCT_NAME } from "@lyrx/shared"
@@ -72,6 +72,14 @@ function ConfiguredPageShell({
 
 function ShellFrame({ children, width, current, fullBleed }: ShellFrameProps) {
   const { t } = useLocale()
+  const [atTop, setAtTop] = useState(true)
+  useEffect(() => {
+    if (!fullBleed) return
+    const update = () => setAtTop(window.scrollY <= 64)
+    update()
+    window.addEventListener("scroll", update, { passive: true })
+    return () => window.removeEventListener("scroll", update)
+  }, [fullBleed])
   const account = current && getAccountNavigation(current.state)
   const primary =
     account?.kind === "authenticated"
@@ -82,8 +90,9 @@ function ShellFrame({ children, width, current, fullBleed }: ShellFrameProps) {
     <div className="grid min-h-svh grid-rows-[auto_1fr_auto]">
       <header
         className={cn(
-          "sticky top-3 z-40 mx-auto mt-3 w-[calc(100%-2rem)] max-w-5xl self-start rounded-full border bg-background/55 shadow-lg backdrop-blur-xl sm:w-[calc(100%-3rem)]",
-          fullBleed && "col-start-1 row-start-1"
+          "sticky top-3 z-40 mx-auto mt-3 w-[calc(100%-2rem)] max-w-5xl self-start rounded-full border bg-background/55 text-foreground shadow-lg backdrop-blur-xl transition-colors motion-reduce:transition-none sm:w-[calc(100%-3rem)]",
+          fullBleed && "col-start-1 row-start-1",
+          fullBleed && atTop && "dark"
         )}
       >
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-6 lg:gap-6">
