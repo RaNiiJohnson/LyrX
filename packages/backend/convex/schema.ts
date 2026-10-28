@@ -27,7 +27,7 @@ import {
 
 export default defineSchema({
   // Public read projection only. Ownership and canonical content stay in their
-  // existing artist/community domains; no raw lyrics or auth data are copied.
+  // existing artist/community domains. Search text contains public fields only.
   discoveryEntries: defineTable({
     sourceId: discoverySourceId,
     memberId: v.id("members"),
@@ -37,12 +37,15 @@ export default defineSchema({
     publishedAt: v.number(),
     genre: v.optional(songGenreValidator),
     recentViews: v.number(),
+    searchText: v.optional(v.string()),
   })
+    .searchIndex("search_text", { searchField: "searchText" })
     .index("by_source_id", ["sourceId"])
     .index("by_member_id_and_kind", ["memberId", "kind"]),
   discoveryState: defineTable({
     key: v.literal("public"),
     initialized: v.boolean(),
+    searchVersion: v.optional(v.literal(1)),
     pendingJobs: v.number(),
   }).index("by_key", ["key"]),
   discoveryJobs: defineTable({

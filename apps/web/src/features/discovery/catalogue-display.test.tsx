@@ -122,20 +122,12 @@ describe("discovery public display states", () => {
       genre: undefined,
     })
   })
-  it("makes search visibly unavailable with no dead submitting form", () => {
-    const html = renderToStaticMarkup(<FoundationPage />)
-    expect(html).toContain(formatMessage("fr", "discovery.searchUnavailable"))
-    expect(html).toContain('id="home-search"')
-    expect(html).toContain("disabled")
-    expect(html).not.toContain("<form")
-    expect(html).toContain("bg-card p-3 text-card-foreground")
-  })
-  it("keeps the home hero available without false results during backfill", () => {
+  it("shows loading without false releases while home discovery initializes", () => {
     state.data = { ready: false, songs: [], albums: [], artists: [] }
     const html = renderToStaticMarkup(<FoundationPage />)
-    expect(html).toContain('id="home-search"')
     expect(html).toContain('data-slot="skeleton"')
     expect(html).not.toContain(formatMessage("fr", "discovery.emptyTitle"))
+    expect(html).not.toContain(formatMessage("fr", "home.titleLead"))
   })
   it("renders the server's unified order and total without regrouping origins", () => {
     state.data = {

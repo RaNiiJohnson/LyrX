@@ -17,9 +17,10 @@ delivery status and proof remain in [progress.md](progress.md).
   earlier Soft Pop tokens while retaining coral `#DF4F55` as the Lyr'X
   brand mark. DM Sans is the interface and long-form editorial family;
   Newsreader is reserved for the landing display headline, and Space Mono is the
-  monospace family. The landing hero uses locally served editorial music
-  photography instead of decorative gradients. All adaptations must preserve
-  readable contrast.
+  monospace family. The landing hero presents public releases with overlaid
+  context and actions, a sharp square cover and its matching active-only blurred
+  backdrop. Missing artwork uses themed fallback colors and a music placeholder.
+  All adaptations must preserve readable contrast.
 - Light, dark, and system preferences are supported and remembered. Lyrics must
   remain comfortable to read.
 
@@ -151,10 +152,12 @@ the creation/editing forms.
   on details. There is no separate public Community discovery page in the lot 7
   target. Fan publication/personal contributions and admin moderation remain
   accessible, with their existing ownership and visibility rules.
-- Lot 7 applies [the approved design guidance](design-guidance.md) to the public
-  screens and necessary existing views, retaining the current Caffeine colors.
-  It displays the search entry with an explicit unavailable state; real search
-  is delivered in lot 8. Other future interactions retain their roadmap lots.
+- The implemented lot 7 interface is the visual reference, retaining the current
+  Caffeine colors. Removed local design references need not be restored. Lot 8
+  activates the navbar search entry through an accessible search overlay and
+  adds a bounded public musical-release slider on the home page, following
+  [the lot 8 direction](lot8-direction.md). Other future interactions retain
+  their roadmap lots.
 - **New releases** sort by first public publication date descending. Ordinary
   edits do not make content new again.
 - **Popular** uses a documented, recent activity window, principally deduplicated
@@ -165,6 +168,14 @@ the creation/editing forms.
 - The implemented UI must describe the real Convex search behavior, especially
   for Malagasy and multi-word text; do not promise exact phrase search unless it
   is actually supported.
+- Lot 8 uses native relevance search with OR term matching and a prefix on the
+  final term only. Exact phrases, arbitrary substrings, typo correction, accent
+  folding and Malagasy stemming are not promised. It searches after a short typing
+  pause (500ms) or explicit submission and navigates bounded native cursor pages
+  without a full-result count. Accepted results stay visible during typing;
+  Ctrl+K/Cmd+K opens the navbar overlay. Official
+  album matches return albums; Fan album references remain reference metadata.
+  See [the verified contract](lot8-verification.md) for limits and costs.
 - Drafts, hidden or removed content, and private notebooks never enter public
   lists or search. Lists, search, and comments paginate or load incrementally.
 

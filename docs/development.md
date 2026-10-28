@@ -146,6 +146,20 @@ identity-bearing view records are removed through account cleanup; deleted
 sources have their own bounded cleanup. No browser test should publish a real
 song or change a role solely to populate the discovery screen.
 
+## Public search initialization (lot 8)
+
+After pushing the lot 8 functions to development, rerun the existing idempotent
+`pnpm --filter @lyrx/backend migrate:discovery`. It refreshes historical public
+entries with search text in bounded batches; it never publishes a draft. Search
+requires `initialized:true,searchVersion:1,pendingJobs:0` in `discoveryState` and
+no pending `discoveryJobs`. Old lot 7 initialization alone is insufficient.
+The optional schema fields permit deploying before this migration completes.
+
+Use public read-only searches and isolated backend fixtures to verify security.
+Do not publish a real draft or change account roles to populate search/slider.
+The native capability/price limits and evidence boundary are in
+[lot8-verification.md](lot8-verification.md). Production remains unauthorized.
+
 ## Image preparation verification
 
 `apps/web/src/lib/image-upload.ts` is the only client image preparation policy

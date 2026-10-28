@@ -143,7 +143,9 @@ write/moderation domain, private author tools, and existing detail links. A unif
 public read projection must apply consistent ordering, pagination, counts, and
 visibility across both origins; concatenating two independently paginated lists
 is insufficient. Its maintenance must cover moderation, withdrawal, and account
-deletion as well as publication. See [design guidance](design-guidance.md).
+deletion as well as publication. The implemented lot 7 interface now owns the
+visual reference; subsequent search/slider decisions are recorded in
+[the lot 8 direction](lot8-direction.md).
 
 ## Public discovery projection (lot 7)
 
@@ -152,8 +154,14 @@ deletion as well as publication. See [design guidance](design-guidance.md).
 time, genre and recent score. The named `publicDiscovery` DirectAggregate indexes
 one ordering across Artist and Fan songs plus album/artist scopes, sorts and
 filters. Numbered queries request at most 24 positions; home selects six newest
-and six popular songs, eight artists and eight albums. Hydration resolves current
-source data and storage URLs without copying lyrics, email or moderation data.
+and six popular songs, eight artists and eight albums. Card hydration resolves current
+source data and storage URLs without returning raw lyrics, email or moderation data.
+Lot 8 adds optional public-only `searchText` to this same projection and one
+native text index: published metadata/lyrics share a global relevance cursor.
+A versioned backfill gates search separately from existing discovery. Results
+hydrate current canonical public sources and bound excerpts; index text never
+leaves server queries. Eligibility jobs block search as well as discovery.
+Search-text-only updates preserve unchanged Aggregate positions.
 Album cards deliberately omit a track count instead of reading every track's
 complete lyric document for every album on a list page.
 
@@ -289,3 +297,6 @@ checks are recorded in [authentication.md](authentication.md).
 
 Absence of these values must be reported as an unverified integration, never
 hidden by a fake success state.
+
+The lot 8 search contract, costs, migration and evidence are recorded in
+[lot8-verification.md](lot8-verification.md).

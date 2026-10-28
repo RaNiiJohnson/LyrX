@@ -1,0 +1,137 @@
+# Lot 8 direction — catalogue search and home presentation
+
+Approved for implementation handoff on 26 October 2026. No application code is
+changed by this note. Lot 7 is merged in PR #5 at `62dd6eb`.
+
+## Current visual reference
+
+The implemented Lyr'X interface is the visual reference for this and later lots.
+Keep its Caffeine theme, colors, typography, shadcn/ui primitives, responsive
+navigation and footer behavior. The user removed the local `design/` image
+references and `docs/design-guidance.md`; do not restore them, retrieve historical
+PNGs, or treat their absence as a blocker. Historical lot notes may still mention
+those files; this decision supersedes instructions to use them.
+
+Two user-supplied screenshots of https://skystream.fun/ illustrate interactions
+only. They are not a request to copy its branding, colors, assets or content:
+
+- Home: a large image-led slider highlighting public musical releases/projects,
+  with readable title/context, link actions and slide controls. Use existing
+  public albums or songs; do not invent a new project data model or a new
+  editorial administration system. Keep the selection bounded and public-only,
+  support keyboard/touch and reduced motion, and handle zero/one/multiple entries
+  and missing imagery. No media autoplay is introduced.
+- Search: an entry in the navbar opens a focused overlay over a dimmed backdrop,
+  with a prominent input and scrollable results containing image, title and
+  secondary context. Use an appropriate shadcn dialog/command composition,
+  Escape/close, focus restoration and a mobile-safe layout. Preserve an accessible
+  label and separate loading, empty, unavailable and error feedback.
+
+Follow-up direction from the user on 27 October: the slider replaces the old
+static hero, using a large background, overlaid release title/context/actions and
+slide indicators. It rotates automatically, with pause/resume, pause on hover or
+focus and reduced-motion support. This is presentation rotation, not media
+playback. The header also follows the floating, rounded composition while keeping
+Lyr’X navigation and Caffeine tokens. The navbar overlay hides the explanatory
+paragraph visually and starts a validated search after a 450 ms typing pause;
+Enter and the submit button remain immediate actions.
+
+The home slider is an explicitly requested presentation addition to lot 8.
+Other later-lot product features remain deferred. Use existing project assets;
+the supplied reference screenshots are sufficient unless behavior needs checking.
+
+## Search behavior
+
+Implement the roadmap search over public titles, artists, albums, genres and
+supported lyric terms, with bounded matching excerpts where applicable. Reuse
+the unified Artist/Fan public discovery model, preserving origin badges,
+contributor attribution and distinct write permissions.
+
+Check actual Convex search behavior and limits in official documentation and the
+installed version. Document language/tokenization, multi-word, substring and
+phrase limitations accurately, particularly for Malagasy. Never substitute an
+unbounded database scan or loading the entire catalogue into the browser.
+
+Results, counts and excerpts must exclude drafts, hidden/removed contributions
+and ineligible/deleted authors. Updates, withdrawals, moderation and account
+deletion must invalidate any search projection appropriately. Bound requests and
+result pages; avoid a request for every intermediate keystroke. Ensure navigation
+to a result works with the existing public detail routes. Keep FR/EN interface
+copy and English technical Convex messages.
+
+## Sub-agent constraints for the implementation session
+
+The primary agent may delegate narrowly scoped, read-only investigation such as
+search capability research, locating call sites or checking a proposed approach.
+Use standard agents inheriting the parent model by default. Do not select another
+model or a specialized role that fixes a different model without the user's
+agreement. Assign a bounded question and request a concise source-backed report;
+send only relevant context when practical.
+
+Sub-agents must not modify files, documentation, generated outputs, dependencies,
+Git state or application data, and must not start deployments. They share the
+filesystem: delegation alone does not provide isolation. Only the primary agent
+implements, integrates, runs the full gate, updates docs and commits. The mandatory
+entire-lot local completion review remains with the primary agent and is not
+delegated.
+
+## Delivery workflow authorized for the implementation session
+
+Verify Git, the merged prerequisites and local changes; create a dedicated
+`codex/` branch from updated `main` without losing user edits. Implement only lot
+8 and the explicitly described slider. Run the repository completion review,
+applicable Convex review, `pnpm check` and relevant browser checks. Document actual
+evidence and remaining limits; always give a final debrief.
+
+The user authorizes committing and pushing that branch, then preparing an
+English Markdown PR title/body in Chrome. Stop before `Create pull request`;
+the user creates and merges the PR. Do not deploy to production or change account
+roles. This research session only records the handoff and does not start that
+implementation or delivery workflow.
+
+## Variant A follow-up — 27 October
+
+The user's desktop/mobile Variant A attachments supersede the initial image-led
+hero layout: full-width background starts at the top of the viewport, square
+sharp artwork at the right (380px desktop), and the same URL rendered as an
+actual enlarged blurred image behind it (70px blur, saturation 1.5). Only the
+active slide renders the blur layer. Missing/broken artwork uses semantic themed
+fallback colors and a music placeholder; no fabricated artwork is added.
+Text stays at lower left on desktop; mobile places the cover above centered text
+and a full-width action. The floating header uses background/55 glass in both
+light and dark modes. Desktop has discreet rotation/arrow controls; mobile keeps
+the counter and progress bars. Touch hold and pointer hover pause temporarily;
+release/cancel or pointer exit restarts a full seven-second delay. Keyboard focus
+pauses until focus leaves; reduced motion disables automatic rotation. The explicit
+desktop pause remains available independently.
+
+Selection is deterministic, not random: combine the existing home selection (up
+to six newest public songs and eight newest public albums), sort by first-publication
+time, tie-break by id, and show at most six. A catalogue of 100 lyrics does not
+produce 100 slides or a full-catalogue browser download. The catalogue/search keeps
+its own pagination. No recommendation engine or catalogue-wide random sampling
+is introduced.
+
+
+## Final interaction refinements — 28 October
+
+These decisions supersede earlier control/debounce details above. The user
+validated the resulting visuals, scrollable rows and search bar in the browser.
+
+- Use the shadcn Carousel composition with Embla 8.6.0 for stable hero dragging.
+  Remove visible pause/previous/next buttons; retain progress navigation, keyboard
+  arrows and a pause action revealed on keyboard focus. Hover/hold/motion pauses
+  restart a full seven-second delay after interaction and settling.
+- Keep one stationary blurred artwork image, using the same URL as the sharp
+  cover nearest the viewport center. Update during dragging, before release;
+  only this dominant slide allocates a blurred image. Share broken-image fallback.
+- Newest and most-viewed songs form single horizontal draggable rows of square
+  cover cards, badges over the cover, title/artist below. Albums show the vinyl
+  edge from the supplied reference. Artist handle/count share a line when they fit.
+- On home, scope dark header tokens at the top (scrollY ≤ 64px), including in
+  light mode. After scrolling, restore the chosen theme; returning to the top
+  restores dark glass. Do not change the saved theme.
+- The search button resembles an input with a shortcut hint from the small
+  breakpoint, retaining a 44px mobile target. Ctrl+K/Cmd+K opens/focuses the dialog.
+  Submit after 500ms without typing, or immediately on Enter/button. Keep accepted
+  results visible while typing; clearing cancels, and IME waits for composition end.

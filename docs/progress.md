@@ -2,6 +2,152 @@
 
 ## Active lot
 
+### Lot 8 final interaction follow-up — 28 October 2026
+
+- User browser validation: the visuals incorporating the annotations, horizontal
+  rows and search bar are approved. Newest/popular tracks are single draggable
+  rows of square cover cards; albums show a vinyl edge, artist handles/counts wrap.
+- Replaced custom hero scrolling with shadcn Carousel composition and pinned
+  Embla 8.6.0 (three lockfile packages only). The same engine drives song rows.
+  Small drags snap back, large drags change slides without selecting text or
+  opening links. Visible pause/arrows are removed as requested; progress buttons,
+  keyboard arrows and a focus-revealed pause remain. Seven-second rotation waits
+  for settling and respects hover/hold/focus/hidden/reduced-motion pauses.
+- One stationary blurred image follows the nearest slide during dragging, before
+  pointer release; sharp cover and blur reuse the same URL and failure fallback.
+  Light-mode home glass scopes dark tokens at scrollY ≤ 64px, restores light
+  after scrolling and reverts at the top. The chosen theme remains unchanged.
+- Search has a larger input-like trigger (44px mobile), Ctrl+K/Cmd+K opening/focus,
+  and a trailing 500ms debounce. Accepted results remain visible during typing;
+  Enter/button submit immediately, clearing cancels and IME waits for completion.
+- Primary-agent mandatory local review: entire lot fixed point `a6644da` remains
+  non-empty; all follow-up files, new files and lockfile were reviewed from
+  `3fdae62`, including standards/specification and corrected image failure handling.
+  No unresolved blocking finding. Earlier entire-lot Convex security/performance/
+  quality review remains applicable; this follow-up changes no backend functions.
+  Accepted trade-offs: bounded six-slide geometry reads during dragging and
+  mocked Embla API in DOM state tests; actual drag physics was browser-checked.
+- `pnpm check` passes: formatting, lint, types, **405 tests** (29 shared, 92 backend,
+  284 web), client and SSR builds. New regressions cover 500ms with intermediate
+  t/te/tes/test typing, result retention, both shortcut modifiers and blur switching
+  while the pointer remains held. Existing security tests pass unchanged.
+- Browser evidence: prior desktop/mobile/light/dark and real Embla small/large
+  drag checks, plus today's live Ctrl+K focus, delayed public `test` result and
+  Escape/focus restoration. User additionally tested and accepted scrolling and
+  search visually. Later public official songs/albums were supplied by the user;
+  the agent created no publications or account/role changes. Physical touchscreen
+  hold remains unverified on a real device. Native search limits remain documented
+  in [lot8-verification.md](lot8-verification.md); no lot 9, merge or production push.
+- Chrome reaches the GitHub compare URL on retry, but browser control of the page
+  times out. PR title/body are maintained in [lot8-pr.md](lot8-pr.md); filling the
+  actual form is not claimed. No pull request was created.
+
+### Lot 8 Variant A follow-up — 27 October 2026
+
+- Reworked the hero from the user's two Variant A attachments: full-width active
+  artwork blur (real img, 70px/saturate 1.5), same URL in the sharp square cover,
+  lower-left desktop text, centered mobile cover/text and full-width action.
+  Missing/broken artwork has a semantic-color/music fallback. Only the active
+  slide allocates the blurred layer. Shared light/dark themes are retained.
+- The home shell now overlaps header/main using grid placement. The hero starts
+  at y=0; unrelated routes keep their content sizing. Navbar glass is background/55.
+- Hover/hold pauses are temporary; pointer release/cancel, including outside the
+  hero, restarts a full seven-second delay. Touch does not set desktop hover state.
+  Keyboard focus pauses until blur; reduced motion and explicit desktop pause remain.
+  Desktop keeps discreet pause/arrows; mobile matches the counter/progress-bar view.
+- Selection is deterministic: up to six newest releases from bounded existing
+  public home selections, never a download of all 100 hypothetical lyrics.
+- Primary-agent local review covers the full follow-up diff from `cb39bd9`, plus
+  corrected files. Backend files and authorization are unchanged; the earlier
+  entire-lot/Convex review from `a6644da` remains applicable.
+- `pnpm check` passes 401 tests (29 shared, 92 backend, 280 web), formatting,
+  lint, types and client/SSR builds. Regression tests cover held-pointer release
+  outside the hero, full-delay restart, hover/keyboard/explicit pause, same-URL
+  cover/backdrop, active-only blur and broken-artwork fallback.
+- Browser verification in the Codex browser covers desktop light/dark, mobile
+  390×844, no horizontal overflow, real existing public artwork and missing-image
+  fallback, matching URLs, exactly one 70px/saturate(1.5) layer, sharp cover,
+  335px mobile action and hero top at y=0. Chrome navigation still timed out;
+  no GitHub form or PR creation is claimed. Physical touchscreen hold behavior
+  is covered by pointer-event tests rather than claimed as a real-device check.
+
+### Lot 8 — implemented and locally reviewed (27 October 2026)
+
+Work is on `codex/lot8-public-search`, based on up-to-date `main` at `a6644da`
+(after merged lots 5, T1, 6 and 7). The user's local documentation changes were
+preserved in `231ce72`; removed design references were not restored. One standard
+sub-agent researched Convex search read-only. The primary agent made all edits
+and owns the full local review and delivery.
+
+- Public Artist/Fan search uses one native relevance index, canonical source
+  eligibility checks, visible Fan attribution and bounded matching lyric
+  excerpts. The navbar opens an accessible shadcn Dialog. Debounced
+  submission avoids intermediate-keystroke requests; native cursor pages contain
+  at most 12 results. No full-result count or exact-phrase claim is made.
+- The bounded six-release slider now replaces the old static hero, with large
+  background imagery, overlaid release context/actions, indicators and seven-second
+  rotation. Hover, focus, touch, hidden documents and reduced motion stop automatic
+  movement. Pause/resume is explicit; media never autoplays. A decorative existing
+  local photo fills missing artwork. The header floats in a rounded Caffeine frame.
+  This follows the user's 27 October SkyStream interaction reference; no third-party
+  branding/assets/content were copied. Search now starts after a 450 ms typing pause
+  (Enter/button still immediate); the help paragraph is visually hidden.
+- The primary reviewed the entire lot diff locally from fixed point `a6644da`,
+  including retained user scope notes, new files and tests. The branch diff is
+  non-empty. Standards/specification review and the `convex:convex-reviewer`
+  security/performance/quality passes leave no blocking finding.
+- Review corrections: initial search-input focus, small-height dialog scrolling,
+  equal 36px navbar targets, search-text-only updates preserving Aggregate keys,
+  album artist-name invalidation, canonical owner rechecks without duplicate
+  source reads, and a 12-result server cap. A test-fixture typing/formatting issue
+  was corrected before the final gate. Accepted trade-off: public search text
+  increases discovery projection storage/read size; a separate lifecycle is
+  deferred until catalogue size justifies it.
+- **Previous `pnpm check` passed 399 tests** (29 shared, 92 backend, 278 web), formatting,
+  lint, TypeScript and production client/SSR builds. Security/lifecycle tests
+  cover public-only indexing, stale candidates, suspension, revocation, missing
+  profiles, withdrawals, edits, album-name refresh and versioned backfill.
+- Convex development index creation/push succeeded. Backfill completion was
+  observed as `initialized:true,searchVersion:1,pendingJobs:0`. Browser checks
+  exercised FR/EN, dark/light, desktop and 390×844 layouts, 390×280 scrolling,
+  initial focus, Escape/restoration, live title/artist/lyrics results, final-term
+  prefixes, OR multi-word semantics, empty results and attribution. Native
+  pagination boundaries, zero/one/many slider states and reduced motion are
+  additionally isolated-test evidence.
+- Live connectivity was intermittent: some auth/SSR requests, CLI operations
+  and detail navigations failed or reconnected. Successful read-only searches
+  used existing public content; no real publication, account/role change,
+  moderation or destructive cleanup was used to populate tests. Full native
+  relevance/tokenization, physical touch and cross-engine behavior are not
+  inferred from the test adapter. Details and costs are in
+  [lot8-verification.md](lot8-verification.md).
+- The primary re-reviewed every follow-up change (hero replacement, floating
+  header, debounce, tests and scope docs). No blocking standards/specification
+  findings remain; Convex files were unchanged by this follow-up. Browser evidence
+  includes automatic slide changes, manual indicators/arrow navigation, automatic
+  MISS/Niavou searches without submission, clearing results, visually removed help,
+  mobile header/hero/overlay at 390×844 with no horizontal overflow, and Escape
+  restoring focus. The public Fan result successfully opened its canonical detail.
+  The final gate includes formatting, lint, TypeScript, tests and client/SSR builds.
+- Implementation and follow-up commits `e08edf7` and `ce0d59a` are pushed to
+  `origin/codex/lot8-public-search`; user documentation was preserved in `231ce72`.
+  Chrome PR preparation is blocked: GitHub navigation repeatedly timed out.
+  The new tab stayed blank; the verified localhost tab never reached GitHub.
+  The English Markdown title/body are saved in [lot8-pr.md](lot8-pr.md). No PR was
+  created. No lot 9, merge or production deployment.
+
+
+### Lot 8 handoff decisions — 26 October 2026
+
+Git now confirms merged lot 7, PR #5 at `62dd6eb`, on local `main`. The user
+removed `docs/design-guidance.md` and the local image references; do not restore
+them. Future screens follow the implemented interface and existing Caffeine
+tokens. [Lot 8 direction](lot8-direction.md) records navbar overlay search, the
+explicitly requested public musical-release home slider, read-only delegation
+constraints and delivery workflow for the next implementation session. This
+entry supersedes older next-mission/design-reference instructions. No product
+code, account, deployment or Git delivery state was changed by this handoff.
+
 ### Lot 7 — completed locally, ready for user-created PR (26 October 2026)
 
 Resumed from remote checkpoint `2e48b37` on `codex/public-discovery-layouts`.
@@ -106,7 +252,8 @@ tools, contribution attribution, ownership, moderation, and old detail links
 must be preserved. Search gets an explicitly unavailable visual entry in lot 7;
 functional search stays in lot 8. Responsive layout, shadcn reuse, footer/bottom
 navigation, horizontal home rows, Studio tabs/actions, and lyric heading insertion
-are recorded in [design guidance](design-guidance.md). No product code was changed
+were recorded in the former design-guidance document (subsequently removed by
+the user). No product code was changed
 for this decision, and this entry does not claim lot 7 has started or authorize
 push, PR, merge, or production deployment.
 
@@ -1167,10 +1314,10 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Lot 6 is complete locally as recorded above; its older pause/resumption notes
-are historical. Prepare the next implementation handoff using the approved lot 7
-scope in [design guidance](design-guidance.md) and [roadmap](roadmap.md).
-This research/documentation session has not started lot 7 product code. Lot 5
-and T1 remain merged and closed. Artist claim/replacement remains future scope.
-No push, PR, merge, or production deployment is authorized. The writing notebook
-with local audio and the Genius-style sharing-card refinement remain proposal-only.
+Lot 8 is implemented and reviewed on `codex/lot8-public-search`. The user creates
+and reviews the prepared PR, then decides whether to merge. Lot 9 (likes,
+comments and reports) requires separate approval and has not begun. Production
+deployment and account/role changes remain unauthorized. Historical proposals
+for artist claim/replacement, notebook audio and sharing-card refinements retain
+their deferred status. See [lot8-verification.md](lot8-verification.md) for actual
+search limits and evidence.

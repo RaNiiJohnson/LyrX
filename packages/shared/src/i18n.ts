@@ -1,6 +1,30 @@
 import type { SupportedLocale } from "./index"
 
 const frenchMessages = {
+  "search.title": "Rechercher",
+  "search.help":
+    "Titres, artistes, albums, genres et paroles. Au moins un mot peut correspondre ; seul le dernier accepte un préfixe. Pas de phrase exacte ni de correction des fautes.",
+  "search.placeholder": "Un titre, un artiste, des paroles…",
+  "search.submit": "Lancer la recherche",
+  "search.invalid":
+    "Saisissez 1 à 16 mots de 32 caractères maximum (200 caractères au total).",
+  "search.start": "Saisissez votre recherche…",
+  "search.error":
+    "Recherche indisponible. Relancez votre recherche pour réessayer.",
+  "search.unavailable":
+    "L’index public est en cours d’actualisation. Réessayez dans un instant.",
+  "search.empty": "Aucun résultat public. Essayez un autre mot.",
+  "search.filtered":
+    "Aucun résultat visible sur cette page. Vous pouvez continuer.",
+  "search.results": "{{count}} résultats sur cette page",
+  "search.resultsLabel": "Résultats publics",
+  "releases.title": "À découvrir",
+  "releases.carousel": "Carrousel",
+  "releases.open": "Découvrir le projet",
+  "releases.pause": "Mettre le défilement en pause",
+  "releases.play": "Activer le défilement automatique",
+  "releases.slide": "Aller au projet {{number}}",
+
   "common.close": "Fermer",
   "discovery.artistsCount": "{{count}} artistes",
   "common.chooseImage": "Parcourir",
@@ -605,6 +629,27 @@ const frenchMessages = {
 export type MessageKey = keyof typeof frenchMessages
 
 const englishMessages = {
+  "search.title": "Search",
+  "search.help":
+    "Titles, artists, albums, genres and lyrics. Any word may match; only the last supports a prefix. No exact phrases or typo correction.",
+  "search.placeholder": "A title, an artist, some lyrics\u2026",
+  "search.submit": "Run search",
+  "search.invalid":
+    "Enter 1\u201316 words of up to 32 characters (200 characters in total).",
+  "search.start": "Enter your search…",
+  "search.error": "Search is unavailable. Submit your search again to retry.",
+  "search.unavailable": "The public index is updating. Try again shortly.",
+  "search.empty": "No public results. Try another word.",
+  "search.filtered": "No visible results on this page. You can continue.",
+  "search.results": "{{count}} results on this page",
+  "search.resultsLabel": "Public results",
+  "releases.title": "Discover releases",
+  "releases.carousel": "Carousel",
+  "releases.open": "Discover release",
+  "releases.pause": "Pause slideshow",
+  "releases.play": "Start automatic slideshow",
+  "releases.slide": "Go to release {{number}}",
+
   "common.close": "Close",
   "discovery.artistsCount": "{{count}} artists",
   "common.chooseImage": "Browse",

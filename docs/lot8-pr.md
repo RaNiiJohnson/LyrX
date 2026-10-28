@@ -1,0 +1,79 @@
+# Lot 8 pull request draft
+
+Title: `Add unified public search and an automatic release hero`
+
+Base: `main` · Compare: `codex/lot8-public-search`
+
+Chrome preparation was retried on 28 October 2026. The compare URL loads in tab
+metadata, but browser control of the GitHub page times out, so form filling is
+not claimed. No pull request was created. The English title and Markdown body
+below are ready for the GitHub form when access is restored.
+
+---
+
+## Summary
+
+Public discovery now searches Artist and Fan releases, artist profiles, albums,
+genres and supported lyric terms from the navbar, with matching excerpts and
+native cursor pagination. The home hero presents existing public releases with
+automatic rotation, overlaid context/actions and accessible controls. The rounded
+floating header keeps the existing Caffeine theme and navigation. Variant A
+uses a real active-only blurred artwork image behind the same sharp square cover;
+mobile centers the cover/text and stretches the action. Light/dark modes,
+temporary hold/hover pauses and full-delay resumption are preserved. Embla owns
+hero dragging; the single stationary blur follows the dominant slide during drag.
+Newest/popular tracks use single horizontal rows of square cover cards; albums
+show a decorative vinyl edge. Home glass stays dark at the top in light mode,
+then follows the chosen theme after scrolling. Ctrl+K/Cmd+K opens search.
+
+```text
+Navbar search → 500 ms debounce / immediate submit
+  → native public search index → canonical eligibility checks
+  → bounded cards + Fan attribution + current lyric excerpt
+Home public releases → six-slide hero → drag / indicators / detail links
+```
+
+Search retains accepted results until the trailing debounce completes and handles loading, empty,
+backfill, validation and technical failures separately in FR/EN. Public queries
+recheck source visibility and author eligibility; publication, edits, moderation,
+withdrawals and deletion maintain the existing projection lifecycle.
+
+## Evidence
+
+- **Before:** no unified lyric search; home used a static editorial hero.
+  **After:** navbar overlay searches after a typing pause, with up to 12 results
+  per native cursor page. Existing public releases replace the static hero.
+- `pnpm check`: formatting, lint, TypeScript, **405 tests** (29 shared, 92 backend,
+  284 web), production client and SSR builds pass.
+- Primary-agent full-diff standards/specification review from `a6644da`, including
+  follow-up changes; Convex security/performance/quality review: no blocking findings.
+- Convex development index push and idempotent discovery backfill succeeded:
+  `initialized:true, searchVersion:1, pendingJobs:0`.
+- Browser checks: FR/EN, dark/light, desktop/mobile, small-height dialog scrolling,
+  focus/Escape restoration, title/artist/lyric searches, debounced submission, prefix/OR
+  behavior, empty/cleared results, Fan attribution and canonical detail navigation,
+  hero rotation/indicators/dragging and mobile header layout.
+- Isolated tests cover private/stale-source exclusion, suspension/revocation,
+  withdrawals/moderation/deletion, source edits, cursor boundaries, versioned
+  backfill, debounce cancellation, hero states and pause/reduced-motion behavior.
+
+Actual limits: native search uses OR terms and a prefix on the last term only;
+no arbitrary substring, exact phrase, typo correction, accent folding or Malagasy
+stemming guarantee. There is no exhaustive total. Search is billed against index
+size; public lyric text increases projection storage/read size. Initial live development
+content had no official-song/album examples; later browser checks used public
+songs/albums added by the user. Connectivity was intermittent. See `docs/lot8-verification.md`.
+
+## Merge Danger
+
+**Door:** two-way
+
+Application changes can be reverted. The additive search index/versioned
+projection requires development/deployment index creation and the documented
+backfill before search becomes ready. Production deployment was not performed.
+No account/role changes or new publications were used for verification.
+
+**Blast Radius:** Discovery
+
+Public search/projection refresh, home presentation and shared header layout.
+Write permissions remain enforced by existing server authorization. No lot 9 work.
