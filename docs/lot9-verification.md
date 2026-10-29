@@ -116,7 +116,7 @@ separators and relative dates, You/Artist badges and ellipsis menus. The inline
 composer displays a 0/500 counter and Commenter/Comment; menu actions use
 Signaler/Report and Supprimer/Delete. Deletion menu/confirmation use the destructive
 variant. The heading has no duplicate count; only the comment reaction displays
-the loaded count, with `+` for a continuing page. The like skeleton is 56×36px.
+the loaded count, with `+` for a continuing page. Both reaction skeletons are 36×36px circles, with no loading ellipsis button.
 The report dialog offers a bounded public excerpt, four categories and optional
 details. New InputGroup/RadioGroup source was reviewed from the shadcn CLI without
 overwriting existing primitives or adding dependencies.

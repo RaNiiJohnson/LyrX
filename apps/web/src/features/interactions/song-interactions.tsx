@@ -102,7 +102,7 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
     >
       <div className="flex flex-wrap items-center gap-2.5">
         {summary === undefined ? (
-          <Skeleton className="h-9 w-14 rounded-full" />
+          <Skeleton className="size-9 rounded-full" />
         ) : summary ? (
           ready ? (
             <Button
@@ -123,7 +123,7 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
               <span aria-live="polite">{summary.count}</span>
             </Button>
           ) : current === undefined ? (
-            <Skeleton className="h-9 w-14 rounded-full" />
+            <Skeleton className="size-9 rounded-full" />
           ) : (
             <Button
               asChild
@@ -139,29 +139,33 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
         ) : (
           <p>{t("interactions.unavailable")}</p>
         )}
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-11 gap-2 rounded-full px-4"
-          aria-label={t("interactions.showComments")}
-          aria-controls={id}
-          title={t("interactions.loadedCount", {
-            count: comments.results.length,
-          })}
-          onClick={() => {
-            heading.current?.scrollIntoView({
-              block: "start",
-              behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
-                .matches
-                ? "instant"
-                : "smooth",
-            })
-            heading.current?.focus({ preventScroll: true })
-          }}
-        >
-          <MessageSquare data-icon="inline-start" />
-          <span>{comments.status === "LoadingFirstPage" ? "…" : count}</span>
-        </Button>
+        {comments.status === "LoadingFirstPage" ? (
+          <Skeleton className="size-9 rounded-full" />
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11 gap-2 rounded-full px-4"
+            aria-label={t("interactions.showComments")}
+            aria-controls={id}
+            title={t("interactions.loadedCount", {
+              count: comments.results.length,
+            })}
+            onClick={() => {
+              heading.current?.scrollIntoView({
+                block: "start",
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+                  .matches
+                  ? "instant"
+                  : "smooth",
+              })
+              heading.current?.focus({ preventScroll: true })
+            }}
+          >
+            <MessageSquare data-icon="inline-start" />
+            <span>{count}</span>
+          </Button>
+        )}
       </div>
       {error ? (
         <Alert variant="destructive">

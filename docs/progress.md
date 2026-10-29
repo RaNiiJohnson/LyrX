@@ -7,7 +7,9 @@
 - Resumed after checkpoint `a7b56d4` on `codex/lot9-song-interactions`.
   Applied the user's new annotations: no count beside the Comments heading,
   Commenter/Comment, Signaler/Report, Supprimer/Delete, borderless reactions,
-  a smaller 56×36px like skeleton and destructive own-delete menu/confirmation.
+  36×36px circular skeletons for both reactions and destructive own-delete
+  menu/confirmation. The loading comments reaction also uses a circle rather
+  than an icon/button with an ellipsis.
 - Re-reviewed the complete lot locally from `e6d6822`, including the new design,
   primitives, backend lifecycle and tests. Convex security/performance/quality
   review has no unresolved blocking finding. Source/author eligibility, private
