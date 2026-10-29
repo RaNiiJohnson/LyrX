@@ -102,7 +102,7 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
     >
       <div className="flex flex-wrap items-center gap-2.5">
         {summary === undefined ? (
-          <Skeleton className="h-11 w-20 rounded-full" />
+          <Skeleton className="h-9 w-14 rounded-full" />
         ) : summary ? (
           ready ? (
             <Button
@@ -123,11 +123,11 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
               <span aria-live="polite">{summary.count}</span>
             </Button>
           ) : current === undefined ? (
-            <Skeleton className="h-11 w-20 rounded-full" />
+            <Skeleton className="h-9 w-14 rounded-full" />
           ) : (
             <Button
               asChild
-              variant="outline"
+              variant="ghost"
               className="h-11 gap-2 rounded-full px-4"
             >
               <Link to="/account" aria-label={t("interactions.signIn")}>
@@ -141,10 +141,13 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
         )}
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           className="h-11 gap-2 rounded-full px-4"
           aria-label={t("interactions.showComments")}
           aria-controls={id}
+          title={t("interactions.loadedCount", {
+            count: comments.results.length,
+          })}
           onClick={() => {
             heading.current?.scrollIntoView({
               block: "start",
@@ -174,14 +177,6 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
           className="flex scroll-mt-28 items-center gap-3 text-xl font-semibold outline-none"
         >
           {t("interactions.comments")}
-          <span
-            className="text-sm font-normal text-muted-foreground"
-            title={t("interactions.loadedCount", {
-              count: comments.results.length,
-            })}
-          >
-            {comments.status === "LoadingFirstPage" ? "…" : count}
-          </span>
         </h2>
         {ready && summary ? (
           <CommentComposer
@@ -389,6 +384,7 @@ function CommentList({ comments }: { comments: CommentPage }) {
               {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               disabled={busy}
               onClick={(event) => {
                 event.preventDefault()
@@ -441,6 +437,7 @@ function CommentActions({
       <DropdownMenuContent align="end" className="min-w-44 rounded-xl p-1.5">
         <DropdownMenuGroup>
           <DropdownMenuItem
+            variant={own ? "destructive" : "default"}
             onSelect={() => onSelect(trigger.current)}
             className="gap-2 rounded-lg px-3 py-3"
           >

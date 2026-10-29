@@ -4,9 +4,9 @@ Title: `Add song likes, flat comments and private comment moderation`
 
 Base: `main` · Compare: `codex/lot9-song-interactions`
 
-Work-in-progress proposal: paused at the user’s request during visual refinement.
-The 425-test evidence below predates the latest design and must be updated after
-final review/checks. No PR creation or branch push is claimed.
+Local proposal: automated checks are current; final visual acceptance remains
+open because the browser tool cannot reach local development. No PR creation or
+branch push is claimed.
 
 ---
 
@@ -23,23 +23,29 @@ Admin session → reported comment → dismiss or erase text + decision
 Source/account deletion → immediate read exclusion → bounded cleanup
 ```
 
-The existing Caffeine UI and FR/EN are preserved. Interactive forms use TanStack
+The supplied comment design is implemented with avatar rows, ellipsis actions,
+a 500-character inline composer, compact borderless reactions and categorized
+reports with optional details. The existing Caffeine UI and FR/EN are preserved.
+Interactive forms use TanStack
 Form and shadcn primitives; Studio previews and album pages remain outside scope.
 
 ## Evidence
 
 - **Before:** no working song likes/comments or private liked-song list.
   **After:** both public origins share authorized, reactive interaction journeys.
-- `pnpm check`: formatting, lint, types, **425 tests** (29 shared, 104 backend,
-  292 web), production client and SSR builds pass.
+- `pnpm check`: formatting, lint, types, **428 tests** (29 shared, 105 backend,
+  294 web), production client and SSR builds pass.
 - Primary full-diff local review from `e6d6822` and Convex security/performance/
   quality review: no blocking findings.
 - Development Convex push succeeded after a transient network failure; additive
   tables require no historical backfill. Production was not deployed.
-- Browser: reversible like/unlike and private-list check, public Artist/Fan
+- Earlier browser evidence (before the latest visual refinement): reversible
+  like/unlike and private-list check, public Artist/Fan
   integration, nonadmin refusal, FR/EN, light/dark, mobile layout, report-dialog
   focus/Escape/cancellation. No live comment/report publication or destructive
   moderation was used to manufacture evidence.
+- Final visual validation remains open: the available browser tool cannot reach
+  localhost. No new-design browser acceptance is claimed.
 - Isolated fixtures cover concurrent retries, visibility/revocation, forgery,
   private report access, decisions, text/page/rate limits and cleanup recovery.
 

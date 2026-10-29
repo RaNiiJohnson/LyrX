@@ -1,11 +1,11 @@
 # Lot 9 — song likes, comments and comment reports
 
-## Checkpoint status
+## Current status
 
-Paused on 29 October at the user’s request after adopting three comment design
-references. The final review, full gate, browser matrix and development push for
-the latest refinement remain to be completed; the earlier 425-test/push evidence
-is historical. See [progress](progress.md) for exact resume steps.
+Resumed on 29 October after the saved design checkpoint. Automated review and
+checks cover the final implementation; final visual acceptance remains open
+because the available browser tool cannot reach the user's localhost. Earlier
+local-browser evidence predates the new design. See [progress](progress.md).
 
 ## Scope
 
@@ -111,6 +111,16 @@ Public detail wrappers mount the shared interaction section after the reader.
 Personal state is queried client-side, never prefetched in public SSR loaders.
 `/liked` is linked from both member roles; `/admin/comments` is admin-only.
 Existing Caffeine tokens, shadcn primitives and TanStack Form are retained.
+The approved comment design uses compact borderless reactions, avatar rows with
+separators and relative dates, You/Artist badges and ellipsis menus. The inline
+composer displays a 0/500 counter and Commenter/Comment; menu actions use
+Signaler/Report and Supprimer/Delete. Deletion menu/confirmation use the destructive
+variant. The heading has no duplicate count; only the comment reaction displays
+the loaded count, with `+` for a continuing page. The like skeleton is 56×36px.
+The report dialog offers a bounded public excerpt, four categories and optional
+details. New InputGroup/RadioGroup source was reviewed from the shadcn CLI without
+overwriting existing primitives or adding dependencies.
+
 FR/EN labels, persistent localized errors, pending guards, plain-text rendering,
 empty/loading states, reason dialogs and deletion/removal confirmations are
 provided. Report-dialog Escape/cancel returns focus to its trigger. Keyboard

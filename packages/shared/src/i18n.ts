@@ -30,16 +30,16 @@ const frenchMessages = {
   "interactions.unavailable": "Ce morceau n’est plus disponible.",
   "interactions.comments": "Commentaires",
   "interactions.write": "Votre commentaire",
-  "interactions.publish": "Publier",
+  "interactions.publish": "Commenter",
   "interactions.published": "Commentaire publié",
   "interactions.required":
     "Saisissez un texte non vide dans la limite indiquée.",
   "interactions.empty": "Aucun commentaire pour le moment",
-  "interactions.delete": "Supprimer mon commentaire",
+  "interactions.delete": "Supprimer",
   "interactions.deleteHint":
     "Le texte sera effacé. Cette action est définitive.",
   "interactions.deleted": "Commentaire supprimé",
-  "interactions.report": "Signaler le commentaire",
+  "interactions.report": "Signaler",
   "interactions.reportHint":
     "Le signalement reste privé. Le commentaire reste visible jusqu’à une éventuelle intervention.",
   "interactions.likedSongs": "Mes morceaux aimés",
@@ -716,15 +716,15 @@ const englishMessages = {
   "interactions.unavailable": "This song is no longer available.",
   "interactions.comments": "Comments",
   "interactions.write": "Your comment",
-  "interactions.publish": "Post",
+  "interactions.publish": "Comment",
   "interactions.published": "Comment posted",
   "interactions.required": "Enter nonempty text within the indicated limit.",
   "interactions.empty": "No comments yet",
-  "interactions.delete": "Delete my comment",
+  "interactions.delete": "Delete",
   "interactions.deleteHint":
     "The text will be erased. This action is permanent.",
   "interactions.deleted": "Comment deleted",
-  "interactions.report": "Report comment",
+  "interactions.report": "Report",
   "interactions.reportHint":
     "Your report stays private. The comment remains visible until a moderator intervenes.",
   "interactions.likedSongs": "My liked songs",

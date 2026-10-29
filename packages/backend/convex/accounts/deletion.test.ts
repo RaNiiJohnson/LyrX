@@ -16,6 +16,7 @@ import schema from "../schema"
 import { beginAccountDeletion } from "./deletion"
 
 const modules = {
+  "../interactions/cleanup.ts": () => import("../interactions/cleanup"),
   "../_generated/server.ts": () => import("../_generated/server"),
   "../accounts/deletion.ts": () => import("./deletion"),
   "../discovery/maintenance.ts": () => import("../discovery/maintenance"),

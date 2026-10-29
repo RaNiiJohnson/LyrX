@@ -178,7 +178,10 @@ describe("song interactions", () => {
     expect(state.mutation).toHaveBeenCalledTimes(1)
     expect(state.mutation).toHaveBeenCalledWith({ sourceId, liked: true })
     expect(button.disabled).toBe(true)
-    await act(() => reject(new Error("Private server text")))
+    await act(async () => {
+      reject(new Error("Private server text"))
+      await Promise.resolve()
+    })
     expect(container.querySelector('[role="alert"]')).not.toBeNull()
     expect(container.textContent).not.toContain("Private server text")
     expect(button.disabled).toBe(false)
@@ -200,11 +203,11 @@ describe("song interactions", () => {
   it("offers own deletion with confirmation and cannot report own comments", async () => {
     state.comments = [comment(true)]
     await render()
-    expect(container.textContent).not.toContain("Signaler le commentaire")
+    expect(container.textContent).not.toContain("Signaler")
     await openOptions()
     const remove = Array.from(
       document.querySelectorAll<HTMLElement>('[role="menuitem"]')
-    ).find((x) => x.textContent === "Supprimer mon commentaire")!
+    ).find((x) => x.textContent === "Supprimer")!
     await act(() => remove.click())
     expect(
       document.querySelector('[role="alertdialog"]')?.textContent
@@ -222,7 +225,7 @@ describe("song interactions", () => {
     await openOptions()
     const report = Array.from(
       document.querySelectorAll<HTMLElement>('[role="menuitem"]')
-    ).find((x) => x.textContent === "Signaler le commentaire")!
+    ).find((x) => x.textContent === "Signaler")!
     await act(() => report.click())
     const dialog = document.querySelector('[role="dialog"]')!
     expect(dialog.getAttribute("aria-labelledby")).not.toBeNull()

@@ -2,6 +2,29 @@
 
 ## Active lot
 
+### Lot 9 — resumed UI refinements (29 October 2026)
+
+- Resumed after checkpoint `a7b56d4` on `codex/lot9-song-interactions`.
+  Applied the user's new annotations: no count beside the Comments heading,
+  Commenter/Comment, Signaler/Report, Supprimer/Delete, borderless reactions,
+  a smaller 56×36px like skeleton and destructive own-delete menu/confirmation.
+- Re-reviewed the complete lot locally from `e6d6822`, including the new design,
+  primitives, backend lifecycle and tests. Convex security/performance/quality
+  review has no unresolved blocking finding. Source/author eligibility, private
+  reports and tombstone/cleanup rules are unchanged by these UI refinements.
+- Review found legacy account-deletion fixtures omitted the scheduled interaction
+  cleanup module: registering it now exercises the jobs instead of logging a
+  missing-module error. Awaiting the rejected like request inside async React
+  act also removes the earlier warning. No warning was suppressed.
+- Full `pnpm check` passes **428 tests** (29 shared, 105 backend, 294 web),
+  format/lint/types and client/SSR builds. The latest development push succeeded
+  on `lovely-dolphin-50` with `Convex functions ready!` after 34 seconds.
+- Browser tool access to localhost/127.0.0.1 was refused; it made no account or
+  content changes. The user's open local browser and supplied captures guided
+  the refinements, but new-design desktop/mobile/light/dark/focus acceptance is
+  not claimed. Earlier browser evidence below is historical. This visual gate
+  remains before declaring the lot closed. No lot 10, push, PR or production work.
+
 ### Lot 9 — paused at the user's request, design checkpoint (29 October 2026)
 
 The user asked to save and stop before leaving. The lot is **not closed**.
