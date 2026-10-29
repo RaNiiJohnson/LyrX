@@ -73,4 +73,7 @@ until managed image access and withdrawal rules exist.
 
 Lot 8 implementation and actual capability limits are recorded in
 [lot8-verification.md](lot8-verification.md). The user retains PR creation and
-merge. Lot 9 requires a new approval and has not begun.
+merge. Lot 8 is merged in PR #6 at `6e5659d`. The user approved lot 9 on
+29 October 2026, starting from updated `main` at `e6d6822`. Its contracts,
+verification and limitations are in [lot9-verification.md](lot9-verification.md)
+and [progress](progress.md). Lot 10 remains unauthorized.

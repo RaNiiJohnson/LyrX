@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as LikedRouteImport } from './routes/liked'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as AlbumsIndexRouteImport } from './routes/albums/index'
@@ -30,6 +31,7 @@ import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
 import { Route as SongsIndexRouteImport } from './routes/songs/index'
 import { Route as SongsSongIdRouteImport } from './routes/songs/$songId'
 import { Route as StudioIndexRouteImport } from './routes/studio/index'
+import { Route as AdminCommentsIndexRouteImport } from './routes/admin/comments/index'
 import { Route as AdminCommunityIndexRouteImport } from './routes/admin/community/index'
 import { Route as AdminCommunityReportIdRouteImport } from './routes/admin/community/$reportId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -52,6 +54,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LikedRoute = LikedRouteImport.update({
+  id: '/liked',
+  path: '/liked',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -149,6 +156,11 @@ const StudioIndexRoute = StudioIndexRouteImport.update({
   path: '/studio/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCommentsIndexRoute = AdminCommentsIndexRouteImport.update({
+  id: '/admin/comments/',
+  path: '/admin/comments/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCommunityIndexRoute = AdminCommunityIndexRouteImport.update({
   id: '/admin/community/',
   path: '/admin/community/',
@@ -223,6 +235,7 @@ const StudioSongsSongIdPreviewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/liked': typeof LikedRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
@@ -249,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/studio/albums/new': typeof StudioAlbumsNewRoute
   '/studio/songs/$songId': typeof StudioSongsSongIdRouteWithChildren
   '/studio/songs/new': typeof StudioSongsNewRoute
+  '/admin/comments/': typeof AdminCommentsIndexRoute
   '/admin/community/': typeof AdminCommunityIndexRoute
   '/community/$contributionId/': typeof CommunityContributionIdIndexRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
@@ -259,6 +273,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/liked': typeof LikedRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
@@ -282,6 +297,7 @@ export interface FileRoutesByTo {
   '/community/$contributionId/edit': typeof CommunityContributionIdEditRoute
   '/studio/albums/new': typeof StudioAlbumsNewRoute
   '/studio/songs/new': typeof StudioSongsNewRoute
+  '/admin/comments': typeof AdminCommentsIndexRoute
   '/admin/community': typeof AdminCommunityIndexRoute
   '/community/$contributionId': typeof CommunityContributionIdIndexRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
@@ -293,6 +309,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/liked': typeof LikedRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
@@ -319,6 +336,7 @@ export interface FileRoutesById {
   '/studio/albums/new': typeof StudioAlbumsNewRoute
   '/studio/songs/$songId': typeof StudioSongsSongIdRouteWithChildren
   '/studio/songs/new': typeof StudioSongsNewRoute
+  '/admin/comments/': typeof AdminCommentsIndexRoute
   '/admin/community/': typeof AdminCommunityIndexRoute
   '/community/$contributionId/': typeof CommunityContributionIdIndexRoute
   '/studio/albums/$albumId/preview': typeof StudioAlbumsAlbumIdPreviewRoute
@@ -331,6 +349,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/liked'
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
@@ -357,6 +376,7 @@ export interface FileRouteTypes {
     | '/studio/albums/new'
     | '/studio/songs/$songId'
     | '/studio/songs/new'
+    | '/admin/comments/'
     | '/admin/community/'
     | '/community/$contributionId/'
     | '/studio/albums/$albumId/preview'
@@ -367,6 +387,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/liked'
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
@@ -390,6 +411,7 @@ export interface FileRouteTypes {
     | '/community/$contributionId/edit'
     | '/studio/albums/new'
     | '/studio/songs/new'
+    | '/admin/comments'
     | '/admin/community'
     | '/community/$contributionId'
     | '/studio/albums/$albumId/preview'
@@ -400,6 +422,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/liked'
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
@@ -426,6 +449,7 @@ export interface FileRouteTypes {
     | '/studio/albums/new'
     | '/studio/songs/$songId'
     | '/studio/songs/new'
+    | '/admin/comments/'
     | '/admin/community/'
     | '/community/$contributionId/'
     | '/studio/albums/$albumId/preview'
@@ -437,6 +461,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  LikedRoute: typeof LikedRoute
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
   AlbumsAlbumIdRoute: typeof AlbumsAlbumIdRoute
@@ -462,6 +487,7 @@ export interface RootRouteChildren {
   StudioAlbumsNewRoute: typeof StudioAlbumsNewRoute
   StudioSongsSongIdRoute: typeof StudioSongsSongIdRouteWithChildren
   StudioSongsNewRoute: typeof StudioSongsNewRoute
+  AdminCommentsIndexRoute: typeof AdminCommentsIndexRoute
   AdminCommunityIndexRoute: typeof AdminCommunityIndexRoute
 }
 
@@ -479,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/liked': {
+      id: '/liked'
+      path: '/liked'
+      fullPath: '/liked'
+      preLoaderRoute: typeof LikedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -612,6 +645,13 @@ declare module '@tanstack/react-router' {
       path: '/studio'
       fullPath: '/studio/'
       preLoaderRoute: typeof StudioIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/comments/': {
+      id: '/admin/comments/'
+      path: '/admin/comments'
+      fullPath: '/admin/comments/'
+      preLoaderRoute: typeof AdminCommentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/community/': {
@@ -753,6 +793,7 @@ const StudioSongsSongIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  LikedRoute: LikedRoute,
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,
   AlbumsAlbumIdRoute: AlbumsAlbumIdRoute,
@@ -778,6 +819,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudioAlbumsNewRoute: StudioAlbumsNewRoute,
   StudioSongsSongIdRoute: StudioSongsSongIdRouteWithChildren,
   StudioSongsNewRoute: StudioSongsNewRoute,
+  AdminCommentsIndexRoute: AdminCommentsIndexRoute,
   AdminCommunityIndexRoute: AdminCommunityIndexRoute,
 }
 export const routeTree = rootRouteImport

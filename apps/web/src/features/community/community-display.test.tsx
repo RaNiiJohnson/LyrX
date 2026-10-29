@@ -8,6 +8,10 @@ import { CommunityList, MyContributions } from "./community-list"
 import { CommunityModeration } from "./community-moderation"
 import { CommunityReader } from "./community-reader"
 
+vi.mock("@/features/interactions/song-interactions", () => ({
+  SongInteractions: () => null,
+}))
+
 vi.mock("@/features/discovery/record-public-view", () => ({
   RecordPublicView: () => null,
 }))

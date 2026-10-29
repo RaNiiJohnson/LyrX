@@ -1,3 +1,10 @@
+import {
+  sourceId as interactionSourceId,
+  commentStatus,
+  reportCategory,
+  reportStatus as commentReportStatus,
+  decision as commentDecision,
+} from "./interactions/model"
 import { defineSchema, defineTable } from "convex/server"
 import { v } from "convex/values"
 import {
@@ -26,6 +33,53 @@ import {
 } from "./model"
 
 export default defineSchema({
+  songLikes: defineTable({
+    sourceId: interactionSourceId,
+    memberId: v.id("members"),
+  })
+    .index("by_member_id_and_source_id", ["memberId", "sourceId"])
+    .index("by_member_id", ["memberId"])
+    .index("by_source_id", ["sourceId"]),
+  songLikeCounts: defineTable({
+    sourceId: interactionSourceId,
+    count: v.number(),
+  }).index("by_source_id", ["sourceId"]),
+  songComments: defineTable({
+    sourceId: interactionSourceId,
+    authorMemberId: v.optional(v.id("members")),
+    requestId: v.string(),
+    body: v.string(),
+    status: commentStatus,
+  })
+    .index("by_source_id", ["sourceId"])
+    .index("by_author_member_id_and_request_id", [
+      "authorMemberId",
+      "requestId",
+    ]),
+  commentReports: defineTable({
+    commentId: v.id("songComments"),
+    category: v.optional(reportCategory),
+    reporterMemberId: v.optional(v.id("members")),
+    reason: v.string(),
+    status: commentReportStatus,
+    action: v.optional(commentDecision),
+    decisionReason: v.optional(v.string()),
+    moderatorMemberId: v.optional(v.id("members")),
+    resolvedAt: v.optional(v.number()),
+  })
+    .index("by_comment_id_and_reporter_member_id", [
+      "commentId",
+      "reporterMemberId",
+    ])
+    .index("by_status", ["status"])
+    .index("by_reporter_member_id", ["reporterMemberId"])
+    .index("by_moderator_member_id", ["moderatorMemberId"]),
+  interactionCleanupJobs: defineTable({
+    sourceId: interactionSourceId,
+    updatedAt: v.number(),
+  })
+    .index("by_source_id", ["sourceId"])
+    .index("by_updated_at", ["updatedAt"]),
   // Public read projection only. Ownership and canonical content stay in their
   // existing artist/community domains. Search text contains public fields only.
   discoveryEntries: defineTable({

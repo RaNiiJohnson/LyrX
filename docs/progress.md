@@ -2,6 +2,94 @@
 
 ## Active lot
 
+### Lot 9 — paused at the user's request, design checkpoint (29 October 2026)
+
+The user asked to save and stop before leaving. The lot is **not closed**.
+All implementation and the latest visual changes are saved on
+`codex/lot9-song-interactions`; no push, PR or production action is authorized
+or claimed by this checkpoint.
+
+- The first lot 9 implementation passed the full 425-test gate and a real
+  development Convex push. The record below refers to that earlier state.
+- The user then supplied three comment desktop/mobile/report reference images.
+  The new design replaces card rows with avatars, separators, relative dates,
+  You/Artist badges and ellipsis menus. Like/comment pills precede the heading;
+  the inline composer has a live 0/500 counter. Partial loaded comment counts
+  show `+`, rather than claiming an exhaustive total.
+- Reports now quote a bounded current public excerpt and offer four categories
+  (spam, abuse, inappropriate, other) with optional details. The schema stores
+  an optional category to preserve earlier reports/clients; legacy reason-only
+  submissions still require a reason. New comments are capped at 500 characters;
+  existing longer text is not modified. Public author cards resolve public
+  avatars and current role after eligibility checks.
+- Added only the two new shadcn primitives from reviewed CLI source (InputGroup,
+  RadioGroup); preserved existing Input/Textarea/Button styles, adding only a
+  reaction Button variant. The CLI dry run proposed overwrites and an unwanted
+  `cn` dependency, so neither was applied. No dependency/lockfile changes.
+- Earlier refined-target tests passed 104 backend + 8 web cases. The latest full
+  `pnpm check` includes additional category/boundary/partial-count cases; it was
+  still running at the save request. The web interactions file's 10 tests passed
+  in that run, with React act warnings to inspect. This is not a final green-gate
+  claim for the latest design. Log: `/tmp/lyrx-lot9-design-check.log` (temporary).
+- Resume: inspect Git and the latest check outcome; finish the full primary-agent
+  diff review and Convex review for the design changes, fix genuine findings,
+  verify desktop/mobile/light/dark menus, report choices, composer and focus,
+  complete a development push for the latest backend contract, rerun `pnpm check`
+  as needed and refresh the final docs/PR proposal. Do not start lot 10.
+- Browser evidence described below predates the latest design. No new-design
+  screenshot acceptance is claimed yet. No live comment/report was posted or
+  destructive admin action performed by the agent; its earlier temporary like
+  was removed and other user activity preserved. Browser preferences/viewport
+  had been restored before this checkpoint.
+
+### Lot 9 — initial implementation reviewed, before visual refinement (29 October 2026)
+
+- User approval follows lot 8 merge PR #6 (`6e5659d`). Work is isolated on
+  `codex/lot9-song-interactions` from clean, current `main` at fixed point
+  `e6d6822`, preserving the user's merged AI/dependency update. One standard
+  sub-agent analyzed web integration seams read-only; the primary made all edits.
+- Artist and Fan public songs now have idempotent desired-state likes, public
+  counts, private paginated `/liked`, flat chronological comments, own deletion,
+  private comment reports and `/admin/comments` decisions. Existing lyric-report
+  moderation remains separate. No Studio-draft/album interactions or lot 10 work.
+- Server member/admin wrappers, current canonical source/owner/author eligibility,
+  typed IDs, explicit validators, indexed pagination and transactional rate limits
+  enforce authorization. Tombstones preserve retry identity while erased bodies
+  are absent from public/admin reads. Reports alone never hide a comment.
+- Deletion triggers queue bounded source cleanup; a recovery cron resumes stalled
+  jobs. Account deletion's final-phase guard removes likes/counts, erases authored
+  text and anonymizes foreign audit references. No account or role was changed.
+- Primary-agent mandatory entire-diff standards/specification review from
+  `e6d6822`, including new files, generated routes/API and corrected files,
+  has no unresolved blocking finding. `convex:convex-reviewer` security,
+  performance and quality passes are complete. Corrections included localized
+  dialog cancellation, focus restoration, payload-specific retry IDs, native
+  liked-date ordering, admin source context, whitespace validation, fixture
+  typing and import spacing before the final gate.
+- Accepted limits: a simple per-source count can contend under concentrated
+  traffic; physical cleanup is eventual, and counts represent retained likes
+  rather than rescanning active members. Deleted comment tombstones remain
+  minimal; independent reporter text is not silently rewritten. Popularity stays
+  on its existing seven-day views metric. See [lot9-verification.md](lot9-verification.md).
+- `pnpm check` passes formatting, lint, TypeScript, **425 tests** (29 shared,
+  104 backend, 292 web), and client/SSR builds. New tests cover concurrent retries,
+  cross-account/public/private boundaries, moderation, rate/text/page limits,
+  source/account cleanup and recovery, retained form errors and gated queries.
+- Real development push succeeded on `lovely-dolphin-50` (EU), with `Convex
+  functions ready!`; the first attempt failed during network authorization and
+  the retry succeeded. No historical backfill or production deployment was used.
+- Browser: actual Artist reader like/unlike and private-list entry verified;
+  the agent's temporary like was removed (other user activity retained).
+  FR/EN and light/dark report dialogs, 390×844 mobile, 358px dialog within the
+  viewport, no horizontal overflow, initial focus, Escape/cancel focus return,
+  nonadmin moderation refusal and Fan attribution/integration checked. Browser
+  text already supplied by the user provided a report trigger; the agent posted
+  no live comments/reports and performed no destructive moderation. Admin
+  decisions/deletion and anonymous/cross-account paths have isolated test evidence,
+  not a claimed live admin/device session. Temporary preferences/viewport restored.
+- Prepared a local PR proposal in [lot9-pr.md](lot9-pr.md). This lot is kept local:
+  no branch push, PR creation or merge is claimed. Lot 10 still requires approval.
+
 ### Lot 8 final interaction follow-up — 28 October 2026
 
 - User browser validation: the visuals incorporating the annotations, horizontal

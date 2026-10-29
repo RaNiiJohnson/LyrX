@@ -9,6 +9,8 @@ import { useLocale } from "@/app/locale-provider"
 import { SongReadOnly } from "./song-read-only"
 import { RecordPublicView } from "@/features/discovery/record-public-view"
 
+import { SongInteractions } from "@/features/interactions/song-interactions"
+
 export function PublicSong({ songId }: { songId: Id<"songs"> }) {
   const { t } = useLocale()
   const { data: detail } = useSuspenseQuery(
@@ -28,6 +30,7 @@ export function PublicSong({ songId }: { songId: Id<"songs"> }) {
     <>
       <RecordPublicView origin="artist" sourceId={songId} />
       <SongReadOnly detail={detail} />
+      <SongInteractions key={songId} sourceId={songId} />
     </>
   )
 }

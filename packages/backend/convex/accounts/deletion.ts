@@ -7,6 +7,8 @@ import { catalogueAggregateTriggers } from "../catalogue/aggregates"
 import { storageIsClaimed } from "../catalogue/artwork"
 import { changeViews } from "../discovery/projection"
 
+import { cleanMemberInteractions } from "../interactions/cleanup"
+
 const BATCH_SIZE = 25
 const STALLED_AFTER_MS = 5 * 60_000
 type Phase = Doc<"accountDeletionJobs">["phase"]
@@ -289,6 +291,7 @@ async function advance(ctx: MutationCtx, job: Doc<"accountDeletionJobs">) {
   }
   // Keep this guard at the final phase, so jobs created by older deployments
   // (including a stalled job already at "member") cannot skip new dependents.
+  if (await cleanMemberInteractions(ctx, owner)) return "member"
   if (await cleanCommunityBatch(ctx, owner)) return "member"
   if (await ctx.db.get("members", owner)) await ctx.db.delete("members", owner)
   return null
