@@ -15,6 +15,7 @@ const state = vi.hoisted(() => ({
   ready: true,
   admin: false,
   liked: false,
+  likeCount: 2,
   mutation: vi.fn<(...args: Array<unknown>) => Promise<unknown>>(),
   calls: [] as Array<string>,
   comments: [] as Array<{
@@ -42,7 +43,7 @@ vi.mock("convex/react", () => ({
               profile: { handle: "me" },
             }
           : { state: "anonymous" }
-        : { count: 2, liked: state.liked },
+        : { count: state.likeCount, liked: state.liked },
   useMutation: () => state.mutation,
   usePaginatedQuery: (ref: Parameters<typeof getFunctionName>[0]) => {
     state.calls.push(getFunctionName(ref))
@@ -123,6 +124,7 @@ beforeEach(() => {
   state.ready = true
   state.admin = false
   state.liked = false
+  state.likeCount = 2
   state.comments = []
   state.calls = []
   state.mutation.mockReset()
@@ -178,6 +180,8 @@ describe("song interactions", () => {
     expect(state.mutation).toHaveBeenCalledTimes(1)
     expect(state.mutation).toHaveBeenCalledWith({ sourceId, liked: true })
     expect(button.disabled).toBe(true)
+    expect(button.getAttribute("aria-pressed")).toBe("true")
+    expect(button.textContent).toBe("3")
     await act(async () => {
       reject(new Error("Private server text"))
       await Promise.resolve()
@@ -185,6 +189,236 @@ describe("song interactions", () => {
     expect(container.querySelector('[role="alert"]')).not.toBeNull()
     expect(container.textContent).not.toContain("Private server text")
     expect(button.disabled).toBe(false)
+    expect(button.getAttribute("aria-pressed")).toBe("false")
+    expect(button.textContent).toBe("2")
+  })
+  it("rebases likes over live counts without doubling the confirmed increment", async () => {
+    let resolve!: () => void
+    state.mutation.mockImplementation(
+      () =>
+        new Promise<void>((yes) => {
+          resolve = yes
+        })
+    )
+    await render()
+    const button = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="J’aime"]'
+    )!
+    await act(() => button.click())
+    expect(button.textContent).toBe("3")
+    state.likeCount = 7 // Other members also liked the song while this request ran.
+    await render()
+    expect(button.textContent).toBe("8")
+    state.liked = true
+    state.likeCount = 8
+    await render()
+    expect(button.textContent).toBe("8")
+    await act(async () => {
+      resolve()
+      await Promise.resolve()
+    })
+    expect(button.textContent).toBe("8")
+    expect(button.getAttribute("aria-pressed")).toBe("true")
+    expect(button.disabled).toBe(false)
+  })
+  it("optimistically unlikes and restores the original heart/count on failure", async () => {
+    state.liked = true
+    let reject!: (error: Error) => void
+    state.mutation.mockImplementation(
+      () =>
+        new Promise((_yes, no) => {
+          reject = no
+        })
+    )
+    await render()
+    const button = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Je n’aime plus"]'
+    )!
+    await act(() => button.click())
+    expect(button.getAttribute("aria-pressed")).toBe("false")
+    expect(button.textContent).toBe("1")
+    await act(async () => {
+      reject(new Error("offline"))
+      await Promise.resolve()
+    })
+    expect(button.getAttribute("aria-pressed")).toBe("true")
+    expect(button.textContent).toBe("2")
+  })
+  it("shows a pending comment immediately, rolls it back and reconciles its retry once", async () => {
+    let resolve!: () => void, reject!: (error: Error) => void
+    state.mutation.mockImplementation(
+      () =>
+        new Promise<void>((yes, no) => {
+          resolve = yes
+          reject = no
+        })
+    )
+    await render()
+    await type("  A new comment  ")
+    await submit()
+    const row = container.querySelector('li[aria-busy="true"]')!
+    expect(row.textContent).toContain("A new comment")
+    expect(row.textContent).toContain("Envoi…")
+    expect(
+      row.querySelector('button[aria-label="Options du commentaire"]')
+    ).toBeNull()
+    expect(
+      container.querySelector('button[aria-label="Voir les commentaires"]')
+        ?.textContent
+    ).toBe("1")
+    await submit()
+    expect(state.mutation).toHaveBeenCalledTimes(1)
+    await act(async () => {
+      reject(new Error("offline"))
+      await Promise.resolve()
+    })
+    expect(container.querySelector("li")).toBeNull()
+    expect(document.querySelector("textarea")?.value).toBe("  A new comment  ")
+    const request = state.mutation.mock.calls[0]![0]
+    await submit()
+    expect(state.mutation.mock.calls[1]![0]).toEqual(request)
+    state.comments = [
+      {
+        ...comment(true),
+        body: "A new comment",
+        author: { handle: "me", displayName: "me" },
+      },
+    ]
+    await render()
+    expect(container.querySelectorAll("li")).toHaveLength(1)
+    expect(container.querySelector('[aria-busy="true"]')).toBeNull()
+    await act(async () => {
+      resolve()
+      await Promise.resolve()
+    })
+    expect(container.querySelectorAll("li")).toHaveLength(1)
+    expect(document.querySelector("textarea")?.value).toBe("")
+  })
+  it("keeps an identical existing comment and a new pending submission distinct", async () => {
+    state.comments = [
+      {
+        ...comment(true),
+        body: "Same words",
+        author: { handle: "me", displayName: "me" },
+      },
+    ]
+    let resolve!: () => void
+    state.mutation.mockImplementation(
+      () =>
+        new Promise<void>((yes) => {
+          resolve = yes
+        })
+    )
+    await render()
+    await type("Same words")
+    await submit()
+    expect(container.querySelectorAll("li")).toHaveLength(2)
+    state.comments = [
+      ...state.comments,
+      { ...state.comments[0]!, id: "second-comment" },
+    ]
+    await render()
+    expect(container.querySelectorAll("li")).toHaveLength(2)
+    await act(async () => {
+      resolve()
+      await Promise.resolve()
+    })
+    expect(container.querySelectorAll("li")).toHaveLength(2)
+  })
+  it("rolls back a rejected comment even while a separate like Action remains pending", async () => {
+    let resolveLike!: () => void, rejectComment!: (error: Error) => void
+    state.mutation.mockImplementation((args) =>
+      typeof args === "object" && args !== null && "liked" in args
+        ? new Promise<void>((yes) => {
+            resolveLike = yes
+          })
+        : new Promise((_yes, no) => {
+            rejectComment = no
+          })
+    )
+    await render()
+    const button = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="J’aime"]'
+    )!
+    await act(() => button.click())
+    await type("Temporary comment")
+    await submit()
+    expect(container.querySelector('li[aria-busy="true"]')).not.toBeNull()
+    await act(async () => {
+      rejectComment(new Error("offline"))
+      await Promise.resolve()
+    })
+    expect(container.querySelector("li")).toBeNull()
+    expect(button.disabled).toBe(true)
+    expect(button.textContent).toBe("3")
+    state.liked = true
+    state.likeCount = 3
+    await render()
+    await act(async () => {
+      resolveLike()
+      await Promise.resolve()
+    })
+  })
+  it("shows the pending comment even before the first comment page loads", async () => {
+    state.pageStatus = "LoadingFirstPage"
+    let reject!: (error: Error) => void
+    state.mutation.mockImplementation(
+      () =>
+        new Promise((_yes, no) => {
+          reject = no
+        })
+    )
+    await render()
+    await type("Immediate preview")
+    await submit()
+    expect(
+      container.querySelector('li[aria-busy="true"]')?.textContent
+    ).toContain("Immediate preview")
+    await act(async () => {
+      reject(new Error("offline"))
+      await Promise.resolve()
+    })
+    expect(container.querySelector("li")).toBeNull()
+  })
+  it("hides a pending own comment when the member loses their ready session", async () => {
+    let reject!: (error: Error) => void
+    state.mutation.mockImplementation(
+      () =>
+        new Promise((_yes, no) => {
+          reject = no
+        })
+    )
+    await render()
+    await type("Session-bound preview")
+    await submit()
+    state.ready = false
+    await render()
+    expect(container.querySelector("li")).toBeNull()
+    expect(container.querySelector("textarea")).toBeNull()
+    await act(async () => {
+      reject(new Error("session ended"))
+      await Promise.resolve()
+    })
+  })
+  it("drops a pending preview when navigating to another source", async () => {
+    let reject!: (error: Error) => void
+    state.mutation.mockImplementation(
+      () =>
+        new Promise((_yes, no) => {
+          reject = no
+        })
+    )
+    await render()
+    await type("Only on the first song")
+    await submit()
+    await render(<SongInteractions sourceId={"another-song" as Id<"songs">} />)
+    expect(container.querySelector("li")).toBeNull()
+    expect(document.querySelector("textarea")?.value).toBe("")
+    await act(async () => {
+      reject(new Error("offline"))
+      await Promise.resolve()
+    })
+    expect(container.querySelector('[role="alert"]')).toBeNull()
   })
   it("rejects whitespace; keeps draft and identical request id after failure, clears after success", async () => {
     await render()

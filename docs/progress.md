@@ -2,6 +2,35 @@
 
 ## Active lot
 
+### Lot 9 — optimistic client interactions (29 October 2026)
+
+- At the user's request, likes and comment submission now use React
+  `useOptimistic` inside async Transitions. TanStack Start uses the installed
+  React hook; TanStack Form still owns validation, pending submission and draft
+  retention. This refinement changes no backend functions/schema/dependencies.
+- Heart/count update immediately and rebase over live counts without a double
+  increment. A pending own comment shows Envoi…/Sending… without server actions;
+  rejection removes it and preserves the draft/request ID. Each preview settles
+  independently during overlapping Actions. Source changes reset the section;
+  session loss hides the pending comment. First-page loading does not hide it.
+- Primary review of this follow-up found and corrected the first-page skeleton
+  masking a pending comment. Re-reviewed the corrected client and tests; no
+  blocking finding. The earlier full-lot/Convex review remains applicable;
+  this follow-up requires no Convex changes or development push.
+- Full `pnpm check` passes **436 tests** (29 shared, 105 backend, 302 web),
+  format/lint/types and client/SSR builds. The interactions file now has 18 tests,
+  including deferred requests, rollback, live-count rebasing, preview
+  reconciliation, identical text, overlapping Actions, loading and session/source
+  changes. Existing happy-dom embedded-player tests log disabled iframe loading;
+  the interaction tests have no React Action/act warning.
+- The exact duplicate guard remains the server request ID. Pending preview
+  reconciliation only prefers a newly loaded own row with matching text.
+  Confirmed comments follow authoritative chronological pagination; newer rows
+  beyond the loaded pages still require Load more. No permanent local copy or
+  unbounded fetch bypasses moderation/visibility.
+- Browser access limitation and final visual acceptance below remain open.
+  Saved locally on the lot 9 branch; no push, PR, production or lot 10 action.
+
 ### Lot 9 — resumed UI refinements (29 October 2026)
 
 - Resumed after checkpoint `a7b56d4` on `codex/lot9-song-interactions`.

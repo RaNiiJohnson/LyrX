@@ -32,6 +32,7 @@ const frenchMessages = {
   "interactions.write": "Votre commentaire",
   "interactions.publish": "Commenter",
   "interactions.published": "Commentaire publié",
+  "interactions.sending": "Envoi…",
   "interactions.required":
     "Saisissez un texte non vide dans la limite indiquée.",
   "interactions.empty": "Aucun commentaire pour le moment",
@@ -718,6 +719,7 @@ const englishMessages = {
   "interactions.write": "Your comment",
   "interactions.publish": "Comment",
   "interactions.published": "Comment posted",
+  "interactions.sending": "Sending…",
   "interactions.required": "Enter nonempty text within the indicated limit.",
   "interactions.empty": "No comments yet",
   "interactions.delete": "Delete",

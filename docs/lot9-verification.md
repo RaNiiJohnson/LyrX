@@ -121,6 +121,22 @@ The report dialog offers a bounded public excerpt, four categories and optional
 details. New InputGroup/RadioGroup source was reviewed from the shadcn CLI without
 overwriting existing primitives or adding dependencies.
 
+Likes and comment submission use React `useOptimistic` inside async Transitions
+on the client; this refinement changes no Convex functions or authorization.
+The heart/count reflects the requested state immediately and rebases over live
+server counts without applying the same increment twice. Pending comment rows
+show Envoi…/Sending… and offer no delete/report actions until canonical data
+arrives. Errors roll back the preview and retain the draft/request ID for retry.
+Each operation clears its own preview even if another Transition remains pending.
+Changing source remounts the section, avoiding a draft/preview on another song.
+
+A newly loaded own row with matching trimmed text suppresses the pending preview;
+this is only display reconciliation, not an identity/idempotency guarantee. The
+server's existing request ID remains the exact duplicate guard. Successful writes
+return to the authoritative chronological pages: if newer comments fall beyond
+the loaded pages, Load more is still needed. No unbounded fetch or permanent
+client copy bypasses current visibility/moderation checks.
+
 FR/EN labels, persistent localized errors, pending guards, plain-text rendering,
 empty/loading states, reason dialogs and deletion/removal confirmations are
 provided. Report-dialog Escape/cancel returns focus to its trigger. Keyboard
@@ -132,10 +148,15 @@ short-page continuation, text/page/rate bounds, clean deletion, private report
 reads, decisions, account cleanup and source-cleanup recovery. DOM tests cover
 anonymous/member/admin subscriptions, plain-text rendering, pending likes,
 required text, draft/request retention on failure, deletion cancellation,
-report errors and admin decision retries. They do not simulate distributed
-production load, physical devices or a live cross-account admin session.
+report errors and admin decision retries. Deferred-request cases also cover
+immediate like/unlike feedback, rollback, concurrent live counts, pending comment
+reconciliation, identical-text submissions, overlapping Actions and source
+changes. They do not simulate distributed production load, physical devices or
+a live cross-account admin session.
 
 Reference behavior checked against installed Convex 1.48.0 backend and official
+[React useOptimistic](https://react.dev/reference/react/useOptimistic),
+[Convex optimistic updates](https://docs.convex.dev/client/react/optimistic-updates),
 [OCC/atomicity](https://docs.convex.dev/database/advanced/occ),
 [index ordering](https://docs.convex.dev/database/reading-data/indexes/) and
 [Rate Limiter](https://www.convex.dev/components/rate-limiter) documentation.

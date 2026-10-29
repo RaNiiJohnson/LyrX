@@ -8,7 +8,14 @@ import {
   Flag,
   Trash2,
 } from "lucide-react"
-import { useEffect, useId, useRef, useState } from "react"
+import {
+  startTransition,
+  useEffect,
+  useId,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Button } from "@lyrx/ui/components/button"
@@ -52,13 +59,22 @@ type SourceId = Id<"songs"> | Id<"communityContributions">
 type Comment = FunctionReturnType<
   typeof api.interactions.read.comments
 >["page"][number]
+type PendingComment = Omit<Comment, "id"> & {
+  id: string
+  pending: true
+  knownIds: ReadonlySet<string>
+}
 type CommentPage = {
-  results: Array<Comment>
+  results: Array<Comment | PendingComment>
   status: "LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted"
   loadMore: (count: number) => void
 }
 
 export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
+  return <SourceInteractions key={sourceId} sourceId={sourceId} />
+}
+
+function SourceInteractions({ sourceId }: { sourceId: SourceId }) {
   const { t } = useLocale(),
     id = useId()
   const current = useQuery(api.members.current, {})
@@ -68,7 +84,40 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
     { sourceId },
     { initialNumItems: 12 }
   )
+  const [likeIntent, updateLike] = useOptimistic<boolean | null>(null)
+  const optimisticSummary =
+    summary && likeIntent !== null
+      ? {
+          ...summary,
+          liked: likeIntent,
+          count: summary.count + Number(likeIntent) - Number(summary.liked),
+        }
+      : summary
+  const [optimisticComment, insertComment] =
+    useOptimistic<PendingComment | null>(null)
   const ready = current?.state === "ready"
+  // A live query can catch up while the Action is pending. Prefer a new
+  // canonical own row with this text over displaying the same preview twice.
+  const confirmed =
+    optimisticComment &&
+    comments.results.some(
+      (row) =>
+        !optimisticComment.knownIds.has(row.id) &&
+        row.isOwn &&
+        row.author.handle === optimisticComment.author.handle &&
+        row.body === optimisticComment.body
+    )
+  const displayedComments = {
+    ...comments,
+    results:
+      optimisticComment &&
+      !confirmed &&
+      ready &&
+      summary &&
+      optimisticComment.author.handle === current.profile.handle
+        ? [...comments.results, optimisticComment]
+        : comments.results,
+  }
   const ownProfile = useQuery(
     api.members.publicByHandle,
     ready ? { handle: current.profile.handle } : "skip"
@@ -80,20 +129,24 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
   const request = useRef<{ id: string; body: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const heading = useRef<HTMLHeadingElement>(null)
-  const count = `${comments.results.length}${comments.status === "Exhausted" ? "" : "+"}`
-  async function like() {
+  const count = `${displayedComments.results.length}${comments.status === "Exhausted" ? "" : "+"}`
+  function like() {
     if (!summary || pending.current) return
     pending.current = true
     setBusy(true)
     setError(null)
-    try {
-      await setLike({ sourceId, liked: !summary.liked })
-    } catch (caught) {
-      setError(getErrorMessage(caught, t))
-    } finally {
-      pending.current = false
-      setBusy(false)
-    }
+    startTransition(async () => {
+      updateLike(!summary.liked)
+      try {
+        await setLike({ sourceId, liked: !summary.liked })
+      } catch (caught) {
+        setError(getErrorMessage(caught, t))
+      } finally {
+        startTransition(() => updateLike(null))
+        pending.current = false
+        setBusy(false)
+      }
+    })
   }
   return (
     <section
@@ -110,17 +163,19 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
               variant="reaction"
               className="h-11 gap-2 rounded-full px-4"
               aria-label={t(
-                summary.liked ? "interactions.unlike" : "interactions.like"
+                optimisticSummary?.liked
+                  ? "interactions.unlike"
+                  : "interactions.like"
               )}
-              aria-pressed={summary.liked}
+              aria-pressed={optimisticSummary?.liked}
               disabled={busy}
               onClick={() => void like()}
             >
               <Heart
                 data-icon="inline-start"
-                fill={summary.liked ? "currentColor" : "none"}
+                fill={optimisticSummary?.liked ? "currentColor" : "none"}
               />
-              <span aria-live="polite">{summary.count}</span>
+              <span aria-live="polite">{optimisticSummary?.count}</span>
             </Button>
           ) : current === undefined ? (
             <Skeleton className="size-9 rounded-full" />
@@ -132,7 +187,7 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
             >
               <Link to="/account" aria-label={t("interactions.signIn")}>
                 <Heart data-icon="inline-start" />
-                {summary.count}
+                {optimisticSummary?.count}
               </Link>
             </Button>
           )
@@ -149,7 +204,7 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
             aria-label={t("interactions.showComments")}
             aria-controls={id}
             title={t("interactions.loadedCount", {
-              count: comments.results.length,
+              count: displayedComments.results.length,
             })}
             onClick={() => {
               heading.current?.scrollIntoView({
@@ -186,17 +241,44 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
           <CommentComposer
             name={current.profile.displayName || current.profile.handle}
             avatarUrl={ownProfile?.avatarUrl}
-            onSubmit={async (body) => {
-              if (!request.current || request.current.body !== body)
-                request.current = { id: crypto.randomUUID(), body }
-              await addComment({
-                sourceId,
-                body,
-                requestId: request.current.id,
+            onSubmit={(body) =>
+              new Promise<void>((resolve, reject) => {
+                if (!request.current || request.current.body !== body)
+                  request.current = { id: crypto.randomUUID(), body }
+                const requestId = request.current.id
+                const comment: PendingComment = {
+                  id: `pending:${requestId}`,
+                  pending: true,
+                  knownIds: new Set(comments.results.map((row) => row.id)),
+                  body: body.trim(),
+                  createdAt: Date.now(),
+                  author: {
+                    handle: current.profile.handle,
+                    displayName:
+                      current.profile.displayName || current.profile.handle,
+                    avatarUrl: ownProfile?.avatarUrl ?? null,
+                    role: current.member.role,
+                  },
+                  isOwn: true,
+                  canReport: false,
+                }
+                // TanStack Form awaits this Promise; React owns the optimistic
+                // overlay only for the lifetime of this async Action.
+                startTransition(async () => {
+                  insertComment(comment)
+                  try {
+                    await addComment({ sourceId, body, requestId })
+                    request.current = null
+                    toast.success(t("interactions.published"))
+                    resolve()
+                  } catch (caught) {
+                    reject(caught)
+                  } finally {
+                    startTransition(() => insertComment(null))
+                  }
+                })
               })
-              request.current = null
-              toast.success(t("interactions.published"))
-            }}
+            }
           />
         ) : !ready && current !== undefined ? (
           <p className="text-sm text-muted-foreground">
@@ -204,7 +286,7 @@ export function SongInteractions({ sourceId }: { sourceId: SourceId }) {
           </p>
         ) : null}
       </div>
-      <CommentList key={sourceId} comments={comments} />
+      <CommentList key={sourceId} comments={displayedComments} />
     </section>
   )
 }
@@ -251,13 +333,14 @@ function CommentList({ comments }: { comments: CommentPage }) {
       tabIndex={-1}
       className="flex flex-col gap-4 outline-none"
     >
-      {comments.status === "LoadingFirstPage" ? (
+      {comments.status === "LoadingFirstPage" && !comments.results.length ? (
         <Skeleton className="h-28 w-full" />
       ) : comments.results.length ? (
         <ul className="flex flex-col">
           {comments.results.map((comment) => (
             <li
               key={comment.id}
+              aria-busy={"pending" in comment || undefined}
               className="flex items-start gap-3 border-t py-5"
             >
               <CommentAvatar
@@ -293,14 +376,17 @@ function CommentList({ comments }: { comments: CommentPage }) {
                     dateTime={new Date(comment.createdAt).toISOString()}
                     title={new Date(comment.createdAt).toLocaleString(locale)}
                   >
-                    {relativeTime(comment.createdAt, now, locale)}
+                    {"pending" in comment
+                      ? t("interactions.sending")
+                      : relativeTime(comment.createdAt, now, locale)}
                   </time>
                 </div>
                 <p className="mt-1 text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap">
                   {comment.body}
                 </p>
               </div>
-              {comment.isOwn || comment.canReport ? (
+              {!("pending" in comment) &&
+              (comment.isOwn || comment.canReport) ? (
                 <CommentActions
                   own={comment.isOwn}
                   onSelect={(trigger) => {
