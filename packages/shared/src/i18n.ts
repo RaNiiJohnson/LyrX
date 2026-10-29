@@ -1,6 +1,65 @@
 import type { SupportedLocale } from "./index"
 
 const frenchMessages = {
+  "interactions.placeholder": "Écris un commentaire…",
+  "interactions.you": "Vous",
+  "interactions.options": "Options du commentaire",
+  "interactions.showComments": "Voir les commentaires",
+  "interactions.loadedCount": "{{count}} commentaires affichés",
+  "interactions.reportTitle": "Signaler ce commentaire",
+  "interactions.reportQuestion": "Pourquoi ce commentaire pose-t-il problème ?",
+  "interactions.reportCategory": "Motif du signalement",
+  "interactions.category.spam": "Spam ou publicité",
+  "interactions.category.abuse": "Insulte ou harcèlement",
+  "interactions.category.inappropriate": "Contenu inapproprié",
+  "interactions.category.other": "Autre raison",
+  "interactions.details": "Précisions",
+  "interactions.optional": "Facultatif",
+  "interactions.reportFooter":
+    "Le signalement reste privé et sera examiné par la modération communautaire.",
+  "interactions.sendReport": "Envoyer le signalement",
+
+  "interactions.title": "Interactions",
+  "interactions.like": "J’aime",
+  "interactions.unlike": "Je n’aime plus",
+  "interactions.likeCount": "{{count}} mentions J’aime",
+  "interactions.likeCountOne": "1 mention J’aime",
+  "interactions.signIn": "Se connecter pour participer",
+  "interactions.signInHint":
+    "Connectez-vous avec un compte actif et vérifié pour aimer ou commenter.",
+  "interactions.unavailable": "Ce morceau n’est plus disponible.",
+  "interactions.comments": "Commentaires",
+  "interactions.write": "Votre commentaire",
+  "interactions.publish": "Commenter",
+  "interactions.published": "Commentaire publié",
+  "interactions.sending": "Envoi…",
+  "interactions.required":
+    "Saisissez un texte non vide dans la limite indiquée.",
+  "interactions.empty": "Aucun commentaire pour le moment",
+  "interactions.delete": "Supprimer",
+  "interactions.deleteHint":
+    "Le texte sera effacé. Cette action est définitive.",
+  "interactions.deleted": "Commentaire supprimé",
+  "interactions.report": "Signaler",
+  "interactions.reportHint":
+    "Le signalement reste privé. Le commentaire reste visible jusqu’à une éventuelle intervention.",
+  "interactions.likedSongs": "Mes morceaux aimés",
+  "interactions.emptyLiked": "Aucun morceau aimé disponible",
+  "interactions.unavailableLiked":
+    "Les morceaux retirés ou indisponibles ne sont pas affichés.",
+  "interactions.moderation": "Signalements de commentaires",
+  "interactions.moderationHint":
+    "Examinez les signalements privés. Un retrait efface le texte du commentaire, sans modifier le morceau.",
+  "interactions.review": "Examiner",
+  "interactions.deletedBody":
+    "Commentaire supprimé ou retiré ; texte indisponible.",
+  "interactions.dismiss": "Classer sans suite",
+  "interactions.remove": "Retirer le commentaire",
+  "interactions.resolve": "Enregistrer la décision",
+  "interactions.resolved": "Décision enregistrée",
+  "interactions.removeHint":
+    "Le texte du commentaire sera effacé et ne pourra pas être restauré. Le morceau reste inchangé.",
+
   "search.title": "Rechercher",
   "search.help":
     "Titres, artistes, albums, genres et paroles. Au moins un mot peut correspondre ; seul le dernier accepte un préfixe. Pas de phrase exacte ni de correction des fautes.",
@@ -629,6 +688,63 @@ const frenchMessages = {
 export type MessageKey = keyof typeof frenchMessages
 
 const englishMessages = {
+  "interactions.placeholder": "Write a comment…",
+  "interactions.you": "You",
+  "interactions.options": "Comment options",
+  "interactions.showComments": "View comments",
+  "interactions.loadedCount": "{{count}} comments displayed",
+  "interactions.reportTitle": "Report this comment",
+  "interactions.reportQuestion": "Why is this comment a problem?",
+  "interactions.reportCategory": "Report category",
+  "interactions.category.spam": "Spam or advertising",
+  "interactions.category.abuse": "Insult or harassment",
+  "interactions.category.inappropriate": "Inappropriate content",
+  "interactions.category.other": "Other reason",
+  "interactions.details": "Details",
+  "interactions.optional": "Optional",
+  "interactions.reportFooter":
+    "Your report stays private and will be reviewed by community moderation.",
+  "interactions.sendReport": "Send report",
+
+  "interactions.title": "Interactions",
+  "interactions.like": "Like",
+  "interactions.unlike": "Unlike",
+  "interactions.likeCount": "{{count}} likes",
+  "interactions.likeCountOne": "1 like",
+  "interactions.signIn": "Sign in to participate",
+  "interactions.signInHint":
+    "Sign in with an active, verified account to like or comment.",
+  "interactions.unavailable": "This song is no longer available.",
+  "interactions.comments": "Comments",
+  "interactions.write": "Your comment",
+  "interactions.publish": "Comment",
+  "interactions.published": "Comment posted",
+  "interactions.sending": "Sending…",
+  "interactions.required": "Enter nonempty text within the indicated limit.",
+  "interactions.empty": "No comments yet",
+  "interactions.delete": "Delete",
+  "interactions.deleteHint":
+    "The text will be erased. This action is permanent.",
+  "interactions.deleted": "Comment deleted",
+  "interactions.report": "Report",
+  "interactions.reportHint":
+    "Your report stays private. The comment remains visible until a moderator intervenes.",
+  "interactions.likedSongs": "My liked songs",
+  "interactions.emptyLiked": "No available liked songs",
+  "interactions.unavailableLiked":
+    "Withdrawn or unavailable songs are not displayed.",
+  "interactions.moderation": "Comment reports",
+  "interactions.moderationHint":
+    "Review private reports. Removal erases the comment text without changing the song.",
+  "interactions.review": "Review",
+  "interactions.deletedBody": "Deleted or removed comment; text unavailable.",
+  "interactions.dismiss": "Dismiss report",
+  "interactions.remove": "Remove comment",
+  "interactions.resolve": "Save decision",
+  "interactions.resolved": "Decision saved",
+  "interactions.removeHint":
+    "The comment text will be erased and cannot be restored. The song stays unchanged.",
+
   "search.title": "Search",
   "search.help":
     "Titles, artists, albums, genres and lyrics. Any word may match; only the last supports a prefix. No exact phrases or typo correction.",

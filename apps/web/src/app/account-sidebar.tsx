@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import {
   Disc3,
+  Heart,
   Home,
   Library,
   LogIn,
@@ -133,6 +134,14 @@ export function AccountSidebar({
             )}
           </SidebarSection>
 
+          {role ? (
+            <SidebarSection label={t("interactions.title")}>
+              <SidebarLink to="/liked" icon={Heart}>
+                {t("interactions.likedSongs")}
+              </SidebarLink>
+            </SidebarSection>
+          ) : null}
+
           {role === "artist" ? (
             <SidebarSection label={t("navigation.artistTools")}>
               <SidebarLink to="/studio/songs/new" icon={Plus} prominent>
@@ -159,6 +168,9 @@ export function AccountSidebar({
             <SidebarSection label={t("navigation.administration")}>
               <SidebarLink to="/admin/community" icon={ShieldCheck}>
                 {t("community.moderation")}
+              </SidebarLink>
+              <SidebarLink to="/admin/comments" icon={ShieldCheck}>
+                {t("interactions.moderation")}
               </SidebarLink>
             </SidebarSection>
           ) : null}
@@ -227,6 +239,8 @@ function SidebarLink({
     | "/community/new"
     | "/community/mine"
     | "/admin/community"
+    | "/liked"
+    | "/admin/comments"
   icon: typeof Home
   prominent?: boolean
   children: ReactNode

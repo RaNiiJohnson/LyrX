@@ -187,6 +187,18 @@ the creation/editing forms.
   replies, mentions, or private messaging.
 - Authors can delete their own comments cleanly. Members can report comments;
   administrators can intervene.
+- Lot 9 applies these interactions to both public Artist songs and Fan
+  contributions, with current source/author eligibility enforced on the server.
+  Likes set an explicit desired state; a member's liked list is private and
+  paginated. Public counts represent retained likes; popularity currently remains
+  the existing seven-day view ranking.
+- Comments are plain text, immutable after publication, limited to 500 trimmed
+  characters and paginated chronologically. Own deletion erases the body;
+  minimal tombstones keep idempotency and report linkage. Reporting alone does
+  not hide text. Only admins resolve private reports with a reason, dismissing
+  or permanently removing the comment; source songs remain unchanged.
+- Detailed limits, cleanup semantics and checks are in
+  [lot9-verification.md](lot9-verification.md).
 - V1 has no artist follows or release notifications.
 
 ## Private lyrics notebook

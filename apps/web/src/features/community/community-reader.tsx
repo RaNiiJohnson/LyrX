@@ -33,6 +33,8 @@ import { RecordPublicView } from "@/features/discovery/record-public-view"
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage } from "@/lib/errors"
 
+import { SongInteractions } from "@/features/interactions/song-interactions"
+
 export function CommunityReader({
   contributionId,
 }: {
@@ -89,6 +91,7 @@ export function CommunityReader({
           },
         }}
       />
+      <SongInteractions key={contributionId} sourceId={contributionId} />
     </section>
   )
 }

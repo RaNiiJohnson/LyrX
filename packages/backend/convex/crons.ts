@@ -4,6 +4,12 @@ import { internal } from "./_generated/api"
 
 const crons = cronJobs()
 crons.interval(
+  "recover interaction cleanup",
+  { minutes: 5 },
+  internal.interactions.cleanup.recover,
+  {}
+)
+crons.interval(
   "recover public discovery maintenance",
   { minutes: 1 },
   internal.discovery.maintenance.recover,

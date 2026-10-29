@@ -282,3 +282,22 @@ Work from one branch per roadmap lot. Update [progress.md](progress.md) with the
 checks actually run, known issues, and next mission. Prepare a local commit and a
 PR proposal, but do not push, open a PR, merge, deploy, or publish without the
 user's explicit authorization for that action.
+
+
+## Song interactions verification (lot 9)
+
+Deploy additive interaction tables/functions to the selected development deployment
+with `pnpm --filter @lyrx/backend exec convex dev --once`; do not add `--prod`.
+No historical backfill is needed. Verify like/unlike with a reversible browser
+action and restore the initial member state; inspect `/liked`, public comments,
+report-dialog cancellation and nonadmin `/admin/comments` access. Do not publish
+comments/reports, moderate another person's content or change roles just to
+manufacture browser evidence. Destructive/concurrent/cross-account paths use
+isolated `convex-test` fixtures and DOM tests.
+
+`interactionCleanupJobs` tracks physical cleanup after source deletion. The
+five-minute `interactions/cleanup:recover` cron resumes old jobs. Existing account
+cleanup's final guard erases owned comment text, removes likes/counts and
+anonymizes foreign report/moderator references. Public source/author checks hide
+unavailable text immediately, independent of batch progress. See
+[lot9-verification.md](lot9-verification.md).

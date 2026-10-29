@@ -300,3 +300,21 @@ hidden by a fake success state.
 
 The lot 8 search contract, costs, migration and evidence are recorded in
 [lot8-verification.md](lot8-verification.md).
+
+
+## Song interaction boundary (lot 9)
+
+`convex/interactions/` owns likes, flat comments and private comment reports for
+both canonical song origins. Reads hydrate the current source and owner eligibility;
+source IDs never confer write authority. Mutations use existing member/admin
+wrappers, indexed idempotency keys and the Rate Limiter component. A simple
+transactional per-source like counter serves public totals; it is separate from
+the seven-day view-ranking projection. Private liked pages are indexed by member
+and creation time, with current public source hydration.
+
+Comment bodies are immutable until erased by their author or an admin decision.
+Minimal tombstones preserve retry/report identity without storing erased text.
+Source-deletion triggers create resumable 25-row cleanup jobs; account deletion's
+final guard handles likes, authored text and anonymized foreign audit history.
+No new image claims or production migration are needed. See
+[lot9-verification.md](lot9-verification.md) for limits and evidence boundaries.
