@@ -1,11 +1,46 @@
+import { useLocale } from "@/app/locale-provider"
+import { LoadMore } from "@/features/community/community-list"
+import { getErrorMessage } from "@/lib/errors"
+import { api } from "@lyrx/backend/convex/_generated/api"
+import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@lyrx/ui/components/alert-dialog"
+import { Badge } from "@lyrx/ui/components/badge"
+import { Button } from "@lyrx/ui/components/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@lyrx/ui/components/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@lyrx/ui/components/dropdown-menu"
+import { Empty, EmptyHeader, EmptyTitle } from "@lyrx/ui/components/empty"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { toast } from "@lyrx/ui/lib/toast"
 import { Link } from "@tanstack/react-router"
 import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
 import {
+  Flag,
   Heart,
   MessageSquare,
   MoreHorizontal,
-  Flag,
   Trash2,
 } from "lucide-react"
 import {
@@ -16,44 +51,9 @@ import {
   useRef,
   useState,
 } from "react"
-import { api } from "@lyrx/backend/convex/_generated/api"
-import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
-import { Button } from "@lyrx/ui/components/button"
-import { Badge } from "@lyrx/ui/components/badge"
-import { Alert, AlertTitle, AlertDescription } from "@lyrx/ui/components/alert"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@lyrx/ui/components/dialog"
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@lyrx/ui/components/alert-dialog"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@lyrx/ui/components/dropdown-menu"
-import { Skeleton } from "@lyrx/ui/components/skeleton"
-import { Empty, EmptyHeader, EmptyTitle } from "@lyrx/ui/components/empty"
-import { toast } from "@lyrx/ui/lib/toast"
-import { useLocale } from "@/app/locale-provider"
-import { getErrorMessage } from "@/lib/errors"
-import { LoadMore } from "@/features/community/community-list"
-import { CommentComposer } from "./interaction-form"
 import { CommentAvatar } from "./comment-avatar"
 import { CommentReportForm } from "./comment-report-form"
+import { CommentComposer } from "./interaction-form"
 
 type SourceId = Id<"songs"> | Id<"communityContributions">
 type Comment = FunctionReturnType<
@@ -150,7 +150,7 @@ function SourceInteractions({ sourceId }: { sourceId: SourceId }) {
   }
   return (
     <section
-      className="mx-auto flex w-full max-w-[45rem] flex-col gap-8"
+      className="flex w-full max-w-[45rem] flex-col gap-8"
       aria-label={t("interactions.title")}
     >
       <div className="flex flex-wrap items-center gap-2.5">
