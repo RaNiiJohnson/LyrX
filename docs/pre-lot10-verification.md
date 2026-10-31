@@ -111,3 +111,31 @@ five-file patch still matches the snapshot taken before this feature.
 - [Convex query adapter](https://docs.convex.dev/client/tanstack/tanstack-query)
 - [TanStack Router devtools](https://tanstack.com/router/latest/docs/devtools)
 - [React Query devtools](https://tanstack.com/query/latest/docs/framework/react/devtools)
+
+## Helpers cache follow-up — 1 November 2026
+
+User-authored local migrations were preserved on the same branch. Helpers reads
+are used for selected non-loader subscriptions; mutations remain SDK hooks and
+variable-term search stays uncached. Explicit idle retention: 300,000 ms / 250
+entries. Both caches share a client, not a cache namespace. See architecture for
+selection and identity-boundary rules.
+
+The web suite passes 312 tests after updating old hook mocks (initial run: 78
+failures). Six integration cases exercise actual Helpers and SDK hooks with a
+substituted watch/auth transport: reactive return/expiry, skip and deletion
+errors, pagination/filter/loading/empty continuation and cached-page reuse,
+TanStack coexistence, new-document account lifetimes, and the 250-idle bound.
+The actual logout UI additionally asserts document navigation. Account A →
+anonymous → B is isolated lifecycle evidence, not real credential exchange or
+cross-tab switching. Existing sign-in/logout construct fresh clients through
+document navigation. Helpers itself does not partition results by principal.
+
+Chrome verified read-only Studio → home → Studio with published songs visible on
+return. Existing catalogue size did not permit live multi-page testing; pagination
+is covered by isolated hooks and the existing backend tests. No publication,
+mutation, account logout or role change was performed to manufacture evidence.
+Primary-agent delta review has no blocking finding; backend unchanged.
+
+Final follow-up `pnpm check` passed formatting, lint, types, 446 tests and
+client/SSR builds. The subsequent user request authorizes PR creation. No merge,
+deployment or lot 10 work is included.

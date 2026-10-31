@@ -20,7 +20,7 @@ import {
   TabsTrigger,
 } from "@lyrx/ui/components/tabs"
 import { Link } from "@tanstack/react-router"
-import { useQuery } from "convex/react"
+import { useQuery } from "convex-helpers/react/cache"
 import { ExternalLink } from "lucide-react"
 
 import type { Profile } from "./profile-header"

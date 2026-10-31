@@ -49,6 +49,25 @@ can render without them; do not add a loader mechanically to routes with no
 pre-render data requirement. Router intent preloading remains enabled so route
 loaders can start on link hover/touch before navigation.
 
+For Convex reads without a route loader, use `useQuery` / `usePaginatedQuery`
+from `convex-helpers/react/cache` when retaining the subscription across return
+visits within the document session is useful. Keep mutations in `convex/react`.
+Do not automatically migrate variable-term search: it retains the standard hook
+to avoid holding subscriptions for each typed term. Route-required data stays
+on loader + `convexQuery` + `useSuspenseQuery`; the caches are distinct, even
+though both use the same Convex client.
+
+`BackendProvider` mounts Helpers below Better Auth with a five-minute idle
+expiration and at most 250 idle entries. Retention keeps server subscriptions
+active and incurs bandwidth; it is neither persistence nor first-visit preload.
+Pagination retains subscriptions, not the hook's accumulated page state: a
+remount starts at page one and subsequent Load more can reuse retained pages.
+Helpers keys contain function/arguments, not account identity. Current sign-out,
+password sign-in and account-deletion completion use document navigation,
+constructing fresh Convex and Query clients; preserve this boundary. Do not
+introduce in-place account switching without reviewing both caches and ensuring
+old private results cannot render. Server authorization remains mandatory.
+
 Make route preloading and query-cache state inspectable with development-only
 TanStack Router and React Query Devtools. Keep them out of production output.
 Apply this architecture across the authorized refactor directly; a separate

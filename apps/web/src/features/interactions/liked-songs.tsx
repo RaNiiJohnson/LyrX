@@ -1,16 +1,16 @@
-import { Link } from "@tanstack/react-router"
-import { usePaginatedQuery } from "convex/react"
-import { api } from "@lyrx/backend/convex/_generated/api"
-import { Badge } from "@lyrx/ui/components/badge"
-import { Skeleton } from "@lyrx/ui/components/skeleton"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@lyrx/ui/components/empty"
 import { useLocale } from "@/app/locale-provider"
 import { LoadMore } from "@/features/community/community-list"
+import { api } from "@lyrx/backend/convex/_generated/api"
+import { Badge } from "@lyrx/ui/components/badge"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@lyrx/ui/components/empty"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { Link } from "@tanstack/react-router"
+import { usePaginatedQuery } from "convex-helpers/react/cache"
 
 export function LikedSongList() {
   const { t } = useLocale()

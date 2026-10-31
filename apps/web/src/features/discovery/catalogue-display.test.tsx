@@ -22,6 +22,11 @@ const state = vi.hoisted<State>(() => ({
   locale: "fr",
   calls: [],
 }))
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", () => ({
   useQuery: (_query: unknown, args: unknown) => {
     state.calls.push(args)

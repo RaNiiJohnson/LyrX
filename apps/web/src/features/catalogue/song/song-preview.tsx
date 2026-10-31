@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router"
-import { useMutation, useQuery } from "convex/react"
+import { useQuery } from "convex-helpers/react/cache"
+import { useMutation } from "convex/react"
 import { ArrowLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 
@@ -29,9 +30,9 @@ import {
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useLocale } from "@/app/locale-provider"
+import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
 import { PreviewSkeleton } from "@/features/catalogue/shared/preview-skeleton"
 import { getErrorMessage } from "@/lib/errors"
-import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
 import { SongReadOnly } from "./song-read-only"
 
 export function SongPreview({

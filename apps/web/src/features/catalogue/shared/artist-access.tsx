@@ -1,6 +1,6 @@
-import type { ReactNode } from "react"
+import { useQuery } from "convex-helpers/react/cache"
 import type { FunctionReturnType } from "convex/server"
-import { useQuery } from "convex/react"
+import type { ReactNode } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"

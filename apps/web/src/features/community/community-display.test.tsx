@@ -43,6 +43,11 @@ vi.mock("@/app/locale-provider", () => ({
     t: (key: MessageKey) => formatMessage(state.locale, key),
   }),
 }))
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", () => ({
   useQuery: () => state.account,
   useMutation: () => vi.fn(),

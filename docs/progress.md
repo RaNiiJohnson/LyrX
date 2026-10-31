@@ -2,6 +2,35 @@
 
 ## Active lot
 
+### Helpers cache follow-up — 1 November 2026
+
+- Preserved and integrated the user's local cache-hook migrations on the same
+  branch, including SongPreview reads and the search-button adjustment. Mutations
+  remain in `convex/react`; variable-term search and loader/Suspense reads retain
+  their existing paths. Architecture now documents the selection rule.
+- Helpers retention is explicit: five minutes, 250 idle entries. Reviewed the
+  installed 0.1.133 implementation and its interaction with TanStack: separate
+  retention policies, shared live Convex client, no persistent account cache.
+- Initial web run: 78 failures from outdated hook mocks. Updated feature-test
+  adapters without dropping scenarios; added real Helpers/SDK lifecycle tests
+  with only auth/network transport substituted. Web suite: 312 passing tests.
+  Covers reactive return, expiry, idle bound, skip after deletion, pagination
+  cursors/loading/exhaustion/filter changes/empty continuing pages, cached-page
+  reuse and coexistence with TanStack. Existing destructive tests remain isolated.
+- Logout's actual UI now has a document-navigation assertion. Account A →
+  anonymous → account B cache lifetimes are tested with fresh clients matching
+  existing document redirects. This is isolated lifecycle evidence, not a live
+  two-account authentication or cross-tab identity-switch test. Do not replace
+  document navigation with in-place switching without reviewing both caches.
+- Chrome read-only Studio → home → Studio shows the two published songs on
+  return. No account, publication or role was changed for browser evidence.
+- Primary-agent follow-up review: no blocking standards/spec defect; no backend
+  file changed, so Convex review remains inapplicable. User requested immediate
+  PR delivery and no further expansion of checks. Final `pnpm check` passed:
+  formatting, lint, types, 446 tests (312 web, 105 backend, 29 shared), and
+  client/SSR builds. The later direct request authorizes creating the PR;
+  it supersedes the previous instruction to stop at the form.
+
 ### Standalone pre-lot 10 architecture refactor — 31 October 2026
 
 - Work stays in `/home/niiavo/Desktop/lyrx-pre-lot10` on

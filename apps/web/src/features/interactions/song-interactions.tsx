@@ -34,7 +34,8 @@ import { Empty, EmptyHeader, EmptyTitle } from "@lyrx/ui/components/empty"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { toast } from "@lyrx/ui/lib/toast"
 import { Link } from "@tanstack/react-router"
-import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
+import { usePaginatedQuery, useQuery } from "convex-helpers/react/cache"
+import { useMutation } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
 import {
   Flag,

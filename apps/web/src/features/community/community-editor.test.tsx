@@ -9,6 +9,11 @@ const state = vi.hoisted(() => ({
   account: undefined as
     undefined | { state: string; member?: { role: string; isAdmin: boolean } },
 }))
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", () => ({
   useQuery: (_query: unknown, args: unknown) =>
     args === "skip" ? undefined : state.account,

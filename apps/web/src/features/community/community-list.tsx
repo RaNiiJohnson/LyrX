@@ -1,23 +1,23 @@
-import { Link } from "@tanstack/react-router"
-import { usePaginatedQuery, useQuery } from "convex/react"
-import { Plus } from "lucide-react"
+import { useLocale } from "@/app/locale-provider"
 import { api } from "@lyrx/backend/convex/_generated/api"
-import { Button } from "@lyrx/ui/components/button"
 import { Badge } from "@lyrx/ui/components/badge"
+import { Button } from "@lyrx/ui/components/button"
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@lyrx/ui/components/card"
 import {
   Empty,
+  EmptyDescription,
   EmptyHeader,
   EmptyTitle,
-  EmptyDescription,
 } from "@lyrx/ui/components/empty"
-import { useLocale } from "@/app/locale-provider"
+import { Link } from "@tanstack/react-router"
+import { usePaginatedQuery, useQuery } from "convex-helpers/react/cache"
+import { Plus } from "lucide-react"
 import { CommunityAccess, CommunityLoading } from "./community-access"
 
 export function CommunityList() {

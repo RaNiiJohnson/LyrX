@@ -1,4 +1,4 @@
-import { usePaginatedQuery, useQuery } from "convex/react"
+import { usePaginatedQuery, useQuery } from "convex-helpers/react/cache"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"

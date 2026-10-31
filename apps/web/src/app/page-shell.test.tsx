@@ -312,6 +312,21 @@ describe("role-aware shared navigation", () => {
     expect(menu.textContent).not.toContain("Se déconnecter")
   })
 
+  it("reloads the document after successful logout so session caches cannot reach the next account", async () => {
+    const assign = vi
+      .spyOn(window.location, "assign")
+      .mockImplementation(() => {})
+    mocks.account = ready("fan")
+    await render()
+    const { menu } = await openAccount()
+    const item = [...menu.querySelectorAll<HTMLButtonElement>("button")].find(
+      (node) => node.textContent.includes("Se déconnecter")
+    )!
+    await flush(() => item.click())
+    expect(mocks.signOut).toHaveBeenCalledOnce()
+    expect(assign).toHaveBeenCalledExactlyOnceWith("/")
+  })
+
   it("surfaces a real sign-out failure without replacing the ready account", async () => {
     mocks.account = ready("fan")
     mocks.signOut.mockResolvedValue({ error: { code: "UNKNOWN_ERROR" } })

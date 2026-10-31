@@ -1,12 +1,12 @@
-import { useQuery } from "convex/react"
-import { api } from "@lyrx/backend/convex/_generated/api"
-import { Button } from "@lyrx/ui/components/button"
-import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { useLocale } from "@/app/locale-provider"
-import { createFileRoute, Link } from "@tanstack/react-router"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
 import { LikedSongList } from "@/features/interactions/liked-songs"
+import { api } from "@lyrx/backend/convex/_generated/api"
+import { Button } from "@lyrx/ui/components/button"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { useQuery } from "convex-helpers/react/cache"
 
 export const Route = createFileRoute("/liked")({
   ...appRouteBoundaries,

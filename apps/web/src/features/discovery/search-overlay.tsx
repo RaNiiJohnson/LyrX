@@ -1,3 +1,28 @@
+import { useLocale } from "@/app/locale-provider"
+import { api } from "@lyrx/backend/convex/_generated/api"
+import { Alert, AlertDescription } from "@lyrx/ui/components/alert"
+import { Badge } from "@lyrx/ui/components/badge"
+import { Button } from "@lyrx/ui/components/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@lyrx/ui/components/dialog"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@lyrx/ui/components/field"
+import { Input } from "@lyrx/ui/components/input"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { useForm } from "@tanstack/react-form"
+import { Link } from "@tanstack/react-router"
+import { useQuery } from "convex/react"
+import { Search, X } from "lucide-react"
 import {
   Component,
   useEffect,
@@ -6,31 +31,6 @@ import {
   type ReactNode,
   type RefObject,
 } from "react"
-import { useForm } from "@tanstack/react-form"
-import { Link } from "@tanstack/react-router"
-import { useQuery } from "convex/react"
-import { Search, X } from "lucide-react"
-import { api } from "@lyrx/backend/convex/_generated/api"
-import { Button } from "@lyrx/ui/components/button"
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from "@lyrx/ui/components/dialog"
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-  FieldError,
-} from "@lyrx/ui/components/field"
-import { Input } from "@lyrx/ui/components/input"
-import { Badge } from "@lyrx/ui/components/badge"
-import { Alert, AlertDescription } from "@lyrx/ui/components/alert"
-import { Skeleton } from "@lyrx/ui/components/skeleton"
-import { useLocale } from "@/app/locale-provider"
 import { CoverImage } from "./discovery-cards"
 
 export function SearchOverlay({ prominent = false }: { prominent?: boolean }) {
@@ -58,7 +58,7 @@ export function SearchOverlay({ prominent = false }: { prominent?: boolean }) {
         <Button
           variant={prominent ? "secondary" : "outline"}
           size="default"
-          className="h-11 w-11 justify-start rounded-full sm:w-52"
+          className="justify-start rounded-full sm:w-52"
           aria-keyshortcuts="Control+K Meta+K"
           aria-label={t("search.title")}
         >

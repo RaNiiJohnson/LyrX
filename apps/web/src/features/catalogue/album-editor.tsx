@@ -1,10 +1,10 @@
-import { usePaginatedQuery, useQuery } from "convex/react"
+import { usePaginatedQuery, useQuery } from "convex-helpers/react/cache"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 
-import { ArtistAccess } from "./shared/artist-access"
 import { AlbumEditorForm } from "./album/album-editor-form"
+import { ArtistAccess } from "./shared/artist-access"
 import { CatalogueEditorSkeleton } from "./shared/catalogue-loading"
 
 export function AlbumEditor({ albumId }: { albumId?: Id<"albums"> }) {

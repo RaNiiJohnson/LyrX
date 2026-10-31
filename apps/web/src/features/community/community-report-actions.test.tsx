@@ -28,6 +28,11 @@ const mocks = vi.hoisted<ReportMocks>(() => ({
   success: vi.fn(),
   readOnly: vi.fn(),
 }))
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", () => ({
   useQuery: () => mocks.current,
   useMutation: () => mocks.report,
