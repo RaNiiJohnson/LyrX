@@ -58,8 +58,16 @@
 - Final `pnpm check` passes formatting, lint, TypeScript, **439 tests**
   (29 shared, 105 backend, 305 web), and client/SSR builds. The earlier 438-test
   result predates the navigation-auth regression. `git diff --check` and the
-  production devtools/temporary-instrumentation scan pass. Git delivery and
-  the prepared English PR proposal will be recorded after their verification.
+  production devtools/temporary-instrumentation scan pass. Query Devtools is
+  pinned to 5.104.5, matching the installed Query peer; `pnpm peers check` only
+  retains the previously documented optional Better Auth/Vitest warning.
+- Delivery: implementation `167eab8` is pushed to
+  `origin/codex/pre-lot10-architecture`. The full `940129c...167eab8` diff is
+  non-empty; the primary local review has no unresolved blocking finding.
+  Chrome's GitHub form targets main from this branch and contains the English
+  Markdown title/body from [the proposal](pre-lot10-pr.md). Stopped before
+  **Create pull request**; no PR, merge, production deploy or lot 10 start.
+  The final delivery-record commit follows the implementation without code changes.
 
 
 ### Lot 9 — optimistic client interactions (29 October 2026)

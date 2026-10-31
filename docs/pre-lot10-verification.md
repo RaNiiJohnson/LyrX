@@ -93,8 +93,17 @@ The primary agent owns the complete local standards/specification review from
 `940129c`, including new modules, tests, deleted facades, lockfile and corrected
 navigation behavior. No completion review is delegated. Convex review is not
 applicable: this feature changes no file under `packages/backend/convex/`.
-Backend behavior remains covered by its 105 existing tests. Final gate results,
-accepted trade-offs and Git delivery status are recorded in `progress.md`.
+Backend behavior remains covered by its 105 existing tests. Final `pnpm check`
+passes 439 tests (29 shared, 105 backend, 305 web), formatting, lint, types and
+client/SSR builds after diagnostic cleanup and dependency alignment. Query
+Devtools matches Query 5.104.5. The peer check only reports the existing optional
+Better Auth/Vitest range warning. Production devtool/diagnostic scans pass.
+
+Implementation `167eab8` is pushed to `origin/codex/pre-lot10-architecture`.
+The reviewed diff from `940129c` is non-empty. Chrome's GitHub form has its
+English Markdown proposal filled, targets main and remains unsubmitted.
+The delivery-record commit changes documentation only. The original checkout's
+five-file patch still matches the snapshot taken before this feature.
 
 ## Integration references
 
