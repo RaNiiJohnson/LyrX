@@ -181,7 +181,8 @@ describe("community top report actions", () => {
     await flush(() => button("Annuler").click())
     expect(document.querySelector('[role="dialog"]')).toBeNull()
     expect(mocks.report).not.toHaveBeenCalled()
-    expect(document.activeElement).toBe(trigger)
+    // Radix restores focus from its deferred FocusScope unmount cleanup.
+    await vi.waitFor(() => expect(document.activeElement).toBe(trigger))
   })
 
   it("rejects blank and whitespace reasons before contacting the server", async () => {

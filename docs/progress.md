@@ -2,6 +2,15 @@
 
 ## Active lot
 
+### CI dialog-focus assertion correction — 1 November 2026
+
+- Run `41245195191` passed the corrected backend suite, then exposed a web test
+  racing Radix's deferred FocusScope cleanup. The report-dialog test now waits
+  for focus restoration instead of asserting synchronously after close.
+- Kept the exact trigger-focus assertion and all dialog/report checks. No product
+  behavior changed. Primary-agent local delta review: no blocking finding.
+  Six targeted tests and final `pnpm check` (446 tests, lint, types, builds) pass.
+
 ### CI upload-fixture correction — 1 November 2026
 
 - GitHub run `41244323753` passed formatting, lint and types, then failed
