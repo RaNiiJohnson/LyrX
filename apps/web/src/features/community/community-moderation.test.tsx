@@ -18,6 +18,11 @@ const mocks = vi.hoisted(() => ({
   restore: vi.fn<(...args: Array<unknown>) => Promise<void>>(),
 }))
 
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", async () => {
   const { getFunctionName } = await import("convex/server")
   return {

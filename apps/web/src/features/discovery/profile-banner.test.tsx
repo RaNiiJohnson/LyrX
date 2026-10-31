@@ -3,7 +3,7 @@ import { act, type ReactNode } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { LocaleProvider } from "@/app/locale-provider"
-import { PublicProfile } from "@/features/profile/public-profile"
+import { PublicProfile } from "@/test/route-screens"
 import {
   Tabs,
   TabsContent,
@@ -27,6 +27,11 @@ vi.mock("@tanstack/react-query", () => ({
     },
   }),
 }))
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", () => ({
   useQuery: () =>
     state.ready
@@ -205,3 +210,7 @@ describe("public profile banner replacement", () => {
     ).toBe("Album list")
   })
 })
+
+vi.mock("@/app/page-shell", () => ({
+  PageShell: ({ children }: { children: ReactNode }) => children,
+}))

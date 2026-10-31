@@ -4,7 +4,13 @@ import viteReact from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
 export default defineConfig({
-  plugins: [tailwindcss(), tanstackStart(), viteReact()],
+  plugins: [
+    tailwindcss(),
+    // Exercise route components synchronously in DOM/SSR tests. The Start
+    // plugin otherwise replaces Route.options.component with a lazy chunk.
+    !process.env.VITEST && tanstackStart(),
+    viteReact(),
+  ],
   resolve: {
     tsconfigPaths: true,
   },

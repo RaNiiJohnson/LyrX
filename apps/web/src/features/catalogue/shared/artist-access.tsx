@@ -1,13 +1,24 @@
-import { useQuery } from "convex/react"
+import { useQuery } from "convex-helpers/react/cache"
+import type { FunctionReturnType } from "convex/server"
+import type { ReactNode } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 
 import { useLocale } from "@/app/locale-provider"
-import { CatalogueEditorSkeleton } from "./shared/catalogue-loading"
-import { CatalogueDashboard } from "./studio/catalogue-dashboard"
+import { CatalogueEditorSkeleton } from "./catalogue-loading"
 
-export function ArtistStudio() {
+type ReadyArtist = Extract<
+  FunctionReturnType<typeof api.members.current>,
+  { state: "ready" }
+>
+
+// Presentation gate only; Convex artist functions still enforce authorization.
+export function ArtistAccess({
+  children,
+}: {
+  children: (current: ReadyArtist) => ReactNode
+}) {
   const current = useQuery(api.members.current, {})
   const { t } = useLocale()
 
@@ -20,5 +31,5 @@ export function ArtistStudio() {
       </Alert>
     )
   }
-  return <CatalogueDashboard />
+  return children(current)
 }

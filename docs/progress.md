@@ -2,6 +2,125 @@
 
 ## Active lot
 
+### CI dialog-focus assertion correction — 1 November 2026
+
+- Run `41245195191` passed the corrected backend suite, then exposed a web test
+  racing Radix's deferred FocusScope cleanup. The report-dialog test now waits
+  for focus restoration instead of asserting synchronously after close.
+- Kept the exact trigger-focus assertion and all dialog/report checks. No product
+  behavior changed. Primary-agent local delta review: no blocking finding.
+  Six targeted tests and final `pnpm check` (446 tests, lint, types, builds) pass.
+
+### CI upload-fixture correction — 1 November 2026
+
+- GitHub run `41244323753` passed formatting, lint and types, then failed
+  `members.test.ts`'s preexisting-upload assertion. Both operations could occur
+  in the same millisecond, so the fixture did not ensure an older file.
+- Reproduced the exact failure with a fixed clock; advanced that clock by one
+  millisecond before the later upload intent. Preserved the rejection and
+  non-deletion assertions; restored the clock in finally. No server function,
+  schema, authorization rule or deployment changed.
+- Primary-agent delta review and Convex reviewer checklist: no blocking finding;
+  the change is test-only. Targeted member suite passes all nine cases.
+  Final `pnpm check` passes formatting, lint, types, all 446 tests and builds.
+
+### Helpers cache follow-up — 1 November 2026
+
+- Preserved and integrated the user's local cache-hook migrations on the same
+  branch, including SongPreview reads and the search-button adjustment. Mutations
+  remain in `convex/react`; variable-term search and loader/Suspense reads retain
+  their existing paths. Architecture now documents the selection rule.
+- Helpers retention is explicit: five minutes, 250 idle entries. Reviewed the
+  installed 0.1.133 implementation and its interaction with TanStack: separate
+  retention policies, shared live Convex client, no persistent account cache.
+- Initial web run: 78 failures from outdated hook mocks. Updated feature-test
+  adapters without dropping scenarios; added real Helpers/SDK lifecycle tests
+  with only auth/network transport substituted. Web suite: 312 passing tests.
+  Covers reactive return, expiry, idle bound, skip after deletion, pagination
+  cursors/loading/exhaustion/filter changes/empty continuing pages, cached-page
+  reuse and coexistence with TanStack. Existing destructive tests remain isolated.
+- Logout's actual UI now has a document-navigation assertion. Account A →
+  anonymous → account B cache lifetimes are tested with fresh clients matching
+  existing document redirects. This is isolated lifecycle evidence, not a live
+  two-account authentication or cross-tab identity-switch test. Do not replace
+  document navigation with in-place switching without reviewing both caches.
+- Chrome read-only Studio → home → Studio shows the two published songs on
+  return. No account, publication or role was changed for browser evidence.
+- Primary-agent follow-up review: no blocking standards/spec defect; no backend
+  file changed, so Convex review remains inapplicable. User requested immediate
+  PR delivery and no further expansion of checks. Final `pnpm check` passed:
+  formatting, lint, types, 446 tests (312 web, 105 backend, 29 shared), and
+  client/SSR builds. The later direct request authorizes creating the PR;
+  it supersedes the previous instruction to stop at the form.
+
+### Standalone pre-lot 10 architecture refactor — 31 October 2026
+
+- Work stays in `/home/niiavo/Desktop/lyrx-pre-lot10` on
+  `codex/pre-lot10-architecture`, based on current main/origin/main at `940129c`.
+  The original checkout's complete five-file patch still matches its initial
+  SHA-256 snapshot; no unrelated source edit was copied, reset or committed.
+  The approved architecture section supplied in this worktree is intentionally
+  retained with the decisions for this feature. Lot 10 is not started.
+- Public home/list/detail routes now own page composition and their shared
+  loader/Suspense query contracts. URL dependencies feed list query factories;
+  no fake route or hidden full-page replacement was added. Filters/pagination,
+  profile identity/banner, optional artist catalogue, community reporting,
+  controllers and moderation retain distinct functional responsibilities.
+  Account redirect and liked-page access/header are visible in their routes;
+  Artist Studio and editors share one presentation gate.
+- Removed every `BackendRequired` use and its component after placing the
+  missing-configuration notice at the root. PageShell/BackendProvider contracts,
+  FR/EN messages, shadcn primitives and Convex authorization stay intact.
+  Dev-only lazy Router/Query devtools expose separate floating triggers and the
+  shared cache. Production client/server artifacts contain none of their modules.
+- Investigated the reported album-card delay. A real-root regression test first
+  counted three initial-token reads across visit/preload/click. The token is now
+  read once by the non-reloading root loader, with live auth still owned by the
+  provider. Cold pending feedback begins at 150 ms with no artificial 500 ms
+  minimum. Real Link/Router/Query tests cover hover/touch, exact cache reuse,
+  changed URL arguments and pending visibility/release.
+- On the same real published album card, Chrome measured a cold loader around
+  3,775 ms followed by ~2.1 ms of Suspense reading. A completed hover preload
+  took 250 ms before click; the subsequent cached loader took 2.9 ms, the page
+  committed ~87.5 ms after click and did not show pending. These development
+  samples locate the cold wait in Convex/network, not a CSS/card transition or
+  the page's Suspense hook. They are not production latency guarantees.
+- Chrome verified home/list/album reading, preloaded cache before navigation,
+  both devtool panels, desktop and 390×844 Albums with no horizontal overflow.
+  Network/browser-control errors were intermittent; physical touch timing,
+  cross-engine/production performance and a fresh anonymous sign-out are not
+  claimed. No live publication, comment/report, role change or deletion was used.
+  Full evidence and limits: [verification](pre-lot10-verification.md).
+- Backend examination found T1's catalogue split already cohesive; no schema,
+  function, permission, Aggregate or pagination contract needed modification.
+  Convex review/deployment is **not applicable** to this frontend-only feature;
+  the existing 105 backend tests remain green.
+- The primary agent reviewed the entire feature locally against fixed point
+  `940129c`, including retained decisions, added/extracted/deleted modules,
+  route boundaries, tests, lockfile and the navigation follow-up. No completion
+  review was delegated or code-review skill invoked. Corrected split-component
+  test loading, kept only `Route` exports for production splitting, centralized
+  Artist presentation gates and removed all temporary diagnostic instrumentation.
+  Re-reviewed corrected files; no blocking standards/specification finding.
+- Accepted limits: public loaders still wait for uncached remote data; optional
+  reads deliberately remain incremental; private SSR token/query forwarding is
+  not introduced. Devtools bring their official transitive dependencies only
+  into development. Existing happy-dom iframe-disabled diagnostics remain.
+- Final `pnpm check` passes formatting, lint, TypeScript, **439 tests**
+  (29 shared, 105 backend, 305 web), and client/SSR builds. The earlier 438-test
+  result predates the navigation-auth regression. `git diff --check` and the
+  production devtools/temporary-instrumentation scan pass. Query Devtools is
+  pinned to 5.104.5, matching the installed Query peer; `pnpm peers check` only
+  retains the previously documented optional Better Auth/Vitest warning.
+- Delivery: implementation `167eab8` is pushed to
+  `origin/codex/pre-lot10-architecture`. The full `940129c...167eab8` diff is
+  non-empty; the primary local review has no unresolved blocking finding.
+  Chrome's GitHub form targets main from this branch and contains the English
+  Markdown title/body from [the proposal](pre-lot10-pr.md). Stopped before
+  **Create pull request**; no PR, merge, production deploy or lot 10 start.
+  The final delivery-record commit follows the implementation without code changes.
+
+
 ### Lot 9 — optimistic client interactions (29 October 2026)
 
 - At the user's request, likes and comment submission now use React
@@ -1456,10 +1575,8 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Lot 8 is implemented and reviewed on `codex/lot8-public-search`. The user creates
-and reviews the prepared PR, then decides whether to merge. Lot 9 (likes,
-comments and reports) requires separate approval and has not begun. Production
-deployment and account/role changes remain unauthorized. Historical proposals
-for artist claim/replacement, notebook audio and sharing-card refinements retain
-their deferred status. See [lot8-verification.md](lot8-verification.md) for actual
-search limits and evidence.
+Review the standalone pre-lot 10 refactor on `codex/pre-lot10-architecture`.
+The requested English PR form is prepared for user submission; no Create pull
+request, merge or production deployment is authorized. Lot 10 remains unstarted
+and requires approval after this feature is delivered. Historical lot records
+above describe their own checkpoints, not the current mission.

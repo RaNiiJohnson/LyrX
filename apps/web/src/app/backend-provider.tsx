@@ -1,4 +1,5 @@
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"
+import { ConvexQueryCacheProvider } from "convex-helpers/react/cache"
 import type { ConvexReactClient } from "convex/react"
 import type { ReactNode } from "react"
 
@@ -21,7 +22,9 @@ export function BackendProvider({
       authClient={providerAuthClient}
       initialToken={initialToken}
     >
-      {children}
+      <ConvexQueryCacheProvider expiration={300_000} maxIdleEntries={250}>
+        {children}
+      </ConvexQueryCacheProvider>
     </ConvexBetterAuthProvider>
   )
 }

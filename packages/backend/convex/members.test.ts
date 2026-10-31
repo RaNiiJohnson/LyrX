@@ -153,55 +153,62 @@ describe("member onboarding and authorization", () => {
   })
 
   it("preserves unowned invalid uploads and limits banner intents to artists", async () => {
-    const t = createTestBackend()
-    const fan = t.withIdentity(verifiedFan)
-    await fan.mutation(api.members.completeOnboarding, {
-      role: "fan",
-      handle: "image-fan",
-      displayName: "Image Fan",
-    })
-
-    const avatarUpload = await fan.mutation(
-      api.members.generateProfileImageUploadUrl,
-      { kind: "avatar" }
-    )
-    const avatarStorageId = await t.run(async (ctx) =>
-      ctx.storage.store(new Blob(["avatar"], { type: "image/png" }))
-    )
-    await expect(
-      fan.mutation(api.members.saveProfileImage, {
-        kind: "avatar",
-        storageId: avatarStorageId,
-        uploadIntentId: avatarUpload.uploadIntentId,
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000)
+    try {
+      const t = createTestBackend()
+      const fan = t.withIdentity(verifiedFan)
+      await fan.mutation(api.members.completeOnboarding, {
+        role: "fan",
+        handle: "image-fan",
+        displayName: "Image Fan",
       })
-    ).resolves.toMatchObject({ ok: false })
-    await expect(
-      t.run((ctx) => ctx.db.system.get("_storage", avatarStorageId))
-    ).resolves.not.toBeNull()
 
-    const preexistingStorageId = await t.run(async (ctx) =>
-      ctx.storage.store(new Blob(["preexisting image"]))
-    )
-    const laterUpload = await fan.mutation(
-      api.members.generateProfileImageUploadUrl,
-      { kind: "avatar" }
-    )
-    await expect(
-      fan.mutation(api.members.saveProfileImage, {
-        kind: "avatar",
-        storageId: preexistingStorageId,
-        uploadIntentId: laterUpload.uploadIntentId,
-      })
-    ).rejects.toThrow("UPLOAD_INTENT_MISMATCH")
-    await expect(
-      t.run((ctx) => ctx.db.system.get("_storage", preexistingStorageId))
-    ).resolves.not.toBeNull()
+      const avatarUpload = await fan.mutation(
+        api.members.generateProfileImageUploadUrl,
+        { kind: "avatar" }
+      )
+      const avatarStorageId = await t.run(async (ctx) =>
+        ctx.storage.store(new Blob(["avatar"], { type: "image/png" }))
+      )
+      await expect(
+        fan.mutation(api.members.saveProfileImage, {
+          kind: "avatar",
+          storageId: avatarStorageId,
+          uploadIntentId: avatarUpload.uploadIntentId,
+        })
+      ).resolves.toMatchObject({ ok: false })
+      await expect(
+        t.run((ctx) => ctx.db.system.get("_storage", avatarStorageId))
+      ).resolves.not.toBeNull()
 
-    await expect(
-      fan.mutation(api.members.generateProfileImageUploadUrl, {
-        kind: "banner",
-      })
-    ).rejects.toThrow("ARTIST_ROLE_REQUIRED")
+      const preexistingStorageId = await t.run(async (ctx) =>
+        ctx.storage.store(new Blob(["preexisting image"]))
+      )
+      // This file must predate the next intent, even on fast CI runners.
+      clock.mockReturnValue(1_800_000_000_001)
+      const laterUpload = await fan.mutation(
+        api.members.generateProfileImageUploadUrl,
+        { kind: "avatar" }
+      )
+      await expect(
+        fan.mutation(api.members.saveProfileImage, {
+          kind: "avatar",
+          storageId: preexistingStorageId,
+          uploadIntentId: laterUpload.uploadIntentId,
+        })
+      ).rejects.toThrow("UPLOAD_INTENT_MISMATCH")
+      await expect(
+        t.run((ctx) => ctx.db.system.get("_storage", preexistingStorageId))
+      ).resolves.not.toBeNull()
+
+      await expect(
+        fan.mutation(api.members.generateProfileImageUploadUrl, {
+          kind: "banner",
+        })
+      ).rejects.toThrow("ARTIST_ROLE_REQUIRED")
+    } finally {
+      clock.mockRestore()
+    }
   })
 
   it("never attaches or deletes another member's public profile image", async () => {

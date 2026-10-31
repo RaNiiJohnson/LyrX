@@ -1,35 +1,142 @@
 import { convexQuery } from "@convex-dev/react-query"
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { Link, createFileRoute, notFound } from "@tanstack/react-router"
+import { PageShell } from "@/app/page-shell"
+import { appRouteBoundaries } from "@/app/route-states"
+import { Disc3, FileMusic } from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import { Badge } from "@lyrx/ui/components/badge"
+import { Card, CardContent } from "@lyrx/ui/components/card"
 
-import { BackendRequired } from "@/app/backend-required"
-import { PageShell } from "@/app/page-shell"
-import { appRouteBoundaries } from "@/app/route-states"
-import { PublicAlbum } from "@/features/catalogue/album/public-album"
+import { useLocale } from "@/app/locale-provider"
 
 export const Route = createFileRoute("/albums/$albumId")({
   ...appRouteBoundaries,
-  component: PublicAlbumPage,
   loader: async ({ context, params }) => {
     if (!context.convexQueryClient) return
-    const albumId = params.albumId as Id<"albums">
     const detail = await context.queryClient.query({
-      ...convexQuery(api.catalogue.read.getPublishedAlbum, { albumId }),
+      ...convexQuery(api.catalogue.read.getPublishedAlbum, {
+        albumId: params.albumId as Id<"albums">,
+      }),
       staleTime: "static",
     })
     if (!detail) throw notFound()
   },
+  component: PublicAlbumPage,
 })
 
 function PublicAlbumPage() {
-  const { albumId } = Route.useParams()
+  const { albumId: id } = Route.useParams()
+  const albumId = id as Id<"albums">
+  const { locale, t } = useLocale()
+  const { data: detail } = useSuspenseQuery(
+    convexQuery(api.catalogue.read.getPublishedAlbum, { albumId })
+  )
+
+  if (!detail) throw notFound()
+
+  const { album, artworkUrl, tracks } = detail
+  const genre =
+    album.genre === "other" ? album.otherGenre : album.genre?.replace("-", " ")
+
   return (
     <PageShell width="wide">
-      <BackendRequired>
-        <PublicAlbum albumId={albumId as Id<"albums">} />
-      </BackendRequired>
+      <article className="mx-auto flex w-full max-w-5xl flex-col gap-8 py-4">
+        <header className="grid gap-5 sm:grid-cols-[8.25rem_1fr] sm:items-end">
+          <div className="flex aspect-square size-24 items-center justify-center overflow-hidden rounded-2xl bg-muted sm:size-[8.25rem]">
+            {artworkUrl ? (
+              <img src={artworkUrl} alt="" className="size-full object-cover" />
+            ) : (
+              <Disc3 className="size-10 text-muted-foreground" aria-hidden />
+            )}
+          </div>
+          <div className="flex min-w-0 flex-col gap-3">
+            <p className="font-mono text-xs font-semibold tracking-[0.18em] text-primary uppercase">
+              {t("studio.album")}
+            </p>
+            <h1 className="text-4xl leading-none font-semibold tracking-tight sm:text-5xl">
+              {album.title}
+            </h1>
+            <div className="flex flex-wrap gap-2">
+              {genre ? <Badge variant="secondary">{genre}</Badge> : null}
+              {album.releaseDate ? (
+                <Badge variant="secondary">
+                  {new Intl.DateTimeFormat(locale, {
+                    dateStyle: "medium",
+                    timeZone: "UTC",
+                  }).format(album.releaseDate)}
+                </Badge>
+              ) : null}
+            </div>
+            {album.description ? (
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                {album.description}
+              </p>
+            ) : null}
+          </div>
+        </header>
+
+        <section
+          aria-labelledby="album-tracks-title"
+          className="flex flex-col gap-4"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="album-tracks-title" className="text-xl font-semibold">
+              {t("studio.albumTracks")}
+            </h2>
+            <span className="text-sm text-muted-foreground">
+              {tracks.length}
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {tracks.map(({ position, song }) => (
+              <Card key={song._id}>
+                <CardContent className="flex min-h-16 items-center gap-4 py-3">
+                  <span className="w-7 text-right font-mono text-sm text-muted-foreground">
+                    {position + 1}
+                  </span>
+                  <FileMusic className="size-5 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      to="/songs/$songId"
+                      params={{ songId: song._id }}
+                      className="font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    >
+                      {song.title}
+                    </Link>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {song.primaryArtist}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {album.label || album.credits.length > 0 ? (
+          <section className="flex flex-col gap-3 border-t pt-6">
+            <h2 className="text-sm font-semibold tracking-wider uppercase">
+              {t("studio.detailsAndCredits")}
+            </h2>
+            {album.label ? (
+              <p className="text-sm">
+                <span className="text-muted-foreground">
+                  {t("studio.label")}:{" "}
+                </span>
+                {album.label}
+              </p>
+            ) : null}
+            {album.credits.length > 0 ? (
+              <p className="text-sm whitespace-pre-line">
+                {album.credits.join("\n")}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+      </article>
     </PageShell>
   )
 }

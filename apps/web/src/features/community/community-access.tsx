@@ -1,11 +1,11 @@
-import type { ReactNode } from "react"
-import { useQuery } from "convex/react"
-import { Link } from "@tanstack/react-router"
+import { useLocale } from "@/app/locale-provider"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import { Button } from "@lyrx/ui/components/button"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
-import { useLocale } from "@/app/locale-provider"
+import { Link } from "@tanstack/react-router"
+import { useQuery } from "convex-helpers/react/cache"
+import type { ReactNode } from "react"
 
 export function CommunityLoading() {
   const { t } = useLocale()

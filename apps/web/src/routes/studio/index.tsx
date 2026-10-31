@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import {
   CatalogueRouteError,
   CatalogueRouteNotFound,
   CatalogueRoutePending,
 } from "@/app/route-states"
-import { ArtistStudio } from "@/features/catalogue/artist-studio"
+import { ArtistAccess } from "@/features/catalogue/shared/artist-access"
+import { CatalogueDashboard } from "@/features/catalogue/studio/catalogue-dashboard"
 
 export const Route = createFileRoute("/studio/")({
   validateSearch: (
@@ -25,9 +25,7 @@ export const Route = createFileRoute("/studio/")({
 function StudioPage() {
   return (
     <PageShell width="wide" footerBelowFold>
-      <BackendRequired>
-        <ArtistStudio />
-      </BackendRequired>
+      <ArtistAccess>{() => <CatalogueDashboard />}</ArtistAccess>
     </PageShell>
   )
 }

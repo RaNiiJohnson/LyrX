@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
 import { SignedOutOnly } from "@/features/auth/signed-out-only"
@@ -15,13 +14,11 @@ export const Route = createFileRoute("/auth/sign-up")({
 function SignUpPage() {
   return (
     <PageShell width="wide">
-      <BackendRequired>
-        <SignedOutOnly>
-          <SignUpLayout>
-            <SignUpForm />
-          </SignUpLayout>
-        </SignedOutOnly>
-      </BackendRequired>
+      <SignedOutOnly>
+        <SignUpLayout>
+          <SignUpForm />
+        </SignUpLayout>
+      </SignedOutOnly>
     </PageShell>
   )
 }

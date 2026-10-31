@@ -5,13 +5,16 @@ import {
   Scripts,
 } from "@tanstack/react-router"
 import { createServerFn } from "@tanstack/react-start"
-import { useEffect } from "react"
+import { lazy, Suspense, useEffect } from "react"
 import type { ReactNode } from "react"
 
 import { DEFAULT_LOCALE, formatMessage, UI_MESSAGES } from "@lyrx/shared"
 import { Toaster } from "@lyrx/ui/components/sonner"
 import { ThemeProvider } from "@lyrx/ui/components/theme-provider"
 import appCss from "@lyrx/ui/globals.css?url"
+
+import { Alert, AlertTitle, AlertDescription } from "@lyrx/ui/components/alert"
+import { PageShell } from "@/app/page-shell"
 
 import { BackendProvider } from "@/app/backend-provider"
 import { LocaleProvider, useLocale } from "@/app/locale-provider"
@@ -26,7 +29,10 @@ const getInitialAuthToken = createServerFn({ method: "GET" }).handler(
 )
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async () => ({ token: await getInitialAuthToken() }),
+  // This token only seeds the auth provider on the initial document render.
+  // Public navigations must not wait for another auth server-function request.
+  loader: () => getInitialAuthToken(),
+  shouldReload: false,
   component: RootApplication,
   head: () => ({
     links: [
@@ -62,7 +68,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootApplication() {
-  const { convexClient, token } = Route.useRouteContext()
+  const { convexClient } = Route.useRouteContext()
+  const token = Route.useLoaderData()
   return (
     <ThemeProvider
       attribute="class"
@@ -74,8 +81,13 @@ function RootApplication() {
       <LocaleProvider>
         <LocalizedDocumentMetadata />
         <BackendProvider client={convexClient} initialToken={token}>
-          <Outlet />
+          {convexClient ? <Outlet /> : <ConfigurationRequired />}
         </BackendProvider>
+        {DevelopmentTools ? (
+          <Suspense fallback={null}>
+            <DevelopmentTools />
+          </Suspense>
+        ) : null}
         <Toaster position="top-center" richColors />
       </LocaleProvider>
     </ThemeProvider>
@@ -122,5 +134,22 @@ function RootDocument({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
+  )
+}
+
+// Vite removes the import branch and its chunks from production builds.
+const DevelopmentTools = import.meta.env.DEV
+  ? lazy(() => import("@/app/development-tools"))
+  : null
+
+function ConfigurationRequired() {
+  const { t } = useLocale()
+  return (
+    <PageShell>
+      <Alert>
+        <AlertTitle>{t("backend.requiredTitle")}</AlertTitle>
+        <AlertDescription>{t("backend.requiredDescription")}</AlertDescription>
+      </Alert>
+    </PageShell>
   )
 }

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import {
   CatalogueRouteError,
@@ -19,9 +18,7 @@ export const Route = createFileRoute("/studio/albums/new")({
 function NewAlbumPage() {
   return (
     <PageShell width="wide">
-      <BackendRequired>
-        <AlbumEditor />
-      </BackendRequired>
+      <AlbumEditor />
     </PageShell>
   )
 }

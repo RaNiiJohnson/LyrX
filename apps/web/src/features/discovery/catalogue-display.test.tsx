@@ -1,3 +1,4 @@
+import type * as RouterModule from "@tanstack/react-router"
 import type { ReactNode } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -6,9 +7,8 @@ import {
   type MessageKey,
   type SupportedLocale,
 } from "@lyrx/shared"
-import { CataloguePage, CataloguePagination } from "./catalogue-page"
-import { PublicProfile } from "@/features/profile/public-profile"
-import { FoundationPage } from "@/features/home/foundation-page"
+import { CataloguePage, CataloguePagination } from "@/test/catalogue-screen"
+import { PublicProfile, FoundationPage } from "@/test/route-screens"
 
 type State = {
   data: unknown
@@ -22,6 +22,11 @@ const state = vi.hoisted<State>(() => ({
   locale: "fr",
   calls: [],
 }))
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", () => ({
   useQuery: (_query: unknown, args: unknown) => {
     state.calls.push(args)
@@ -29,9 +34,15 @@ vi.mock("convex/react", () => ({
   },
 }))
 vi.mock("@tanstack/react-query", () => ({
-  useSuspenseQuery: () => ({ data: state.profile }),
+  useSuspenseQuery: (options: { queryKey: Array<unknown> }) => {
+    if (String(options.queryKey[1]).includes("members:"))
+      return { data: state.profile }
+    state.calls.push(options.queryKey[2])
+    return { data: state.data }
+  },
 }))
-vi.mock("@tanstack/react-router", () => ({
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof RouterModule>()),
   Link: ({
     children,
     to,
@@ -55,14 +66,10 @@ vi.mock("@/app/locale-provider", () => ({
       formatMessage(state.locale, key, values),
   }),
 }))
-vi.mock("@/app/backend-required", () => ({
-  BackendRequired: ({ children }: { children: ReactNode }) => children,
-}))
-
 const search = { page: 1, sort: "newest" as const }
 describe("discovery public display states", () => {
   beforeEach(() => {
-    state.data = undefined
+    state.data = { ready: false }
     state.profile = null
     state.locale = "fr"
     state.calls = []
@@ -288,3 +295,7 @@ describe("discovery public display states", () => {
     expect(html).toContain('href="/songs"')
   })
 })
+
+vi.mock("@/app/page-shell", () => ({
+  PageShell: ({ children }: { children: ReactNode }) => children,
+}))

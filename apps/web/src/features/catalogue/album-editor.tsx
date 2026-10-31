@@ -1,27 +1,16 @@
-import { usePaginatedQuery, useQuery } from "convex/react"
+import { usePaginatedQuery, useQuery } from "convex-helpers/react/cache"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
-import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 
-import { useLocale } from "@/app/locale-provider"
 import { AlbumEditorForm } from "./album/album-editor-form"
+import { ArtistAccess } from "./shared/artist-access"
 import { CatalogueEditorSkeleton } from "./shared/catalogue-loading"
 
 export function AlbumEditor({ albumId }: { albumId?: Id<"albums"> }) {
-  const current = useQuery(api.members.current, {})
-  const { t } = useLocale()
-
-  if (current === undefined) return <CatalogueEditorSkeleton />
-  if (current.state !== "ready" || current.member.role !== "artist") {
-    return (
-      <Alert>
-        <AlertTitle>{t("studio.notArtistTitle")}</AlertTitle>
-        <AlertDescription>{t("studio.notArtistDescription")}</AlertDescription>
-      </Alert>
-    )
-  }
-  return <AlbumEditorData albumId={albumId} />
+  return (
+    <ArtistAccess>{() => <AlbumEditorData albumId={albumId} />}</ArtistAccess>
+  )
 }
 
 function AlbumEditorData({ albumId }: { albumId?: Id<"albums"> }) {

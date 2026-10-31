@@ -1,5 +1,5 @@
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router"
-import { usePaginatedQuery } from "convex/react"
+import { usePaginatedQuery } from "convex-helpers/react/cache"
 import { Disc3, FileMusic, Plus } from "lucide-react"
 import { useState } from "react"
 

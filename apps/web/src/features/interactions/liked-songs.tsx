@@ -1,31 +1,18 @@
-import { Link } from "@tanstack/react-router"
-import { useQuery, usePaginatedQuery } from "convex/react"
-import { api } from "@lyrx/backend/convex/_generated/api"
-import { Button } from "@lyrx/ui/components/button"
-import { Badge } from "@lyrx/ui/components/badge"
-import { Skeleton } from "@lyrx/ui/components/skeleton"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from "@lyrx/ui/components/empty"
 import { useLocale } from "@/app/locale-provider"
 import { LoadMore } from "@/features/community/community-list"
+import { api } from "@lyrx/backend/convex/_generated/api"
+import { Badge } from "@lyrx/ui/components/badge"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@lyrx/ui/components/empty"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { Link } from "@tanstack/react-router"
+import { usePaginatedQuery } from "convex-helpers/react/cache"
 
-export function LikedSongs() {
-  const current = useQuery(api.members.current, {}),
-    { t } = useLocale()
-  if (current === undefined) return <Skeleton className="h-32 w-full" />
-  if (current.state !== "ready")
-    return (
-      <Button asChild>
-        <Link to="/account">{t("interactions.signIn")}</Link>
-      </Button>
-    )
-  return <LikedList />
-}
-function LikedList() {
+export function LikedSongList() {
   const { t } = useLocale()
   const page = usePaginatedQuery(
     api.interactions.read.likedSongs,
@@ -34,7 +21,6 @@ function LikedList() {
   )
   return (
     <section className="flex flex-col gap-6">
-      <h1 className="text-3xl font-semibold">{t("interactions.likedSongs")}</h1>
       {page.status === "LoadingFirstPage" ? (
         <Skeleton className="h-32 w-full" />
       ) : page.results.length ? (

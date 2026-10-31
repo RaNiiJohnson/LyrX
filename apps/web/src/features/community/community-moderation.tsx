@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/react-router"
-import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
-import { useRef, useState } from "react"
+import { useLocale } from "@/app/locale-provider"
+import { useAppForm } from "@/lib/app-form"
+import { getErrorMessage } from "@/lib/errors"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
@@ -18,17 +18,18 @@ import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
 } from "@lyrx/ui/components/card"
 import { FieldGroup } from "@lyrx/ui/components/field"
 import { Tabs, TabsList, TabsTrigger } from "@lyrx/ui/components/tabs"
 import { toast } from "@lyrx/ui/lib/toast"
-import { useLocale } from "@/app/locale-provider"
-import { useAppForm } from "@/lib/app-form"
-import { getErrorMessage } from "@/lib/errors"
+import { Link } from "@tanstack/react-router"
+import { usePaginatedQuery, useQuery } from "convex-helpers/react/cache"
+import { useMutation } from "convex/react"
+import { useRef, useState } from "react"
 import { CommunityAccess, CommunityLoading } from "./community-access"
 import { CommunityEmpty, LoadMore } from "./community-list"
 

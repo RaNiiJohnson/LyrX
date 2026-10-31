@@ -1,13 +1,9 @@
-import { convexQuery } from "@convex-dev/react-query"
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { Link } from "@tanstack/react-router"
-import { useMutation, useQuery } from "convex/react"
-import { Flag, MoreHorizontal } from "lucide-react"
-import { useRef, useState } from "react"
+import { useLocale } from "@/app/locale-provider"
+import { useAppForm } from "@/lib/app-form"
+import { getErrorMessage } from "@/lib/errors"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
-import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
 import {
   Dialog,
@@ -27,75 +23,13 @@ import {
 import { FieldGroup } from "@lyrx/ui/components/field"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { toast } from "@lyrx/ui/lib/toast"
-import { useLocale } from "@/app/locale-provider"
-import { SongReadOnly } from "@/features/catalogue/song/song-read-only"
-import { RecordPublicView } from "@/features/discovery/record-public-view"
-import { useAppForm } from "@/lib/app-form"
-import { getErrorMessage } from "@/lib/errors"
+import { Link } from "@tanstack/react-router"
+import { useQuery } from "convex-helpers/react/cache"
+import { useMutation } from "convex/react"
+import { Flag, MoreHorizontal } from "lucide-react"
+import { useRef, useState } from "react"
 
-import { SongInteractions } from "@/features/interactions/song-interactions"
-
-export function CommunityReader({
-  contributionId,
-}: {
-  contributionId: Id<"communityContributions">
-}) {
-  const { t } = useLocale()
-  const { data: row } = useSuspenseQuery(
-    convexQuery(api.community.read.getPublished, { contributionId })
-  )
-  if (!row)
-    return (
-      <Alert>
-        <AlertTitle>{t("notFound.title")}</AlertTitle>
-        <AlertDescription>{t("notFound.description")}</AlertDescription>
-      </Alert>
-    )
-  return (
-    <section className="flex flex-col gap-6">
-      <RecordPublicView origin="community" sourceId={contributionId} />
-      <div className="flex flex-wrap items-center gap-3">
-        <Badge variant="secondary">{t("community.label")}</Badge>
-        <p>
-          {t("community.contributedBy")}{" "}
-          <Link
-            to="/profiles/$handle"
-            params={{ handle: row.contributor.handle }}
-            className="underline"
-          >
-            {row.contributor.displayName}
-          </Link>
-        </p>
-        <div className="ml-auto">
-          <ReportActions
-            key={contributionId}
-            contributionId={contributionId}
-            contributorHandle={row.contributor.handle}
-          />
-        </div>
-      </div>
-      <SongReadOnly
-        detail={{
-          artworkUrl: row.artworkUrl ?? null,
-          lyricsText: row.lyricsText,
-          album: row.albumTitle ? { title: row.albumTitle } : null,
-          song: {
-            ...row,
-            title: row.title,
-            primaryArtist: row.primaryArtist,
-            guestArtists: row.guestArtists ?? [],
-            composers: row.composers ?? [],
-            producers: row.producers ?? [],
-            writers: row.writers ?? [],
-            listeningLinks: row.listeningLinks ?? [],
-          },
-        }}
-      />
-      <SongInteractions key={contributionId} sourceId={contributionId} />
-    </section>
-  )
-}
-function ReportActions({
+export function ReportActions({
   contributionId,
   contributorHandle,
 }: {

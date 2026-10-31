@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import {
   CatalogueRouteError,
@@ -27,12 +26,10 @@ function SongPreviewPage() {
   const { fromAlbumId } = Route.useSearch()
   return (
     <PageShell width="wide">
-      <BackendRequired>
-        <SongPreview
-          songId={songId as Id<"songs">}
-          fromAlbumId={fromAlbumId as Id<"albums"> | undefined}
-        />
-      </BackendRequired>
+      <SongPreview
+        songId={songId as Id<"songs">}
+        fromAlbumId={fromAlbumId as Id<"albums"> | undefined}
+      />
     </PageShell>
   )
 }

@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
+import type * as RouterModule from "@tanstack/react-router"
 
+import { LocaleProvider } from "@/app/locale-provider"
+import { CommunityReader } from "@/test/route-screens"
+import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { act, type ReactNode } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
-import { LocaleProvider } from "@/app/locale-provider"
-import { CommunityReader } from "./community-reader"
 
 vi.mock("@/features/interactions/song-interactions", () => ({
   SongInteractions: () => null,
@@ -27,11 +28,17 @@ const mocks = vi.hoisted<ReportMocks>(() => ({
   success: vi.fn(),
   readOnly: vi.fn(),
 }))
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", () => ({
   useQuery: () => mocks.current,
   useMutation: () => mocks.report,
 }))
-vi.mock("@tanstack/react-router", () => ({
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof RouterModule>()),
   Link: ({ children, ...props }: { children: ReactNode }) => (
     <a {...props}>{children}</a>
   ),
@@ -174,7 +181,8 @@ describe("community top report actions", () => {
     await flush(() => button("Annuler").click())
     expect(document.querySelector('[role="dialog"]')).toBeNull()
     expect(mocks.report).not.toHaveBeenCalled()
-    expect(document.activeElement).toBe(trigger)
+    // Radix restores focus from its deferred FocusScope unmount cleanup.
+    await vi.waitFor(() => expect(document.activeElement).toBe(trigger))
   })
 
   it("rejects blank and whitespace reasons before contacting the server", async () => {
@@ -272,3 +280,7 @@ describe("community top report actions", () => {
     )
   })
 })
+
+vi.mock("@/app/page-shell", () => ({
+  PageShell: ({ children }: { children: ReactNode }) => children,
+}))

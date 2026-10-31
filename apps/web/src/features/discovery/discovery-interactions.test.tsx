@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { LocaleProvider } from "@/app/locale-provider"
 import { CoverImage, SongCard } from "./discovery-cards"
 import { HorizontalRow } from "./horizontal-row"
-import { CataloguePagination } from "./catalogue-page"
+import { CataloguePagination } from "./catalogue-layout"
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, to, ...props }: { children: ReactNode; to: string }) => (

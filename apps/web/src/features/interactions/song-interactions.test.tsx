@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import type * as RouterModule from "@tanstack/react-router"
 import { act, type ReactNode } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -6,8 +7,10 @@ import { getFunctionName } from "convex/server"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { LocaleProvider } from "@/app/locale-provider"
 import { SongInteractions } from "./song-interactions"
-import { LikedSongs } from "./liked-songs"
+import { Route as LikedRoute } from "@/routes/liked"
 import { CommentModeration } from "./comment-moderation"
+
+const LikedSongs = LikedRoute.options.component!
 
 const state = vi.hoisted(() => ({
   pageStatus: "Exhausted",
@@ -27,6 +30,11 @@ const state = vi.hoisted(() => ({
     canReport: boolean
   }>,
 }))
+// Feature tests stub reads; cache lifecycle is covered by backend-provider.test.tsx.
+vi.mock("convex-helpers/react/cache", async () => {
+  const convex = await import("convex/react")
+  return convex
+})
 vi.mock("convex/react", () => ({
   useQuery: (ref: Parameters<typeof getFunctionName>[0]) =>
     getFunctionName(ref) === "interactions/moderation:getReport"
@@ -60,7 +68,8 @@ vi.mock("convex/react", () => ({
     }
   },
 }))
-vi.mock("@tanstack/react-router", () => ({
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof RouterModule>()),
   Link: ({
     children,
     to,
@@ -561,3 +570,7 @@ describe("song interactions", () => {
     })
   })
 })
+
+vi.mock("@/app/page-shell", () => ({
+  PageShell: ({ children }: { children: ReactNode }) => children,
+}))

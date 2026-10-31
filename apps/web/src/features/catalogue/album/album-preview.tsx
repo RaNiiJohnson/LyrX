@@ -1,4 +1,3 @@
-import { Link, useNavigate } from "@tanstack/react-router"
 import {
   DndContext,
   KeyboardSensor,
@@ -15,7 +14,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
+import { Link, useNavigate } from "@tanstack/react-router"
+import { usePaginatedQuery, useQuery } from "convex-helpers/react/cache"
+import { useMutation } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
 import {
   ArrowDown,
@@ -81,11 +82,11 @@ import { Input } from "@lyrx/ui/components/input"
 import { toast } from "@lyrx/ui/lib/toast"
 
 import { useLocale } from "@/app/locale-provider"
-import { PreviewSkeleton } from "@/features/catalogue/shared/preview-skeleton"
-import { getErrorMessage } from "@/lib/errors"
 import { useCatalogueArtworkUpload } from "@/features/catalogue/hooks/use-catalogue-artwork-upload"
 import { CatalogueArtwork } from "@/features/catalogue/shared/catalogue-artwork"
+import { PreviewSkeleton } from "@/features/catalogue/shared/preview-skeleton"
 import { usePublicationControl } from "@/features/catalogue/studio/use-publication-control"
+import { getErrorMessage } from "@/lib/errors"
 
 type AlbumTrack = NonNullable<
   FunctionReturnType<typeof api.catalogue.read.getMyAlbum>
