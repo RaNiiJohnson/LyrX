@@ -96,4 +96,3 @@ Direction à valider avant code :
 3. Vérifier dans React Query Devtools si une requête TanStack reste active lors
    d'une navigation ; cela distingue une vraie absence de cache d'un skeleton
    issu d'une autre requête non préchargée.
-
