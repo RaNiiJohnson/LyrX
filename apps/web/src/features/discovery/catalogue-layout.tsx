@@ -1,13 +1,7 @@
-import type { ReactNode } from "react"
-import { Link } from "@tanstack/react-router"
-import { useQuery } from "convex/react"
-import { ArrowLeft, ArrowRight } from "lucide-react"
-import { api } from "@lyrx/backend/convex/_generated/api"
+import { useLocale } from "@/app/locale-provider"
+import { SONG_GENRES } from "@/features/catalogue/lib/catalogue-form"
 import { Button } from "@lyrx/ui/components/button"
 import { Field, FieldGroup, FieldLabel } from "@lyrx/ui/components/field"
-import { Skeleton } from "@lyrx/ui/components/skeleton"
-import { ToggleGroup, ToggleGroupItem } from "@lyrx/ui/components/toggle-group"
-import { cn } from "@lyrx/ui/lib/utils"
 import {
   Pagination,
   PaginationContent,
@@ -23,10 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@lyrx/ui/components/select"
-import { useLocale } from "@/app/locale-provider"
-import { SONG_GENRES } from "@/features/catalogue/lib/catalogue-form"
-import { AlbumCard, ArtistCard, SongCard } from "./discovery-cards"
-import { DiscoveryEmpty, DiscoveryLoading } from "./discovery-states"
+import { Skeleton } from "@lyrx/ui/components/skeleton"
+import { ToggleGroup, ToggleGroupItem } from "@lyrx/ui/components/toggle-group"
+import { cn } from "@lyrx/ui/lib/utils"
+import { Link } from "@tanstack/react-router"
+import { ArrowLeft, ArrowRight } from "lucide-react"
+import type { ReactNode } from "react"
 import {
   changeCatalogueFilter,
   genreMessageKeys,
@@ -35,25 +31,7 @@ import {
 } from "./catalogue-search"
 
 export type CatalogueKind = "songs" | "albums" | "artists"
-export function CataloguePage({
-  kind,
-  search,
-  onSearch,
-}: {
-  kind: CatalogueKind
-  search: CatalogueSearch
-  onSearch: (search: CatalogueSearch) => void
-}) {
-  return kind === "songs" ? (
-    <Songs search={search} onSearch={onSearch} />
-  ) : kind === "albums" ? (
-    <Albums search={search} onSearch={onSearch} />
-  ) : (
-    <Artists search={search} onSearch={onSearch} />
-  )
-}
-
-function CatalogueLayout({
+export function CatalogueLayout({
   kind,
   search,
   onSearch,
@@ -206,111 +184,10 @@ function CatalogueLayout({
     </section>
   )
 }
-type ResultsProps = {
+export type ResultsProps = {
   search: CatalogueSearch
   onSearch: (search: CatalogueSearch) => void
 }
-function Songs({ search, onSearch }: ResultsProps) {
-  const data = useQuery(api.discovery.read.listSongs, {
-    page: search.page,
-    sort: search.sort,
-    origin: search.artist ? "artist" : search.origin,
-    genre: search.artist ? undefined : search.genre,
-    artistHandle: search.artist,
-  })
-  return (
-    <CatalogueLayout
-      kind="songs"
-      search={search}
-      onSearch={onSearch}
-      total={data?.ready ? data.total : undefined}
-    >
-      {!data?.ready ? (
-        <DiscoveryLoading />
-      ) : data.items.length ? (
-        <div className="grid gap-x-4 sm:grid-cols-2 sm:gap-y-4 lg:grid-cols-3">
-          {data.items.map((song) => (
-            <SongCard key={`${song.origin}:${song.id}`} song={song} />
-          ))}
-        </div>
-      ) : (
-        <DiscoveryEmpty />
-      )}
-      {data?.ready ? (
-        <CataloguePagination
-          {...data}
-          onPage={(page) => onSearch({ ...search, page })}
-        />
-      ) : null}
-    </CatalogueLayout>
-  )
-}
-function Albums({ search, onSearch }: ResultsProps) {
-  const data = useQuery(api.discovery.read.listAlbums, {
-    page: search.page,
-    sort: search.sort === "popular" ? "newest" : search.sort,
-    artistHandle: search.artist,
-  })
-  return (
-    <CatalogueLayout
-      kind="albums"
-      search={search}
-      onSearch={onSearch}
-      total={data?.ready ? data.total : undefined}
-    >
-      {!data?.ready ? (
-        <DiscoveryLoading />
-      ) : data.items.length ? (
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-          {data.items.map((album) => (
-            <AlbumCard key={album.id} album={album} />
-          ))}
-        </div>
-      ) : (
-        <DiscoveryEmpty />
-      )}
-      {data?.ready ? (
-        <CataloguePagination
-          {...data}
-          onPage={(page) => onSearch({ ...search, page })}
-        />
-      ) : null}
-    </CatalogueLayout>
-  )
-}
-function Artists({ search, onSearch }: ResultsProps) {
-  const data = useQuery(api.discovery.read.listArtists, {
-    page: search.page,
-    sort: search.sort === "popular" ? "newest" : search.sort,
-  })
-  return (
-    <CatalogueLayout
-      kind="artists"
-      search={search}
-      onSearch={onSearch}
-      total={data?.ready ? data.total : undefined}
-    >
-      {!data?.ready ? (
-        <DiscoveryLoading />
-      ) : data.items.length ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
-          {data.items.map((artist) => (
-            <ArtistCard key={artist.handle} artist={artist} />
-          ))}
-        </div>
-      ) : (
-        <DiscoveryEmpty />
-      )}
-      {data?.ready ? (
-        <CataloguePagination
-          {...data}
-          onPage={(page) => onSearch({ ...search, page })}
-        />
-      ) : null}
-    </CatalogueLayout>
-  )
-}
-
 function ResultsCount({ kind, total }: { kind: CatalogueKind; total: number }) {
   const { t, locale } = useLocale()
   return (

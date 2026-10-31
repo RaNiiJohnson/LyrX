@@ -1,16 +1,17 @@
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { convexQuery } from "@convex-dev/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, notFound } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { DEFAULT_LOCALE, formatMessage } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import { RouteBoundaryShell } from "@/app/route-boundary-shell"
 import {
-  PublicProfile,
   PublicProfileSkeleton,
-} from "@/features/profile/public-profile"
+  ArtistCatalogue,
+} from "@/features/profile/artist-catalogue"
+import { ProfileHeader } from "@/features/profile/profile-header"
 import { getErrorMessage } from "@/lib/errors"
 
 export const Route = createFileRoute("/profiles/$handle")({
@@ -31,11 +32,24 @@ export const Route = createFileRoute("/profiles/$handle")({
 
 function PublicProfilePage() {
   const { handle } = Route.useParams()
+  const { data: profile } = useSuspenseQuery(
+    convexQuery(api.members.publicByHandle, { handle })
+  )
+  if (!profile) throw notFound()
   return (
     <PageShell width="wide">
-      <BackendRequired>
-        <PublicProfile handle={handle} />
-      </BackendRequired>
+      <section className="flex min-w-0 flex-col gap-7">
+        <ProfileHeader
+          key={profile.artist?.bannerUrl ?? "no-banner"}
+          profile={profile}
+        />
+        {profile.bio ? (
+          <p className="max-w-3xl leading-7 break-words whitespace-pre-wrap">
+            {profile.bio}
+          </p>
+        ) : null}
+        {profile.artist ? <ArtistCatalogue profile={profile} /> : null}
+      </section>
     </PageShell>
   )
 }

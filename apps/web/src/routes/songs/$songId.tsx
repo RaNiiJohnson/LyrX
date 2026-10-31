@@ -4,10 +4,12 @@ import { createFileRoute, notFound } from "@tanstack/react-router"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
-import { PublicSong } from "@/features/catalogue/song/public-song"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { SongReadOnly } from "@/features/catalogue/song/song-read-only"
+import { SongInteractions } from "@/features/interactions/song-interactions"
+import { RecordPublicView } from "@/features/discovery/record-public-view"
 
 export const Route = createFileRoute("/songs/$songId")({
   ...appRouteBoundaries,
@@ -24,12 +26,17 @@ export const Route = createFileRoute("/songs/$songId")({
 })
 
 function PublicSongPage() {
-  const { songId } = Route.useParams()
+  const { songId: id } = Route.useParams()
+  const songId = id as Id<"songs">
+  const { data: detail } = useSuspenseQuery(
+    convexQuery(api.catalogue.read.getPublishedSong, { songId })
+  )
+  if (!detail) throw notFound()
   return (
     <PageShell width="wide">
-      <BackendRequired>
-        <PublicSong songId={songId as Id<"songs">} />
-      </BackendRequired>
+      <RecordPublicView origin="artist" sourceId={songId} />
+      <SongReadOnly detail={detail} />
+      <SongInteractions key={songId} sourceId={songId} />
     </PageShell>
   )
 }

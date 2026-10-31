@@ -2,9 +2,8 @@ import { usePaginatedQuery, useQuery } from "convex/react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
-import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 
-import { useLocale } from "@/app/locale-provider"
+import { ArtistAccess } from "./shared/artist-access"
 import { CatalogueEditorSkeleton } from "./shared/catalogue-loading"
 import { SongEditorForm } from "./song/song-editor-form"
 
@@ -17,25 +16,17 @@ export function SongEditor({
   returnAlbumId?: string
   songId?: Id<"songs">
 }) {
-  const current = useQuery(api.members.current, {})
-  const { t } = useLocale()
-
-  if (current === undefined) return <CatalogueEditorSkeleton />
-  if (current.state !== "ready" || current.member.role !== "artist") {
-    return (
-      <Alert>
-        <AlertTitle>{t("studio.notArtistTitle")}</AlertTitle>
-        <AlertDescription>{t("studio.notArtistDescription")}</AlertDescription>
-      </Alert>
-    )
-  }
   return (
-    <SongEditorData
-      songId={songId}
-      initialAlbumId={initialAlbumId as Id<"albums"> | undefined}
-      returnAlbumId={returnAlbumId as Id<"albums"> | undefined}
-      primaryArtist={current.profile.displayName}
-    />
+    <ArtistAccess>
+      {(current) => (
+        <SongEditorData
+          songId={songId}
+          initialAlbumId={initialAlbumId as Id<"albums"> | undefined}
+          returnAlbumId={returnAlbumId as Id<"albums"> | undefined}
+          primaryArtist={current.profile.displayName}
+        />
+      )}
+    </ArtistAccess>
   )
 }
 

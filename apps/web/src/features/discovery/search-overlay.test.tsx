@@ -89,9 +89,6 @@ vi.mock("convex/react", () => ({
     return state.data
   },
 }))
-vi.mock("@/app/backend-required", () => ({
-  BackendRequired: ({ children }: { children: ReactNode }) => children,
-}))
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, to, ...props }: { children: ReactNode; to: string }) => (
     <a href={to} {...props}>

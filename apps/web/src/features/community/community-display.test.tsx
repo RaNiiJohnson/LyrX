@@ -1,3 +1,4 @@
+import type * as RouterModule from "@tanstack/react-router"
 import type { ReactNode } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -6,7 +7,7 @@ import type { MessageKey, SupportedLocale } from "@lyrx/shared"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { CommunityList, MyContributions } from "./community-list"
 import { CommunityModeration } from "./community-moderation"
-import { CommunityReader } from "./community-reader"
+import { CommunityReader } from "@/test/route-screens"
 
 vi.mock("@/features/interactions/song-interactions", () => ({
   SongInteractions: () => null,
@@ -51,7 +52,8 @@ vi.mock("convex/react", () => ({
     loadMore: vi.fn(),
   }),
 }))
-vi.mock("@tanstack/react-router", () => ({
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof RouterModule>()),
   Link: ({ children }: { children: ReactNode }) => <a>{children}</a>,
 }))
 vi.mock("@tanstack/react-query", () => ({
@@ -217,3 +219,7 @@ describe("community display states", () => {
     )
   })
 })
+
+vi.mock("@/app/page-shell", () => ({
+  PageShell: ({ children }: { children: ReactNode }) => children,
+}))

@@ -27,6 +27,65 @@ translations, validation rules, and design tokens belong in `packages/shared`.
 Both clients use one backend; security rules are enforced in Convex functions,
 not duplicated as trust decisions in clients.
 
+## Web route and page composition (approved 31 October 2026)
+
+Keep page composition in `apps/web/src/routes/`, using nested folders
+that mirror the URL structure (for example, `routes/studio/songs/new.tsx`). A
+route should make the page understandable during review: it owns route-specific
+loading and the visible composition of the page. Compose meaningful domain
+features from `features/`; do not turn every route into a thin wrapper around a
+hidden full-page module. Extract substantial feature behavior into `features/`
+when it earns a distinct module, rather than moving pages there by default. The
+directory layout is illustrative and must follow actual routes in this
+repository.
+
+For Convex-backed pages, use the documented TanStack Start integration when
+the route needs its data before rendering: the route loader awaits the
+`convexQuery` through the shared `QueryClient`, and the rendered page reads that
+same query with `useSuspenseQuery`. Keep loader dependencies and query arguments
+consistent with the query consumed by the page so navigation preloads the
+matching cache entry. Keep optional secondary reads non-blocking where the page
+can render without them; do not add a loader mechanically to routes with no
+pre-render data requirement. Router intent preloading remains enabled so route
+loaders can start on link hover/touch before navigation.
+
+Make route preloading and query-cache state inspectable with development-only
+TanStack Router and React Query Devtools. Keep them out of production output.
+Apply this architecture across the authorized refactor directly; a separate
+pilot/POC route is not a prerequisite. The regular review and verification
+requirements in `AGENTS.md` and `development.md` still apply. This standalone
+refactor feature is approved before Lot 10; finish it before starting that lot.
+
+## Refactor implementation decisions (31 October 2026)
+
+Public home, lists and details compose their page inside the real routes.
+Shared catalogue filters/pagination, profile identity/banner, optional artist
+catalogue and community report lifecycle remain distinct features. Account
+redirection and liked-page access/header belong to routes. Editor controllers,
+private incremental lists and moderation remain functional modules.
+
+List loaders and Suspense readers share `catalogue-queries.ts` factories and
+validated URL dependencies. Public loaders use the current Convex recommendation
+for Query 5.104.5: `queryClient.query` with `convexQuery` and static stale time.
+Optional and protected reads are not mechanically moved to server loaders.
+The root owns the missing-configuration notice; `BackendRequired` is removed.
+Its non-reloading loader seeds the initial auth token once, avoiding repeated
+server-function waits during public preloads/clicks. The provider still handles
+live auth and Convex functions enforce all permissions.
+
+Intent preloading stays enabled. Cold pending feedback starts at 150 ms, with
+no forced minimum duration. This changes feedback, not network latency. Lazy
+devtools imports are guarded by `import.meta.env.DEV` and absent from production
+artifacts. Only `Route` is exported from route files to preserve code splitting;
+Vitest alone disables Start's splitting transform for route-component tests.
+
+T1 already separated the Convex catalogue's reads, lifecycle writes, artwork,
+ownership, tracks, validators and Aggregate maintenance. Inspection found no
+further backend reorganization justified here. No schema or backend function
+changes, migration or deployment belong to this feature. The measured cold and
+preloaded album-card paths and their limits are recorded in
+[verification](pre-lot10-verification.md).
+
 ## Foundation decisions
 
 1. Use one root lockfile and root commands so a clean checkout has one install

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import {
   CatalogueRouteError,
@@ -23,9 +22,7 @@ function NewSongPage() {
   const { albumId } = Route.useSearch()
   return (
     <PageShell width="wide">
-      <BackendRequired>
-        <SongEditor initialAlbumId={albumId} returnAlbumId={albumId} />
-      </BackendRequired>
+      <SongEditor initialAlbumId={albumId} returnAlbumId={albumId} />
     </PageShell>
   )
 }

@@ -30,7 +30,6 @@ import { Input } from "@lyrx/ui/components/input"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Alert, AlertDescription } from "@lyrx/ui/components/alert"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
-import { BackendRequired } from "@/app/backend-required"
 import { useLocale } from "@/app/locale-provider"
 import { CoverImage } from "./discovery-cards"
 
@@ -96,9 +95,7 @@ export function SearchOverlay({ prominent = false }: { prominent?: boolean }) {
         <DialogDescription className="sr-only">
           {t("search.help")}
         </DialogDescription>
-        <BackendRequired>
-          <SearchForm inputRef={inputRef} onNavigate={() => setOpen(false)} />
-        </BackendRequired>
+        <SearchForm inputRef={inputRef} onNavigate={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )

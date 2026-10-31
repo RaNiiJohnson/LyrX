@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
 import { ResetPasswordForm } from "@/features/auth/reset-password-form"
@@ -17,9 +16,7 @@ function ResetPasswordPage() {
   const { token } = Route.useSearch()
   return (
     <PageShell>
-      <BackendRequired>
-        <ResetPasswordForm token={token} />
-      </BackendRequired>
+      <ResetPasswordForm token={token} />
     </PageShell>
   )
 }

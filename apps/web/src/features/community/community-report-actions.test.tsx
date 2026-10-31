@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
+import type * as RouterModule from "@tanstack/react-router"
 
+import { LocaleProvider } from "@/app/locale-provider"
+import { CommunityReader } from "@/test/route-screens"
+import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { act, type ReactNode } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
-import { LocaleProvider } from "@/app/locale-provider"
-import { CommunityReader } from "./community-reader"
 
 vi.mock("@/features/interactions/song-interactions", () => ({
   SongInteractions: () => null,
@@ -31,7 +32,8 @@ vi.mock("convex/react", () => ({
   useQuery: () => mocks.current,
   useMutation: () => mocks.report,
 }))
-vi.mock("@tanstack/react-router", () => ({
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof RouterModule>()),
   Link: ({ children, ...props }: { children: ReactNode }) => (
     <a {...props}>{children}</a>
   ),
@@ -272,3 +274,7 @@ describe("community top report actions", () => {
     )
   })
 })
+
+vi.mock("@/app/page-shell", () => ({
+  PageShell: ({ children }: { children: ReactNode }) => children,
+}))

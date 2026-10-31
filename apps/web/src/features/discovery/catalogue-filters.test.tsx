@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act } from "react"
+import { act, type ReactNode } from "react"
 import { createRoot } from "react-dom/client"
 import {
   createMemoryHistory,
@@ -12,7 +12,7 @@ import {
 } from "@tanstack/react-router"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { LocaleProvider } from "@/app/locale-provider"
-import { CataloguePage, type CatalogueKind } from "./catalogue-page"
+import { CataloguePage, type CatalogueKind } from "@/test/catalogue-screen"
 import {
   catalogueSearch,
   validateCatalogueSearch,
@@ -20,7 +20,11 @@ import {
 } from "./catalogue-search"
 
 const query = vi.hoisted(() => vi.fn())
-vi.mock("convex/react", () => ({ useQuery: query }))
+vi.mock("@tanstack/react-query", () => ({
+  useSuspenseQuery: (options: { queryKey: Array<unknown> }) => ({
+    data: query(options.queryKey[1], options.queryKey[2]),
+  }),
+}))
 
 function Screen({ kind }: { kind: CatalogueKind }) {
   const search = useSearch({ strict: false })
@@ -305,3 +309,7 @@ describe("catalogue filters through Radix and URL navigation", () => {
     }
   )
 })
+
+vi.mock("@/app/page-shell", () => ({
+  PageShell: ({ children }: { children: ReactNode }) => children,
+}))

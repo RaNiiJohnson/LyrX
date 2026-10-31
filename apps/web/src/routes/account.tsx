@@ -1,9 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Navigate } from "@tanstack/react-router"
 
-import { BackendRequired } from "@/app/backend-required"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
-import { AccountLanding } from "@/features/account/account-landing"
+import { AccountLandingSkeleton } from "@/features/account/account-landing"
+import { api } from "@lyrx/backend/convex/_generated/api"
+import { useQuery } from "convex/react"
+import { getSignedInDestination } from "@/lib/account-navigation"
 
 export const Route = createFileRoute("/account")({
   ...appRouteBoundaries,
@@ -11,11 +13,15 @@ export const Route = createFileRoute("/account")({
 })
 
 function AccountPage() {
+  const current = useQuery(api.members.current, {})
+  const destination = current ? getSignedInDestination(current.state) : null
   return (
     <PageShell>
-      <BackendRequired>
-        <AccountLanding />
-      </BackendRequired>
+      {current === undefined ? (
+        <AccountLandingSkeleton />
+      ) : (
+        <Navigate to={destination ?? "/auth/sign-in"} replace />
+      )}
     </PageShell>
   )
 }

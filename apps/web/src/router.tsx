@@ -38,6 +38,10 @@ export function getRouter() {
     context: { convexClient, convexQueryClient, queryClient },
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
+    // A cold loader gets prompt feedback without holding a ready page behind
+    // the router's default 500ms minimum pending state.
+    defaultPendingMs: 150,
+    defaultPendingMinMs: 0,
     scrollRestoration: true,
   })
   setupRouterSsrQueryIntegration({ router, queryClient })
