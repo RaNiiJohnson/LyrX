@@ -2,6 +2,19 @@
 
 ## Active lot
 
+### CI upload-fixture correction — 1 November 2026
+
+- GitHub run `41244323753` passed formatting, lint and types, then failed
+  `members.test.ts`'s preexisting-upload assertion. Both operations could occur
+  in the same millisecond, so the fixture did not ensure an older file.
+- Reproduced the exact failure with a fixed clock; advanced that clock by one
+  millisecond before the later upload intent. Preserved the rejection and
+  non-deletion assertions; restored the clock in finally. No server function,
+  schema, authorization rule or deployment changed.
+- Primary-agent delta review and Convex reviewer checklist: no blocking finding;
+  the change is test-only. Targeted member suite passes all nine cases.
+  Final `pnpm check` passes formatting, lint, types, all 446 tests and builds.
+
 ### Helpers cache follow-up — 1 November 2026
 
 - Preserved and integrated the user's local cache-hook migrations on the same
