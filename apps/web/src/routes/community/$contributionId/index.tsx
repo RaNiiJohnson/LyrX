@@ -5,6 +5,7 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { PageShell } from "@/app/page-shell"
+import { appRouteBoundaries } from "@/app/route-states"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Badge } from "@lyrx/ui/components/badge"
 import { useLocale } from "@/app/locale-provider"
@@ -14,6 +15,7 @@ import { SongInteractions } from "@/features/interactions/song-interactions"
 import { ReportActions } from "@/features/community/community-report-actions"
 
 export const Route = createFileRoute("/community/$contributionId/")({
+  ...appRouteBoundaries,
   component: ContributionPage,
   loader: async ({ context, params }) => {
     if (!context.convexQueryClient) return

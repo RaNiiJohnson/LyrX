@@ -17,7 +17,7 @@ export function CatalogueRouteError({ error }: { error: unknown }) {
   return (
     <RouteBoundaryShell width="wide">
       <Alert variant="destructive">
-        <AlertTitle>{t("error.unexpected")}</AlertTitle>
+        <AlertTitle>{t("error.title")}</AlertTitle>
         <AlertDescription className="space-y-3">
           <p>{getErrorMessage(error, t)}</p>
           <Button asChild variant="outline" size="sm">
@@ -61,7 +61,7 @@ export function AppRouteError({ error }: { error: unknown }) {
   return (
     <RouteBoundaryShell>
       <Alert variant="destructive">
-        <AlertTitle>{t("error.unexpected")}</AlertTitle>
+        <AlertTitle>{t("error.title")}</AlertTitle>
         <AlertDescription>{getErrorMessage(error, t)}</AlertDescription>
       </Alert>
     </RouteBoundaryShell>

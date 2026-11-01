@@ -444,6 +444,22 @@ const frenchMessages = {
     "Un profil peut contenir au maximum 8 liens personnalisés.",
   "error.unauthenticated": "Une connexion est nécessaire.",
   "error.unexpected": "Une erreur inattendue est survenue.",
+  "error.title": "Impossible de terminer l’action",
+  "error.network":
+    "Connexion impossible. Vérifiez votre réseau, puis réessayez.",
+  "error.server":
+    "Le serveur n’a pas pu traiter la demande. Réessayez dans un instant.",
+  "error.invalidInput":
+    "Certaines informations envoyées sont invalides. Vérifiez le formulaire.",
+  "error.sessionExpired": "Votre session a expiré. Reconnectez-vous.",
+  "error.invalidToken": "Ce lien est invalide ou a expiré.",
+  "error.passwordLength":
+    "Le mot de passe doit contenir entre 8 et 128 caractères.",
+  "error.invalidEmail": "Cette adresse email n’est pas valide.",
+  "error.adminAlreadyExists": "Un administrateur existe déjà.",
+  "error.memberNotEligible":
+    "Aucun membre éligible ne correspond à cette demande.",
+  "error.accountUnavailable": "Ce compte n’est pas disponible.",
   "error.uploadIntentMismatch":
     "Ce fichier ne correspond pas à cette autorisation de transfert.",
   "error.uploadNotFound": "Le fichier envoyé est introuvable.",
@@ -1208,6 +1224,18 @@ const englishMessages = {
   "error.tooManyCustomLinks": "A profile can contain up to 8 custom links.",
   "error.unauthenticated": "You need to sign in.",
   "error.unexpected": "An unexpected error occurred.",
+  "error.title": "Couldn’t complete the action",
+  "error.network": "Can’t connect. Check your network, then try again.",
+  "error.server": "The server couldn’t process the request. Try again shortly.",
+  "error.invalidInput":
+    "Some submitted information is invalid. Check the form.",
+  "error.sessionExpired": "Your session has expired. Sign in again.",
+  "error.invalidToken": "This link is invalid or has expired.",
+  "error.passwordLength": "The password must be 8 to 128 characters long.",
+  "error.invalidEmail": "This email address isn’t valid.",
+  "error.adminAlreadyExists": "An administrator already exists.",
+  "error.memberNotEligible": "No eligible member matches this request.",
+  "error.accountUnavailable": "This account isn’t available.",
   "error.uploadIntentMismatch":
     "This file does not match the upload authorization.",
   "error.uploadNotFound": "The uploaded file was not found.",
