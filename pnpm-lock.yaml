@@ -187,6 +187,9 @@ importers:
       '@fontsource-variable/dm-sans':
         specifier: 5.3.0
         version: 5.3.0
+      '@fontsource-variable/fraunces':
+        specifier: 5.3.0
+        version: 5.3.0
       '@fontsource-variable/newsreader':
         specifier: 5.3.0
         version: 5.3.0
@@ -701,6 +704,9 @@ packages:
 
   '@fontsource-variable/dm-sans@5.3.0':
     resolution: {integrity: sha512-BpUG5bqePiDFMBM4ZtLSlPdAIOM990uB1dlXzIf4aw21yQR7BmykedLXXXMqGWsR18aMLOsbWccwJNh3ztTQaA==}
+
+  '@fontsource-variable/fraunces@5.3.0':
+    resolution: {integrity: sha512-9BYGySn4AHEJdgp9Z28tQ3X+laJMEOITXkQarZXeloWQZDq5oOvXJ3kDA8c7MGIfpogIaZfjrQBqmda8POOCKA==}
 
   '@fontsource-variable/newsreader@5.3.0':
     resolution: {integrity: sha512-rrzYi43qMpbzwuFtf9OkWH8sxAPVPcQQQEwXpPtwaKYeJ8yVg5aLs5kawmo1f2Q1t1M38TLmEKCkGVDsYwgdFw==}
@@ -4168,6 +4174,8 @@ snapshots:
   '@floating-ui/utils@0.2.12': {}
 
   '@fontsource-variable/dm-sans@5.3.0': {}
+
+  '@fontsource-variable/fraunces@5.3.0': {}
 
   '@fontsource-variable/newsreader@5.3.0': {}
 

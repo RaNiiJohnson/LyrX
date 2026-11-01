@@ -5,6 +5,9 @@ import {
   MAX_SHARE_LINES,
 } from "@lyrx/shared"
 
+// Editorial serif reserved for the exported card, distinct from the app UI fonts.
+const CARD_FONT = '"Fraunces Variable", Georgia, serif'
+
 export type CardContent = {
   text: string
   title: string
@@ -88,9 +91,11 @@ export async function renderCard(content: CardContent, signal?: AbortSignal) {
   if (!content.text.trim() || content.text.length > MAX_SHARE_TEXT_LENGTH)
     throw new CardRenderError("text")
   await Promise.all(
-    [400, 600].map((weight) =>
-      document.fonts.load(`${weight} 64px "DM Sans Variable"`)
-    )
+    [
+      `italic 400 64px ${CARD_FONT}`,
+      `600 64px ${CARD_FONT}`,
+      `400 64px ${CARD_FONT}`,
+    ].map((font) => document.fonts.load(font))
   )
   signal?.throwIfAborted()
   const canvas = document.createElement("canvas")
@@ -124,19 +129,19 @@ export async function renderCard(content: CardContent, signal?: AbortSignal) {
   ctx.fillStyle = "#fff8f2"
   ctx.textAlign = "center"
   ctx.textBaseline = "top"
-  ctx.font = '400 64px "DM Sans Variable"'
+  ctx.font = `italic 400 64px ${CARD_FONT}`
   const body = wrapCardText(
     content.text,
     (value) => ctx.measureText(value).width,
     888
   )
-  ctx.font = '600 40px "DM Sans Variable"'
+  ctx.font = `600 40px ${CARD_FONT}`
   const title = wrapCardText(
     content.title,
     (value) => ctx.measureText(value).width,
     888
   )
-  ctx.font = '400 32px "DM Sans Variable"'
+  ctx.font = `400 32px ${CARD_FONT}`
   const artist = wrapCardText(
     content.primaryArtist,
     (value) => ctx.measureText(value).width,
@@ -148,19 +153,19 @@ export async function renderCard(content: CardContent, signal?: AbortSignal) {
     body.length * 88 + 64 + title.length * 54 + 12 + artist.length * 44
   let y = 240 + (1400 - total) / 2
   if (total > 1400) throw new CardRenderError("text")
-  ctx.font = '400 64px "DM Sans Variable"'
+  ctx.font = `italic 400 64px ${CARD_FONT}`
   for (const line of body) {
     ctx.fillText(line, WIDTH / 2, y)
     y += 88
   }
   y += 64
-  ctx.font = '600 40px "DM Sans Variable"'
+  ctx.font = `600 40px ${CARD_FONT}`
   for (const line of title) {
     ctx.fillText(line, WIDTH / 2, y)
     y += 54
   }
   y += 12
-  ctx.font = '400 32px "DM Sans Variable"'
+  ctx.font = `400 32px ${CARD_FONT}`
   for (const line of artist) {
     ctx.fillText(line, WIDTH / 2, y)
     y += 44
@@ -169,10 +174,10 @@ export async function renderCard(content: CardContent, signal?: AbortSignal) {
   ctx.fillStyle = "#DF4F55"
   ctx.fillRect(414, 1768, 56, 56)
   ctx.fillStyle = "#ffffff"
-  ctx.font = '600 36px "DM Sans Variable"'
+  ctx.font = `600 36px ${CARD_FONT}`
   ctx.fillText("X", 442, 1777)
   ctx.fillStyle = "#fff8f2"
-  ctx.font = '600 44px "DM Sans Variable"'
+  ctx.font = `600 44px ${CARD_FONT}`
   ctx.textAlign = "left"
   ctx.fillText("Lyr'X", 488, 1772)
   signal?.throwIfAborted()

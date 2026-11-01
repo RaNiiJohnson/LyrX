@@ -1,6 +1,6 @@
 import { useLyricSelection } from "@/lib/use-lyric-selection"
 import { useEffect, useId, useRef, useState, type ReactNode } from "react"
-import { ImageDown } from "lucide-react"
+import { Download, ImageDown } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import { useConvex, useQuery } from "convex/react"
 import { useQuery as useCachedQuery } from "convex-helpers/react/cache"
@@ -80,8 +80,8 @@ export function SharingDialog({
       }}
     >
       <DialogContent
+        className="top-0 left-0 flex h-dvh max-w-none translate-x-0 translate-y-0 flex-col rounded-none sm:top-1/2 sm:left-1/2 sm:h-[min(92dvh,50rem)] sm:max-w-5xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
         showCloseButton={false}
-        className="top-0 left-0 flex h-dvh max-w-none translate-x-0 translate-y-0 flex-col rounded-none sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[92dvh] sm:max-w-5xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
         onCloseAutoFocus={(event) => {
           event.preventDefault()
           onReturnFocus()
@@ -103,11 +103,13 @@ export function SharingDialog({
         ) : (
           <SharingContext target={target} onClose={onClose} />
         )}
-        <DialogClose asChild>
-          <Button variant="ghost" className="shrink-0">
-            {t("notebook.close")}
-          </Button>
-        </DialogClose>
+        {(current === undefined || current.state !== "ready") && (
+          <DialogClose asChild>
+            <Button variant="ghost" className="shrink-0">
+              {t("notebook.close")}
+            </Button>
+          </DialogClose>
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -289,7 +291,7 @@ function SharingPreview({
   >(null)
   useEffect(() => {
     const controller = new AbortController()
-    setPreview(null)
+    // Keep the previous card on screen until the next one is ready (no flash).
     setRenderError(null)
     if (prepared && valid) {
       void renderCard(prepared, controller.signal)
@@ -306,15 +308,27 @@ function SharingPreview({
     return () => controller.abort()
   }, [prepared, valid])
   const visible = valid && preview?.data === prepared ? preview : null
+  const stale =
+    valid && !visible && !renderError && prepared !== null ? preview : null
+  const shown = visible ?? stale
   return (
     <>
-      <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto sm:max-h-[65dvh] lg:grid-cols-2">
-        <figure className="mx-auto w-full max-w-48 lg:max-w-72">
-          {visible ? (
-            <CanvasPreview
-              canvas={visible.canvas}
-              label={`${visible.data.text} — ${visible.data.title} · ${visible.data.primaryArtist} · Lyr'X`}
-            />
+      <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto lg:grid-cols-2">
+        <figure className="mx-auto w-full max-w-48 lg:max-w-72 [&_canvas]:rounded-xl [&_canvas]:shadow-lg [&_canvas]:ring-1 [&_canvas]:ring-foreground/10">
+          {shown ? (
+            <div
+              className={
+                visible
+                  ? "transition-opacity duration-200"
+                  : "opacity-60 transition-opacity duration-200"
+              }
+              aria-busy={!visible}
+            >
+              <CanvasPreview
+                canvas={shown.canvas}
+                label={`${shown.data.text} — ${shown.data.title} · ${shown.data.primaryArtist} · Lyr'X`}
+              />
+            </div>
           ) : valid && prepared === undefined ? (
             <Skeleton className="aspect-[9/16] w-full" />
           ) : (
@@ -352,7 +366,8 @@ function SharingPreview({
               readOnly
               rows={5}
               value={context.text}
-              className="min-h-36 leading-7"
+              className="min-h-36 text-base leading-7 italic"
+              style={{ fontFamily: '"Fraunces Variable", Georgia, serif' }}
               ref={selectionRef}
             />
             <FieldDescription>
@@ -378,14 +393,22 @@ function SharingPreview({
           )}
         </FieldGroup>
       </div>
-      <div className="shrink-0 pb-[env(safe-area-inset-bottom)]">
+      <div className="flex shrink-0 flex-col-reverse gap-2 border-t pt-4 pb-[env(safe-area-inset-bottom)] sm:flex-row sm:justify-end">
+        <DialogClose asChild>
+          <Button type="button" variant="ghost">
+            {t("notebook.close")}
+          </Button>
+        </DialogClose>
         <Button
           type="button"
+          size="lg"
+          className="w-full sm:w-auto"
           disabled={!visible || downloading}
           onClick={() => {
             if (visible) void onDownload(visible.data, visible.canvas)
           }}
         >
+          <Download data-icon="inline-start" />
           {t(downloading ? "sharing.downloading" : "sharing.download")}
         </Button>
       </div>
