@@ -37,6 +37,17 @@ pnpm --filter @lyrx/backend dev
 Without the three public `VITE_` values, the web app deliberately renders a
 configuration notice and does not simulate an auth backend.
 
+## Mobile (Expo)
+
+```bash
+cp apps/mobile/.env.example apps/mobile/.env.local   # set EXPO_PUBLIC_CONVEX_URL
+pnpm --filter @lyrx/mobile dev
+```
+
+Open the QR code with Expo Go on a phone on the same Wi-Fi network. The app is
+read-only and public until mobile authentication is built. `pnpm check` bundles
+the Android app with `expo export`; it does not need a device.
+
 ## Verification
 
 ```bash
