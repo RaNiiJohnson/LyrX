@@ -301,3 +301,25 @@ cleanup's final guard erases owned comment text, removes likes/counts and
 anonymizes foreign report/moderator references. Public source/author checks hide
 unavailable text immediately, independent of batch progress. See
 [lot9-verification.md](lot9-verification.md).
+
+## Private notebook verification (lot 10)
+
+The additive notebook tables need no backfill. Use the already selected development
+watcher, or an explicitly authorized development push; never add `--prod` for this
+lot. `/notebook` is private and reachable through the account menu. On a public
+Artist or Fan song, select **Save a passage**. The native textarea supports touch
+selection and Shift+arrow keys; stored offsets preserve canonical CR/CRLF and
+Unicode text. Normal lyric lines remain noninteractive.
+
+Verify a temporary own passage end to end, then remove only that verification
+entry. Do not withdraw another person's publication, suspend an account or delete
+an account for browser evidence. Cross-account isolation, source edit/removal,
+quota/concurrency, batched snapshot redaction and account-deletion paths use
+isolated `convex-test` fixtures. Check desktop/mobile, FR/EN, light/dark, selection,
+modal cancellation/focus and empty states. Signed card generation belongs to lot 11.
+
+`notebookCleanupJobs` retains target/cursor/progress for source or owner withdrawal.
+The five-minute recovery cron invokes `notebook/cleanup:recover`; an authorized
+operator can invoke that internal mutation to resume existing development jobs.
+Private readers suppress unavailable snapshots immediately, before physical
+redaction finishes. Redacted excerpts do not reappear after republication.

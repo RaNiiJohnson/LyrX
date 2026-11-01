@@ -53,6 +53,11 @@ import type * as lib_profileImages from "../lib/profileImages.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as members from "../members.js";
 import type * as model from "../model.js";
+import type * as notebook_access from "../notebook/access.js";
+import type * as notebook_cleanup from "../notebook/cleanup.js";
+import type * as notebook_model from "../notebook/model.js";
+import type * as notebook_read from "../notebook/read.js";
+import type * as notebook_write from "../notebook/write.js";
 
 import type {
   ApiFromModules,
@@ -106,6 +111,11 @@ declare const fullApi: ApiFromModules<{
   "lib/validation": typeof lib_validation;
   members: typeof members;
   model: typeof model;
+  "notebook/access": typeof notebook_access;
+  "notebook/cleanup": typeof notebook_cleanup;
+  "notebook/model": typeof notebook_model;
+  "notebook/read": typeof notebook_read;
+  "notebook/write": typeof notebook_write;
 }>;
 
 /**

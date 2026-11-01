@@ -19,3 +19,5 @@ export type {
   ParsedLyricSection,
   ParsedLyrics,
 } from "./lyrics"
+
+export { notebookSourceRange } from "./notebook"

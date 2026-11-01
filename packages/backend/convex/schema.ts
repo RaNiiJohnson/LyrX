@@ -1,3 +1,4 @@
+import { snapshot as notebookSnapshot } from "./notebook/model"
 import {
   sourceId as interactionSourceId,
   commentStatus,
@@ -33,6 +34,29 @@ import {
 } from "./model"
 
 export default defineSchema({
+  notebookCollections: defineTable({
+    memberId: v.id("members"),
+    name: v.string(),
+  }).index("by_member_id", ["memberId"]),
+  notebookPassages: defineTable({
+    memberId: v.id("members"),
+    collectionId: v.union(v.id("notebookCollections"), v.null()),
+    sourceId: interactionSourceId,
+    sourceOwnerId: v.id("members"),
+    snapshot: v.optional(notebookSnapshot),
+  })
+    .index("by_member_id", ["memberId"])
+    .index("by_member_id_and_collection_id", ["memberId", "collectionId"])
+    .index("by_member_id_and_source_id", ["memberId", "sourceId"])
+    .index("by_source_id", ["sourceId"])
+    .index("by_source_owner_id", ["sourceOwnerId"]),
+  notebookCleanupJobs: defineTable({
+    targetId: v.union(v.id("members"), interactionSourceId),
+    cursor: v.union(v.string(), v.null()),
+    updatedAt: v.number(),
+  })
+    .index("by_target_id", ["targetId"])
+    .index("by_updated_at", ["updatedAt"]),
   songLikes: defineTable({
     sourceId: interactionSourceId,
     memberId: v.id("members"),

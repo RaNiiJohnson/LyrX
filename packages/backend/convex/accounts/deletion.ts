@@ -1,3 +1,4 @@
+import { cleanMemberNotebook } from "../notebook/cleanup"
 import { v } from "convex/values"
 
 import { internal } from "../_generated/api"
@@ -291,6 +292,7 @@ async function advance(ctx: MutationCtx, job: Doc<"accountDeletionJobs">) {
   }
   // Keep this guard at the final phase, so jobs created by older deployments
   // (including a stalled job already at "member") cannot skip new dependents.
+  if (await cleanMemberNotebook(ctx, owner)) return "member"
   if (await cleanMemberInteractions(ctx, owner)) return "member"
   if (await cleanCommunityBatch(ctx, owner)) return "member"
   if (await ctx.db.get("members", owner)) await ctx.db.delete("members", owner)

@@ -76,4 +76,6 @@ Lot 8 implementation and actual capability limits are recorded in
 merge. Lot 8 is merged in PR #6 at `6e5659d`. The user approved lot 9 on
 29 October 2026, starting from updated `main` at `e6d6822`. Its contracts,
 verification and limitations are in [lot9-verification.md](lot9-verification.md)
-and [progress](progress.md). Lot 10 remains unauthorized.
+and [progress](progress.md). The user approved the lot 10 mobile/desktop design and authorized implementation
+on 1 November 2026. Its delivery is recorded in [progress](progress.md). Lot 11
+remains unstarted and requires separate approval.

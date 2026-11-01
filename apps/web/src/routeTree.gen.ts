@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as LikedRouteImport } from './routes/liked'
+import { Route as NotebookRouteImport } from './routes/notebook'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as AlbumsIndexRouteImport } from './routes/albums/index'
@@ -59,6 +60,11 @@ const AccountRoute = AccountRouteImport.update({
 const LikedRoute = LikedRouteImport.update({
   id: '/liked',
   path: '/liked',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotebookRoute = NotebookRouteImport.update({
+  id: '/notebook',
+  path: '/notebook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -236,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/liked': typeof LikedRoute
+  '/notebook': typeof NotebookRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
@@ -274,6 +281,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/liked': typeof LikedRoute
+  '/notebook': typeof NotebookRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
@@ -310,6 +318,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/liked': typeof LikedRoute
+  '/notebook': typeof NotebookRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/albums/$albumId': typeof AlbumsAlbumIdRoute
@@ -350,6 +359,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/liked'
+    | '/notebook'
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
@@ -388,6 +398,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/liked'
+    | '/notebook'
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/liked'
+    | '/notebook'
     | '/onboarding'
     | '/profile'
     | '/albums/$albumId'
@@ -462,6 +474,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
   LikedRoute: typeof LikedRoute
+  NotebookRoute: typeof NotebookRoute
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
   AlbumsAlbumIdRoute: typeof AlbumsAlbumIdRoute
@@ -512,6 +525,13 @@ declare module '@tanstack/react-router' {
       path: '/liked'
       fullPath: '/liked'
       preLoaderRoute: typeof LikedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notebook': {
+      id: '/notebook'
+      path: '/notebook'
+      fullPath: '/notebook'
+      preLoaderRoute: typeof NotebookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -794,6 +814,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
   LikedRoute: LikedRoute,
+  NotebookRoute: NotebookRoute,
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,
   AlbumsAlbumIdRoute: AlbumsAlbumIdRoute,

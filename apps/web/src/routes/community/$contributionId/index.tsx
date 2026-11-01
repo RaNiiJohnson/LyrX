@@ -1,3 +1,4 @@
+import { SavePassage } from "@/features/notebook/save-passage"
 import { convexQuery } from "@convex-dev/react-query"
 import { createFileRoute, notFound, Link } from "@tanstack/react-router"
 import { api } from "@lyrx/backend/convex/_generated/api"
@@ -57,6 +58,12 @@ function ContributionPage() {
           </div>
         </div>
         <SongReadOnly
+          actions={
+            <SavePassage
+              sourceId={contributionId}
+              lyricsText={row.lyricsText}
+            />
+          }
           detail={{
             artworkUrl: row.artworkUrl ?? null,
             lyricsText: row.lyricsText,

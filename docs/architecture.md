@@ -396,3 +396,44 @@ Source-deletion triggers create resumable 25-row cleanup jobs; account deletion'
 final guard handles likes, authored text and anonymized foreign audit history.
 No new image claims or production migration are needed. See
 [lot9-verification.md](lot9-verification.md) for limits and evidence boundaries.
+
+## Private notebook decisions (lot 10, 1 November 2026)
+
+- `/notebook` owns member access, header and collection selection, composing the
+  collections and paginated excerpts features. Protected incremental reads use
+  Helpers under the existing account/document cache boundary, not public loaders.
+  Public song and Fan routes explicitly compose the save-passage action. Normal
+  lyric reading stays read-only; selection happens in a dedicated dialog, full
+  screen below the small breakpoint. Forms use the installed TanStack Form and
+  shadcn primitives, retaining Caffeine, DM Sans, FR/EN and theme preferences.
+- Default `My passages` is a permanent virtual collection represented by `null`;
+  the label is localized, not stored as member-authored text. Omitting the filter
+  reads all collections. Named collections are member-owned, capped at 40 with
+  names of 1–60 UTF-16 code units. Deletion atomically moves their excerpts to the
+  default. Notebook entries are capped at 500 per member; selections at 1,000
+  UTF-16 code units. These caps keep indexed duplicate/quota checks and collection
+  deletion bounded; raising them requires revisiting scans and atomic moves.
+- Every notebook API uses the active, verified member wrapper; administrators have
+  no cross-account notebook access. Source availability reuses canonical Artist/
+  Fan publication and eligible-author checks, independently of discovery readiness.
+  The server compares the submitted source text against current canonical text,
+  checks exact integer ranges and Unicode boundaries, and derives the excerpt and
+  attribution. A SHA-256 fingerprint identifies the complete lyric version; the
+  snapshot stores only the excerpt, original attribution and selected range.
+  Native textarea LF offsets are mapped back to canonical CR/CRLF offsets.
+- Same source/version/range/collection saves and case-insensitive collection
+  creation retries reuse the existing row under OCC. The creation token bucket is
+  120/hour, burst 30 per member. Reads page 12 in the web UI (server accepts 1–50).
+  A lyric edit labels the saved version as changed without rewriting it. Missing,
+  withdrawn or ineligible sources return no snapshot text, attribution, URL or
+  artwork. A collection deleted in another tab returns an empty page while the
+  route selects the default.
+- Trigger-wrapped withdrawals/deletions and owner suspension/revocation/role change
+  enqueue durable cleanup. Batches of 25 redact snapshots only while their source
+  is unavailable; a five-minute recovery cron resumes stalled jobs. A source
+  restored before redaction can remain readable; an already purged excerpt cannot
+  be reconstructed by republishing. Members may save a new excerpt instead. The
+  account-deletion final guard removes owned notebook entries and collections,
+  including for previously queued deletion jobs.
+- Tables are additive; no historical backfill is needed. Notebook data is never
+  added to public discovery/search. Sharing-card rendering remains lot 11.
