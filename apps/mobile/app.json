@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Lyr'X",
+    "slug": "lyrx",
+    "scheme": "lyrx",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-font",
+      "expo-splash-screen"
+    ]
+  }
+}

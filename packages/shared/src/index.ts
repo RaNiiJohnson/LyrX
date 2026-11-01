@@ -28,3 +28,6 @@ export {
   MAX_SHARE_LINES,
   validShareRange,
 } from "./sharing"
+
+export { THEME_TOKENS } from "./theme"
+export type { ThemeMode, ThemeTokens } from "./theme"

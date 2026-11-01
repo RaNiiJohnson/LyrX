@@ -1,5 +1,29 @@
 # Delivery progress
 
+## Lot 13 — Expo foundation (in progress)
+
+- Branch `codex/expo-foundation` starts at `main` (`ee54d21`). The user deferred
+  mobile authentication, so this lot is a **read-only public** Expo app.
+- `apps/mobile` (Expo SDK 58, React Native 0.88, expo-router) consumes
+  `@lyrx/shared` and the Convex API types from `@lyrx/backend`. Screens: public
+  home, paginated search, published song, published community lyrics. Listening
+  links open outside the app over HTTPS only; album and artist cards are shown
+  but not yet navigable.
+- `@lyrx/shared` now exports `THEME_TOKENS` (hex light/dark colours for clients
+  without CSS variables). A test fails if they drift from `globals.css`.
+- Metro bundles the pnpm isolated workspace without custom configuration;
+  `expo-doctor` passes 20/20 and `expo install --check` is clean. The mobile
+  `build` script is an Android `expo export` so `pnpm check` proves the bundle.
+- Visual parity: after the first phone test the user asked the app to follow the
+  web design. The mobile app now uses the web's families (DM Sans, Newsreader,
+  Space Mono via `@expo-google-fonts`, only the faces in use), the coral "X"
+  header, a swipeable dark hero, horizontal cover/vinyl/avatar cards, and a song
+  page with a mono artist line, badges, italic context and 19px lyrics. Colours
+  come from `THEME_TOKENS` (now including the hero colours).
+- Not done: sign-in, interactions, notebook, sharing (lot 14); app icons,
+  Android package id and signing (lot 15); "Tout voir" lists and album/artist
+  screens. On-device check of the restyle is pending.
+
 ## Lot 11 — Sharing cards (local delivery)
 
 - The user approved the desktop/mobile direction and authorized implementation on
