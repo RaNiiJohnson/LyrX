@@ -1,3 +1,4 @@
+import { SavePassage } from "@/features/notebook/save-passage"
 import { convexQuery } from "@convex-dev/react-query"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 
@@ -35,7 +36,12 @@ function PublicSongPage() {
   return (
     <PageShell width="wide">
       <RecordPublicView origin="artist" sourceId={songId} />
-      <SongReadOnly detail={detail} />
+      <SongReadOnly
+        detail={detail}
+        actions={
+          <SavePassage sourceId={songId} lyricsText={detail.lyricsText} />
+        }
+      />
       <SongInteractions key={songId} sourceId={songId} />
     </PageShell>
   )

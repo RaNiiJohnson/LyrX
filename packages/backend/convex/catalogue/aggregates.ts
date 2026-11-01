@@ -1,3 +1,4 @@
+import { registerNotebookCleanup } from "../notebook/cleanup"
 import { TableAggregate } from "@convex-dev/aggregate"
 import { Triggers } from "convex-helpers/server/triggers"
 import { v } from "convex/values"
@@ -63,6 +64,7 @@ export const albumTracksByAlbum = new TableAggregate<{
 export const catalogueAggregateTriggers = new Triggers<DataModel>()
 registerDiscoveryTriggers(catalogueAggregateTriggers)
 registerInteractionCleanup(catalogueAggregateTriggers)
+registerNotebookCleanup(catalogueAggregateTriggers)
 catalogueAggregateTriggers.register("songs", songsByOwner.idempotentTrigger())
 catalogueAggregateTriggers.register(
   "songs",

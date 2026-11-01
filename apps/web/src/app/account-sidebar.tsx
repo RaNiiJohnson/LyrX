@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import {
+  Bookmark,
   Disc3,
   Heart,
   Home,
@@ -136,6 +137,9 @@ export function AccountSidebar({
 
           {role ? (
             <SidebarSection label={t("interactions.title")}>
+              <SidebarLink to="/notebook" icon={Bookmark}>
+                {t("notebook.title")}
+              </SidebarLink>
               <SidebarLink to="/liked" icon={Heart}>
                 {t("interactions.likedSongs")}
               </SidebarLink>
@@ -239,6 +243,7 @@ function SidebarLink({
     | "/community/new"
     | "/community/mine"
     | "/admin/community"
+    | "/notebook"
     | "/liked"
     | "/admin/comments"
   icon: typeof Home

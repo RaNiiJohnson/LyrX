@@ -216,6 +216,17 @@ the creation/editing forms.
   withdrawn, retain only an unavailable entry as needed and stop redistributing
   its content.
 
+Lot 10 implements a private `/notebook` with an always-available localized default
+collection. Deleting a custom collection moves its passages into the default;
+removing a passage affects only the member's notebook. The limits are 500 saved
+entries, 40 custom collections, 60 code units per name and 1,000 per excerpt.
+Saving from either public origin requires an active, verified account. Selection
+is explicit in a separate dialog with a native read-only text selection area;
+the ordinary lyric reader stays unchanged. Changed-source snapshots are labelled
+as the saved version; unavailable entries expose no source content or artwork.
+Server-side snapshot redaction and account cleanup are described in
+[architecture.md](architecture.md). Card generation stays in lot 11.
+
 ## Signed sharing cards
 
 - From a public song or still-available notebook excerpt, a member chooses a

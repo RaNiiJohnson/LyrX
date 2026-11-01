@@ -1,6 +1,44 @@
 # Delivery progress
 
-## Active lot
+## Lot 10 — Private lyric notebook (complete locally, 1 November 2026)
+
+- User validated the proposed desktop/mobile design and explicitly authorized
+  implementation. Starting state: clean `main` at `ce7b21fa0b872cc2a99e4d948b531c0e28f6918f`
+  (PR #8 merged); the previous pre-lot-10 worktree/branch no longer existed.
+  Work is isolated on `codex/private-lyric-notebook` in the existing checkout;
+  no worktree was created and no pre-existing changes were overwritten.
+- Added member-private excerpts for both Artist and Fan publications, exact text
+  selection, permanent default/custom collections, moves, removal, source return,
+  changed-version labels and unavailable placeholders. Caffeine/components remain
+  in place with mobile fullscreen selection, desktop collections, FR/EN and themes.
+  Sharing cards and lot 11 are not implemented.
+- Server derives ownership, source content and snapshots; active verified access
+  applies to every notebook read/write, including admins. SHA-256 fingerprints,
+  canonical range validation, OCC retries, caps and rate limiting prevent stale
+  or uncontrolled snapshot creation. Triggered bounded cleanup redacts withdrawn
+  snapshots, with recovery and integration into the real account-deletion job.
+- Primary-agent full local review uses fixed point `ce7b21f`; no delegated
+  completion review or code-review skill. Corrections: canonical CR/CRLF selection
+  mapping, collection creation without an optional callback, deleted-collection
+  subscription handling, modal focus restoration and immediate cleanup rescheduling.
+  Convex expert/reviewer checklists applied locally: no unresolved Critical or
+  Important issue; no remaining hard standards/specification defect.
+- Accepted bounded-cost trade-off: duplicate/quota checks can read up to 500 small
+  private records per save, custom-collection deletion moves at most 500 rows in
+  one transaction. The 500/40 caps are enforced in the server transaction. Revisit
+  counting/deduplication indexes and batched collection moves before raising caps.
+- Automated and browser evidence, deployment boundaries and local PR proposal are
+  recorded in [lot10-verification.md](lot10-verification.md) and
+  [lot10-pr.md](lot10-pr.md).
+- Final `pnpm check` passes formatting, lint, all TypeScript projects, **462 tests**
+  (318 web, 114 backend, 30 shared), and production client/SSR builds. Final log:
+  `/tmp/lyrx-notebook-final-check.log`. Documentation formatting was checked after
+  recording these results. Browser checks cover 1440×1000 and 390×844, native
+  keyboard selection, save/read/cleanup, collection cancellation, FR/EN and
+  light/dark. Cross-account, withdrawal and account deletion use isolated tests.
+  The original French/system preferences and viewport were restored.
+
+## Previous delivery checkpoints
 
 ### CI dialog-focus assertion correction — 1 November 2026
 
@@ -1575,8 +1613,6 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Review the standalone pre-lot 10 refactor on `codex/pre-lot10-architecture`.
-The requested English PR form is prepared for user submission; no Create pull
-request, merge or production deployment is authorized. Lot 10 remains unstarted
-and requires approval after this feature is delivered. Historical lot records
-above describe their own checkpoints, not the current mission.
+Review the completed local lot 10 commit on `codex/private-lyric-notebook` and the
+English PR proposal in [lot10-pr.md](lot10-pr.md). No push, PR creation, merge or
+production deployment has been performed. Lot 11 requires separate approval.

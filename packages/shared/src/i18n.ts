@@ -1,6 +1,65 @@
 import type { SupportedLocale } from "./index"
 
 const frenchMessages = {
+  "notebook.retry": "Réessayer",
+  "notebook.title": "Mon carnet",
+  "notebook.private": "Visible uniquement par vous",
+  "notebook.savePassage": "Enregistrer un passage",
+  "notebook.selectTitle": "Choisir un passage",
+  "notebook.selectHelp":
+    "Sélectionnez jusqu’à 1 000 caractères dans le texte, au toucher ou avec Maj + flèches au clavier.",
+  "notebook.lyrics": "Texte source à sélectionner",
+  "notebook.preview": "Votre passage",
+  "notebook.noSelection": "Sélectionnez un passage dans les paroles.",
+  "notebook.selectionCount": "{{count}} / 1 000 caractères sélectionnés",
+  "notebook.default": "Mes passages",
+  "notebook.all": "Tous les passages",
+  "notebook.collections": "Collections",
+  "notebook.collection": "Collection",
+  "notebook.newCollection": "Nouvelle collection",
+  "notebook.name": "Nom de la collection",
+  "notebook.nameHint": "De 1 à 60 caractères ; 40 collections maximum.",
+  "notebook.nameInvalid":
+    "Saisissez un nom de 1 à 60 caractères, distinct des autres collections.",
+  "notebook.save": "Enregistrer",
+  "notebook.cancel": "Annuler",
+  "notebook.close": "Fermer",
+  "notebook.saved": "Passage enregistré",
+  "notebook.view": "Voir mon carnet",
+  "notebook.source": "Voir le morceau",
+  "notebook.rename": "Renommer",
+  "notebook.deleteCollection": "Supprimer la collection",
+  "notebook.deleteCollectionHint":
+    "Ses passages seront déplacés dans « Mes passages ». Aucun extrait ne sera supprimé.",
+  "notebook.remove": "Retirer du carnet",
+  "notebook.removeHint": "Cet extrait sera retiré de votre carnet privé.",
+  "notebook.move": "Déplacer vers une collection",
+  "notebook.options": "Options du passage",
+  "notebook.collectionOptions": "Options de la collection",
+  "notebook.changed": "Paroles modifiées depuis l’enregistrement",
+  "notebook.changedHint":
+    "Vous lisez le passage enregistré à l’époque, pas les paroles actuelles.",
+  "notebook.unavailable": "Source indisponible",
+  "notebook.unavailableHint":
+    "Le texte et l’illustration de cet extrait ne sont plus disponibles.",
+  "notebook.empty": "Gardez les paroles qui vous parlent",
+  "notebook.emptyHint":
+    "Depuis un morceau, choisissez « Enregistrer un passage » pour le retrouver ici.",
+  "notebook.emptyCollection": "Aucun passage dans cette collection",
+  "notebook.emptyCollectionHint":
+    "Enregistrez un passage ou déplacez un extrait depuis une autre collection.",
+  "notebook.discover": "Découvrir des morceaux",
+  "notebook.signIn": "Se connecter pour ouvrir son carnet",
+  "notebook.signInSave":
+    "Connectez-vous avec un compte actif et vérifié pour enregistrer des passages.",
+  "notebook.limit":
+    "Votre carnet accepte jusqu’à 500 passages et 40 collections. Retirez un élément pour en ajouter un autre.",
+  "notebook.rangeError":
+    "Sélectionnez un passage non vide de 1 000 caractères maximum.",
+  "notebook.sourceChanged":
+    "Les paroles ont changé. Fermez cette fenêtre puis ouvrez-la à nouveau pour refaire votre sélection.",
+  "notebook.updated": "Carnet mis à jour",
+
   "interactions.placeholder": "Écris un commentaire…",
   "interactions.you": "Vous",
   "interactions.options": "Options du commentaire",
@@ -688,6 +747,63 @@ const frenchMessages = {
 export type MessageKey = keyof typeof frenchMessages
 
 const englishMessages = {
+  "notebook.retry": "Try again",
+  "notebook.title": "My notebook",
+  "notebook.private": "Only visible to you",
+  "notebook.savePassage": "Save a passage",
+  "notebook.selectTitle": "Choose a passage",
+  "notebook.selectHelp":
+    "Select up to 1,000 characters in the text, by touch or with Shift + arrow keys.",
+  "notebook.lyrics": "Source text to select",
+  "notebook.preview": "Your passage",
+  "notebook.noSelection": "Select a passage in the lyrics.",
+  "notebook.selectionCount": "{{count}} / 1,000 characters selected",
+  "notebook.default": "My passages",
+  "notebook.all": "All passages",
+  "notebook.collections": "Collections",
+  "notebook.collection": "Collection",
+  "notebook.newCollection": "New collection",
+  "notebook.name": "Collection name",
+  "notebook.nameHint": "1–60 characters; up to 40 collections.",
+  "notebook.nameInvalid": "Enter a unique name of 1–60 characters.",
+  "notebook.save": "Save",
+  "notebook.cancel": "Cancel",
+  "notebook.close": "Close",
+  "notebook.saved": "Passage saved",
+  "notebook.view": "View my notebook",
+  "notebook.source": "View song",
+  "notebook.rename": "Rename",
+  "notebook.deleteCollection": "Delete collection",
+  "notebook.deleteCollectionHint":
+    "Its passages will move to My passages. No excerpts will be deleted.",
+  "notebook.remove": "Remove from notebook",
+  "notebook.removeHint":
+    "This excerpt will be removed from your private notebook.",
+  "notebook.move": "Move to a collection",
+  "notebook.options": "Passage options",
+  "notebook.collectionOptions": "Collection options",
+  "notebook.changed": "Lyrics changed since saving",
+  "notebook.changedHint":
+    "This is the passage saved at the time, not the current lyrics.",
+  "notebook.unavailable": "Source unavailable",
+  "notebook.unavailableHint":
+    "The text and artwork for this excerpt are no longer available.",
+  "notebook.empty": "Keep the lyrics that speak to you",
+  "notebook.emptyHint": "Choose Save a passage on a song to find it here.",
+  "notebook.emptyCollection": "No passages in this collection",
+  "notebook.emptyCollectionHint":
+    "Save a passage or move one from another collection.",
+  "notebook.discover": "Discover songs",
+  "notebook.signIn": "Sign in to open your notebook",
+  "notebook.signInSave":
+    "Sign in with an active, verified account to save passages.",
+  "notebook.limit":
+    "Your notebook holds up to 500 passages and 40 collections. Remove an item to add another.",
+  "notebook.rangeError": "Select a nonempty passage of up to 1,000 characters.",
+  "notebook.sourceChanged":
+    "The lyrics changed. Close and reopen this window to select your passage again.",
+  "notebook.updated": "Notebook updated",
+
   "interactions.placeholder": "Write a comment…",
   "interactions.you": "You",
   "interactions.options": "Comment options",
