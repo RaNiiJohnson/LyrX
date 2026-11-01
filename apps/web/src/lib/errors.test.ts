@@ -54,4 +54,22 @@ describe("localized error messages", () => {
       "translated:error.unexpected"
     )
   })
+
+  it("explains network, validator and masked server failures", () => {
+    expect(getErrorMessage(new TypeError("Failed to fetch"), translate)).toBe(
+      "translated:error.network"
+    )
+    expect(
+      getErrorMessage(new Error("ArgumentValidationError: bad"), translate)
+    ).toBe("translated:error.invalidInput")
+    expect(
+      getErrorMessage(new Error("[Request ID: 1] Server Error"), translate)
+    ).toBe("translated:error.server")
+  })
+
+  it("keeps an unmapped application code visible", () => {
+    expect(
+      getErrorMessage({ data: { code: "SOMETHING_NEW" } }, translate)
+    ).toBe("translated:error.unexpected (SOMETHING_NEW)")
+  })
 })

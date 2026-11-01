@@ -5,6 +5,14 @@ type Translate = (key: MessageKey) => string
 const ERROR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   ALBUM_NEEDS_PUBLISHED_TRACK: "error.albumNeedsPublishedTrack",
   ACCOUNT_SUSPENDED: "error.accountSuspended",
+  ACCOUNT_UNAVAILABLE: "error.accountUnavailable",
+  ADMIN_ALREADY_EXISTS: "error.adminAlreadyExists",
+  ELIGIBLE_MEMBER_NOT_FOUND: "error.memberNotEligible",
+  SESSION_EXPIRED: "error.sessionExpired",
+  INVALID_TOKEN: "error.invalidToken",
+  INVALID_EMAIL: "error.invalidEmail",
+  PASSWORD_TOO_SHORT: "error.passwordLength",
+  PASSWORD_TOO_LONG: "error.passwordLength",
   ARTIST_ROLE_REQUIRED: "error.artistRoleRequired",
   ARTIST_REQUIRED: "error.artistRoleRequired",
   EMAIL_CAN_NOT_BE_SENT: "error.emailUnavailable",
@@ -69,11 +77,34 @@ export function getErrorMessage(error: unknown, translate?: Translate) {
   if (translate) {
     const code = getErrorCode(error)
     const key = code ? ERROR_MESSAGE_KEYS[code] : undefined
-    return translate(key ?? "error.unexpected")
+    if (key) return translate(key)
+    const kind = classifyError(error)
+    if (kind) return translate(kind)
+    // Keep the machine code visible so an unmapped failure stays diagnosable.
+    return code?.includes("_")
+      ? `${translate("error.unexpected")} (${code})`
+      : translate("error.unexpected")
   }
 
   const message = getRawErrorMessage(error)
   return message ?? "Une erreur inattendue est survenue."
+}
+
+/** Failures without an application code: offline, validators, masked server errors. */
+function classifyError(error: unknown): MessageKey | undefined {
+  if (typeof navigator !== "undefined" && navigator.onLine === false)
+    return "error.network"
+  const message = getRawErrorMessage(error) ?? ""
+  if (error instanceof TypeError && /fetch|network|load failed/i.test(message))
+    return "error.network"
+  if (
+    /ArgumentValidationError|ReturnsValidationError|Validator error/i.test(
+      message
+    )
+  )
+    return "error.invalidInput"
+  if (/Server Error/i.test(message)) return "error.server"
+  return undefined
 }
 
 function getErrorCode(

@@ -85,7 +85,7 @@ function NotebookError({ error }: { error: unknown }) {
   return (
     <RouteBoundaryShell>
       <Alert variant="destructive">
-        <AlertTitle>{t("error.unexpected")}</AlertTitle>
+        <AlertTitle>{t("error.title")}</AlertTitle>
         <AlertDescription>
           {getErrorMessage(error, t)}
           <Button asChild variant="outline">

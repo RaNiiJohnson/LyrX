@@ -191,7 +191,7 @@ function DecisionForm({ reportId }: { reportId: Id<"commentReports"> }) {
         <FieldGroup>
           {error ? (
             <Alert variant="destructive">
-              <AlertTitle>{t("error.unexpected")}</AlertTitle>
+              <AlertTitle>{t("error.title")}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
