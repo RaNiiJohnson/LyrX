@@ -78,4 +78,7 @@ merge. Lot 8 is merged in PR #6 at `6e5659d`. The user approved lot 9 on
 verification and limitations are in [lot9-verification.md](lot9-verification.md)
 and [progress](progress.md). The user approved the lot 10 mobile/desktop design and authorized implementation
 on 1 November 2026. Its delivery is recorded in [progress](progress.md). Lot 11
-remains unstarted and requires separate approval.
+was separately authorized after design approval on 1 November 2026 while the user
+reviewed lot 10. The user subsequently authorized a local commit after correcting
+selection events; neither lot has been merged. PR creation and merging remain
+explicitly prohibited. Lot 12 requires separate approval.

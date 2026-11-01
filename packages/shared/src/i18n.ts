@@ -1,6 +1,37 @@
 import type { SupportedLocale } from "./index"
 
 const frenchMessages = {
+  "sharing.create": "Créer une carte",
+  "sharing.description":
+    "Un passage, son artiste, la signature Lyr’X. Aperçu au format story.",
+  "sharing.signInHint":
+    "Connectez-vous avec un compte actif et vérifié pour créer une carte.",
+  "sharing.selectHelp": "Sélectionnez un court passage pour voir la carte.",
+  "sharing.selectLabel": "Choisissez votre passage",
+  "sharing.limits":
+    "{{count}} / {{max}} caractères sélectionnés ; 10 lignes maximum sur la carte.",
+  "sharing.artwork": "Utiliser la pochette en arrière-plan",
+  "sharing.noArtwork": "Sans pochette, la carte utilise le fond Corail studio.",
+  "sharing.dimensions": "Story · 1080 × 1920 · PNG",
+  "sharing.download": "Télécharger en PNG",
+  "sharing.downloading": "Vérification et téléchargement…",
+  "sharing.downloadHint":
+    "Le fichier sera enregistré sur votre appareil. Les cartes déjà téléchargées ne peuvent pas être rappelées.",
+  "sharing.unavailable":
+    "La source a changé ou n’est plus disponible. Refaites votre sélection depuis le morceau actuel.",
+  "sharing.changed":
+    "Les paroles ont changé depuis cet enregistrement. Choisissez un passage dans la version actuelle pour créer une carte.",
+  "sharing.selectCurrent": "Ouvrir le morceau actuel",
+  "sharing.doesNotFit":
+    "Ce texte ne tient pas sur la carte. Choisissez un passage plus court ; aucun texte ne sera coupé.",
+  "sharing.artworkError":
+    "La pochette ne peut pas être chargée. Désactivez son utilisation pour créer une carte sans illustration.",
+  "sharing.renderError":
+    "La carte n’a pas pu être créée. Réessayez votre sélection.",
+  "sharing.rendering": "Préparation de l’aperçu…",
+  "sharing.rangeError":
+    "Sélectionnez un passage non vide de 360 caractères maximum, sans couper un caractère.",
+
   "notebook.retry": "Réessayer",
   "notebook.title": "Mon carnet",
   "notebook.private": "Visible uniquement par vous",
@@ -747,6 +778,38 @@ const frenchMessages = {
 export type MessageKey = keyof typeof frenchMessages
 
 const englishMessages = {
+  "sharing.create": "Create a card",
+  "sharing.description":
+    "A passage, its artist and the Lyr’X signature. Story-format preview.",
+  "sharing.signInHint":
+    "Sign in with an active, verified account to create a card.",
+  "sharing.selectHelp": "Select a short passage to preview your card.",
+  "sharing.selectLabel": "Choose your passage",
+  "sharing.limits":
+    "{{count}} / {{max}} characters selected; up to 10 rendered lines.",
+  "sharing.artwork": "Use artwork as the background",
+  "sharing.noArtwork":
+    "Without artwork, your card uses the Corail studio background.",
+  "sharing.dimensions": "Story · 1080 × 1920 · PNG",
+  "sharing.download": "Download PNG",
+  "sharing.downloading": "Checking and downloading…",
+  "sharing.downloadHint":
+    "The file will be saved to your device. Previously downloaded cards cannot be recalled.",
+  "sharing.unavailable":
+    "The source changed or is no longer available. Select a passage from the current song again.",
+  "sharing.changed":
+    "Lyrics changed since this passage was saved. Select from the current version to create a card.",
+  "sharing.selectCurrent": "Open the current song",
+  "sharing.doesNotFit":
+    "This text does not fit. Choose a shorter passage; text will never be clipped.",
+  "sharing.artworkError":
+    "Artwork could not be loaded. Turn off the artwork option to create a card without it.",
+  "sharing.renderError":
+    "The card could not be created. Try selecting your passage again.",
+  "sharing.rendering": "Preparing preview…",
+  "sharing.rangeError":
+    "Select a nonempty passage of up to 360 characters without splitting a character.",
+
   "notebook.retry": "Try again",
   "notebook.title": "My notebook",
   "notebook.private": "Only visible to you",

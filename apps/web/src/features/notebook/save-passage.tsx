@@ -1,4 +1,4 @@
-import { notebookSourceRange } from "@lyrx/shared"
+import { useLyricSelection } from "@/lib/use-lyric-selection"
 import { useId, useRef, useState } from "react"
 import { Bookmark, Plus } from "lucide-react"
 import { Link } from "@tanstack/react-router"
@@ -97,6 +97,7 @@ function PassageForm({
   const [creating, setCreating] = useState(false),
     [error, setError] = useState<string | null>(null)
   const [range, setRange] = useState({ start: 0, end: 0 })
+  const selectionRef = useLyricSelection(lyricsText, setRange)
   const pending = useRef(false)
   const collectionTrigger = useRef<HTMLButtonElement>(null)
   const text = lyricsText.slice(range.start, range.end)
@@ -158,16 +159,7 @@ function PassageForm({
                   rows={8}
                   className="min-h-40 leading-7"
                   aria-describedby={`${id}-count`}
-                  onSelect={(event) => {
-                    const node = event.currentTarget
-                    setRange(
-                      notebookSourceRange(
-                        lyricsText,
-                        node.selectionStart,
-                        node.selectionEnd
-                      )
-                    )
-                  }}
+                  ref={selectionRef}
                 />
               </Field>
               <Field>

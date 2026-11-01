@@ -1,3 +1,4 @@
+import { CreateSharingCard } from "@/features/sharing/sharing-card"
 import { SavePassage } from "@/features/notebook/save-passage"
 import { convexQuery } from "@convex-dev/react-query"
 import { createFileRoute, notFound } from "@tanstack/react-router"
@@ -39,7 +40,10 @@ function PublicSongPage() {
       <SongReadOnly
         detail={detail}
         actions={
-          <SavePassage sourceId={songId} lyricsText={detail.lyricsText} />
+          <>
+            <SavePassage sourceId={songId} lyricsText={detail.lyricsText} />
+            <CreateSharingCard target={{ kind: "song", sourceId: songId }} />
+          </>
         }
       />
       <SongInteractions key={songId} sourceId={songId} />

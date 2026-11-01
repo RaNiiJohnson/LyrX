@@ -241,6 +241,15 @@ Server-side snapshot redaction and account cleanup are described in
 - Withdrawn content cannot generate new cards. Already downloaded files cannot
   be recalled.
 
+Lot 11 adds 1080×1920 PNG preview/download on web. Cards accept at most 360 UTF-16
+units and ten rendered passage lines, with separately bounded attribution. A
+changed notebook source requires a fresh selection from the current song. The
+same canvas supplies preview and download; source permission/version/attribution
+and artwork identity are rechecked immediately before download. Layout limits,
+CORS-safe managed artwork and verification are documented in
+[lot11-verification.md](lot11-verification.md). This signature is Lyr'X branding,
+not a cryptographic or legal certification. Native sharing stays with Expo.
+
 ## External listening links
 
 - Lyr'X uploads or hosts no audio or video.

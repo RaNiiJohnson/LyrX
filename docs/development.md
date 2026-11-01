@@ -323,3 +323,23 @@ The five-minute recovery cron invokes `notebook/cleanup:recover`; an authorized
 operator can invoke that internal mutation to resume existing development jobs.
 Private readers suppress unavailable snapshots immediately, before physical
 redaction finishes. Redacted excerpts do not reappear after republication.
+
+## Sharing-card verification (lot 11)
+
+Use the active development session to open **Create a card** on a public Artist/Fan
+song, or on an own available notebook excerpt. Select a short passage; confirm the
+preview, artwork toggle, PNG dimensions and visible Lyr'X signature. Source changes
+must require fresh selection; unavailable sources cannot export. Use isolated tests
+for withdrawal, foreign IDs and mid-download races, not live moderation or account
+changes. Do not publish or alter real lyrics to manufacture rendering evidence.
+
+PNG output is 1080×1920 with at most 360 UTF-16 units and ten rendered excerpt
+lines. Attribution is separately bounded; overflows fail without clipping. Real
+browser verification should include both managed-artwork and plain Corail studio
+exports and inspect the actual downloaded PNG. The same canvas is used in preview
+and download. Image/CORS failures offer a plain-background option. Existing files
+cannot be recalled, and no file is sent to a social service by this lot.
+
+No schema migration or new backend storage is needed. The sharing API is read-only;
+use the already selected development watcher rather than targeting production.
+Record browser/physical-device limits and keep test harnesses out of public assets.

@@ -1,5 +1,59 @@
 # Delivery progress
 
+## Lot 11 — Sharing cards (local delivery)
+
+- The user approved the desktop/mobile direction and authorized implementation on
+  1 November 2026 while checking lot 10. Branch `codex/lyric-sharing-cards` starts
+  at local lot 10 commit `e8ffc16`; main remains unchanged. The existing AGENTS.md
+  Turborepo block is preserved, with its original diff saved before editing.
+- Added source-authorized Artist/Fan and private-notebook entry points, exact
+  selection, a shared canvas preview/export, optional managed blurred artwork,
+  Corail studio fallback, visible Lyr'X signature and local 1080×1920 PNG download.
+  FR/EN, theme/components, keyboard focus and mobile/desktop arrangements follow
+  the approved design. Changed notebook text requires a current-source selection.
+- Two fresh Convex checks bracket PNG encoding; ownership, current publication,
+  author eligibility, source fingerprint, selected range, attribution and artwork
+  identity govern export. Closing/changing the dialog prevents in-flight export.
+  There is no new schema/table, upload, external publication or native sharing.
+- Primary-agent full local review against `e8ffc16`, including all new modules,
+  tests, translations, entry points and generated API types; no delegation or
+  code-review skill. Convex expert/reviewer checklists applied locally. No
+  unresolved Critical/Important Convex or hard standards/specification finding.
+  Accepted bounds: very long source attribution can fail the fixed layout; an
+  already downloaded file or withdrawal after the last check cannot be recalled.
+- Actual signed-in preview/download and independent plain/artwork PNG fixtures
+  were verified, as were real application frames at 390×844 and 1440×1000 without
+  overflow. Temporary public harnesses were moved to Trash before the root build.
+  No publication/account/profile/notebook data was changed by these checks.
+- Initially left uncommitted for Ctrl+Shift+G review. After reporting the selection
+  issue below, the user authorized a local commit and explicitly prohibited merge
+  and PR creation. No push, PR creation, merge or production deployment. Verification and the local
+  English PR proposal: [lot11-verification.md](lot11-verification.md),
+  [lot11-pr.md](lot11-pr.md).
+- Final `pnpm check` passed formatting, lint, all TypeScript projects, **480 tests**
+  (329 web, 120 backend, 31 shared) and production client/SSR builds. Full log:
+  `/tmp/lyrx-lot11-check.log`. Only documentation changed afterward and its final
+  formatting was checked separately. The pre-existing AGENTS.md diff is unchanged.
+
+
+### Lot 11 selection-event correction
+
+- Reproduced the reported delayed selection in two DOM regressions: native `select`
+  and a document `selectionchange` during mouse drag both left the counter at zero
+  under the previous React-only binding (`/tmp/lyrx-selection-red.log`).
+- Added a shared native-event selection hook for sharing and notebook forms. It
+  reads native selection changes while dragging, supports release/key/touch events,
+  deduplicates unchanged ranges, preserves selection on focus transfer and cleans
+  listeners on unmount. Canonical CR/CRLF range mapping remains unchanged.
+- Targeted 14 tests passed after the correction (`/tmp/lyrx-selection-green.log`);
+  browser verification selected 29 characters and displayed the preview without
+  another click or deselection (`/tmp/lyrx-selection-fixed.png`). TypeScript and
+  targeted lint passed. Primary-agent delta review found no blocker; no new
+  backend/schema change is part of this follow-up. Final corrective `pnpm check` passed lint, TypeScript, **482 tests**
+  (331 web, 120 backend, 31 shared) and production builds; log:
+  `/tmp/lyrx-selection-check.log`. Documentation was formatted after recording the
+  result. The full lot and correction are included in the authorized local commit.
+
 ## Lot 10 — Private lyric notebook (complete locally, 1 November 2026)
 
 - User validated the proposed desktop/mobile design and explicitly authorized
@@ -1613,6 +1667,7 @@ as unverified live integrations; they did not produce a code-review blocker.
 
 ## Next mission
 
-Review the completed local lot 10 commit on `codex/private-lyric-notebook` and the
-English PR proposal in [lot10-pr.md](lot10-pr.md). No push, PR creation, merge or
-production deployment has been performed. Lot 11 requires separate approval.
+Review the local lot 11 commit on `codex/lyric-sharing-cards`. The user authorized
+committing after verification and explicitly prohibited merging and creating a PR.
+The branch includes the still-local lot 10 commit `e8ffc16`. Do not push, merge,
+create a PR or start lot 12 without further approval.

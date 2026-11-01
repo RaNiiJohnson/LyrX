@@ -35,6 +35,7 @@ const ERROR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   INVALID_URL_PROTOCOL: "error.invalidUrlProtocol",
   ONBOARDING_ALREADY_COMPLETED: "error.onboardingAlreadyCompleted",
   ONBOARDING_REQUIRED: "error.onboardingRequired",
+  SHARE_RANGE: "sharing.rangeError",
   NOTEBOOK_NAME: "notebook.nameInvalid",
   NOTEBOOK_LIMIT: "notebook.limit",
   NOTEBOOK_RANGE: "notebook.rangeError",

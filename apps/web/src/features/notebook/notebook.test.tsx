@@ -99,9 +99,7 @@ describe("notebook journeys", () => {
     await act(() => {
       input.focus()
       input.setSelectionRange(5, 9)
-      input.dispatchEvent(
-        new KeyboardEvent("keyup", { key: "ArrowRight", bubbles: true })
-      )
+      input.dispatchEvent(new Event("select", { bubbles: true }))
     })
     expect(document.querySelector("blockquote")?.textContent).toBe("echo")
     await submit()

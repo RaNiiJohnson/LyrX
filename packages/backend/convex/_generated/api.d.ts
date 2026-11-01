@@ -58,6 +58,7 @@ import type * as notebook_cleanup from "../notebook/cleanup.js";
 import type * as notebook_model from "../notebook/model.js";
 import type * as notebook_read from "../notebook/read.js";
 import type * as notebook_write from "../notebook/write.js";
+import type * as sharing from "../sharing.js";
 
 import type {
   ApiFromModules,
@@ -116,6 +117,7 @@ declare const fullApi: ApiFromModules<{
   "notebook/model": typeof notebook_model;
   "notebook/read": typeof notebook_read;
   "notebook/write": typeof notebook_write;
+  sharing: typeof sharing;
 }>;
 
 /**
