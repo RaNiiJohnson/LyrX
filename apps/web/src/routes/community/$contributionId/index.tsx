@@ -1,3 +1,4 @@
+import { CreateSharingCard } from "@/features/sharing/sharing-card"
 import { SavePassage } from "@/features/notebook/save-passage"
 import { convexQuery } from "@convex-dev/react-query"
 import { createFileRoute, notFound, Link } from "@tanstack/react-router"
@@ -59,10 +60,15 @@ function ContributionPage() {
         </div>
         <SongReadOnly
           actions={
-            <SavePassage
-              sourceId={contributionId}
-              lyricsText={row.lyricsText}
-            />
+            <>
+              <SavePassage
+                sourceId={contributionId}
+                lyricsText={row.lyricsText}
+              />
+              <CreateSharingCard
+                target={{ kind: "song", sourceId: contributionId }}
+              />
+            </>
           }
           detail={{
             artworkUrl: row.artworkUrl ?? null,

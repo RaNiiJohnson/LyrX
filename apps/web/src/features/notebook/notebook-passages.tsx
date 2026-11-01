@@ -1,3 +1,4 @@
+import { SharingDialog } from "@/features/sharing/sharing-card"
 import { useId, useRef, useState } from "react"
 import { MoreHorizontal, Bookmark } from "lucide-react"
 import { useMutation } from "convex/react"
@@ -127,7 +128,7 @@ function PassageCard({
 }) {
   const { t, locale } = useLocale()
   const optionsTrigger = useRef<HTMLButtonElement>(null)
-  const [action, setAction] = useState<"remove" | "move" | null>(null)
+  const [action, setAction] = useState<"remove" | "move" | "share" | null>(null)
   const remove = useMutation(api.notebook.write.remove)
   return (
     <Card className="min-w-0">
@@ -154,6 +155,12 @@ function PassageCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuGroup>
+                <DropdownMenuItem
+                  disabled={passage.state === "unavailable"}
+                  onSelect={() => setAction("share")}
+                >
+                  {t("sharing.create")}
+                </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setAction("move")}>
                   {t("notebook.move")}
                 </DropdownMenuItem>
@@ -210,6 +217,13 @@ function PassageCard({
           </Button>
         )}
       </CardFooter>
+      {action === "share" && (
+        <SharingDialog
+          target={{ kind: "passage", passageId: passage.id }}
+          onClose={() => setAction(null)}
+          onReturnFocus={() => optionsTrigger.current?.focus()}
+        />
+      )}
       {action === "remove" && (
         <NotebookConfirm
           title={t("notebook.remove")}

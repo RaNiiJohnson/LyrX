@@ -437,3 +437,29 @@ No new image claims or production migration are needed. See
   including for previously queued deletion jobs.
 - Tables are additive; no historical backfill is needed. Notebook data is never
   added to public discovery/search. Sharing-card rendering remains lot 11.
+
+## Sharing-card decisions (lot 11, 1 November 2026)
+
+`convex/sharing.ts` owns member-authorized source contexts and selected card data.
+It reuses the notebook/public-source eligibility boundary, rejects foreign notebook
+IDs, and derives current attribution and managed artwork. No schema or persistent
+export record is needed. A changed notebook fingerprint requires a new selection;
+unavailable sources return no content. Standard SDK subscriptions release old
+range reads instead of retaining them in Helpers.
+
+Public routes explicitly compose the sharing action; the notebook menu composes
+the same dialog. TanStack Form manages artwork settings and a read-only native
+textarea supplies canonical selection offsets through a shared native-event hook.
+Native select/selectionchange handles active dragging instead of waiting for React
+onSelect; release/key events handle cursor changes and blur retains the passage. The browser canvas is both preview
+and export, using the loaded DM Sans font, bounded word/grapheme layout, visible
+Lyr'X branding and optional CORS-approved blob artwork. Limits are documented in
+[lot11-verification.md](lot11-verification.md); layout failures never clip text.
+The file is a 1080×1920 PNG, not a public URL or cryptographic rights certificate.
+
+Two fresh source queries bracket PNG encoding, and export cancels on selection
+change/unmount. Final checks cover text version, exact selection, title, artist and
+artwork identity. Withdrawal prevents new app exports once observed; already
+downloaded bytes and changes after the final server check cannot be recalled.
+Blob URLs are released, image requests abort on replacement, and no third-party
+canvas/rendering dependency or server-side image service is introduced.

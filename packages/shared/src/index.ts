@@ -21,3 +21,10 @@ export type {
 } from "./lyrics"
 
 export { notebookSourceRange } from "./notebook"
+export {
+  SHARE_CARD_WIDTH,
+  SHARE_CARD_HEIGHT,
+  MAX_SHARE_TEXT_LENGTH,
+  MAX_SHARE_LINES,
+  validShareRange,
+} from "./sharing"
