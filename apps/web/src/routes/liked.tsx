@@ -17,7 +17,7 @@ function LikedSongsPage() {
   const current = useQuery(api.members.current, {})
   const { t } = useLocale()
   return (
-    <PageShell>
+    <PageShell width="wide">
       {current === undefined ? (
         <Skeleton className="h-32 w-full" />
       ) : current.state !== "ready" ? (

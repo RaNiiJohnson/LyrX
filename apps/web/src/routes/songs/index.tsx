@@ -56,9 +56,13 @@ function SongsResults({ search, onSearch }: ResultsProps) {
       {!data.ready ? (
         <DiscoveryLoading />
       ) : data.items.length ? (
-        <div className="grid gap-x-4 sm:grid-cols-2 sm:gap-y-4 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
           {data.items.map((song) => (
-            <SongCard key={`${song.origin}:${song.id}`} song={song} />
+            <SongCard
+              key={`${song.origin}:${song.id}`}
+              song={song}
+              presentation="cover"
+            />
           ))}
         </div>
       ) : (

@@ -62,6 +62,22 @@ needed; server rules are unchanged and still enforce them):
   section is omitted for an artist without albums, and `SongRow` hides "Tout
   voir" when it has no songs. No backend change.
 
+- **Album navigation on song pages.** A public song that belongs to a
+  published album shows that album in the side column: cover, "Voir
+  l’album", "Morceau n sur N", previous/next and the full numbered track list
+  with the current song marked (`aria-current`). On phones the same block is
+  a compact bar above the lyrics with previous/next and a "Voir les
+  morceaux" drawer. It reads the existing public `getPublishedAlbum` query
+  (cached per album), so no backend change.
+- **Home-design audit.** `/albums` and `/artists` already matched the home
+  cards. Aligned: the `/songs` list now uses home cover cards in a 2/3/5
+  column grid; "Mes morceaux aimés" uses the same grid (liked items carry no
+  artwork yet, so covers are lettered); the album page track list is a flat
+  numbered list with whole-row links instead of one card per track; a list
+  opened from a profile's "Tout voir" shows a "De @handle" chip that clears
+  the artist filter. Not changed (management or private screens): fan
+  contributions, notebook, forms and moderation.
+
 Verification: `pnpm check` passes (format, lint, typecheck, 336 web tests,
 build). New tests cover the persistent chrome, sign-up redirect, draft/publish
 choice and handle suggestion. Screens were checked at 390 px and 1280 px in a

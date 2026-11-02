@@ -4,12 +4,11 @@ import { Link, createFileRoute, notFound } from "@tanstack/react-router"
 import { BackButton } from "@/app/back-button"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
-import { Disc3, FileMusic } from "lucide-react"
+import { ChevronRight, Disc3 } from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Badge } from "@lyrx/ui/components/badge"
-import { Card, CardContent } from "@lyrx/ui/components/card"
 
 import { useLocale } from "@/app/locale-provider"
 
@@ -94,30 +93,33 @@ function PublicAlbumPage() {
               {tracks.length}
             </span>
           </div>
-          <div className="flex flex-col gap-2">
+          <ol className="flex flex-col border-t">
             {tracks.map(({ position, song }) => (
-              <Card key={song._id}>
-                <CardContent className="flex min-h-16 items-center gap-4 py-3">
-                  <span className="w-7 text-right font-mono text-sm text-muted-foreground">
+              <li key={song._id} className="border-b">
+                <Link
+                  to="/songs/$songId"
+                  params={{ songId: song._id }}
+                  className="group flex min-h-16 items-center gap-4 rounded-md px-1 py-3 outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <span className="w-7 shrink-0 text-right font-mono text-sm text-muted-foreground">
                     {position + 1}
                   </span>
-                  <FileMusic className="size-5 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      to="/songs/$songId"
-                      params={{ songId: song._id }}
-                      className="font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                    >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium group-hover:underline">
                       {song.title}
-                    </Link>
-                    <p className="truncate text-sm text-muted-foreground">
+                    </span>
+                    <span className="block truncate text-sm text-muted-foreground">
                       {song.primaryArtist}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                    </span>
+                  </span>
+                  <ChevronRight
+                    className="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
 
         {album.label || album.credits.length > 0 ? (

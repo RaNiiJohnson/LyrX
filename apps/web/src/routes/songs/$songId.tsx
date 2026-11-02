@@ -10,6 +10,7 @@ import { BackButton } from "@/app/back-button"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
 import { useSuspenseQuery } from "@tanstack/react-query"
+import { AlbumTrackNavigation } from "@/features/catalogue/song/album-track-navigation"
 import { SongReadOnly } from "@/features/catalogue/song/song-read-only"
 import { SongInteractions } from "@/features/interactions/song-interactions"
 import { RecordPublicView } from "@/features/discovery/record-public-view"
@@ -40,6 +41,12 @@ function PublicSongPage() {
       <RecordPublicView origin="artist" sourceId={songId} />
       <SongReadOnly
         detail={detail}
+        albumNavigation={
+          <AlbumTrackNavigation
+            albumId={detail.album?.albumId}
+            songId={songId}
+          />
+        }
         actions={
           <>
             <BackButton fallback="/songs" />
