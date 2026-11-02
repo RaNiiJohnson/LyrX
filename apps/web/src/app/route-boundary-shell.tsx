@@ -3,10 +3,13 @@ import type { ReactNode } from "react"
 import { PRODUCT_NAME } from "@lyrx/shared"
 import { cn } from "@lyrx/ui/lib/utils"
 
+import { PageMain, useInsideAppChrome } from "./page-main"
+
 /**
  * Provider-free shell for route pending, error and not-found boundaries.
  * TanStack Router may render these before RootApplication mounts the locale,
  * auth and Convex providers, so this component must not consume any of them.
+ * When the persistent chrome is already mounted it renders only the body.
  */
 export function RouteBoundaryShell({
   children,
@@ -15,6 +18,9 @@ export function RouteBoundaryShell({
   children: ReactNode
   width?: "narrow" | "wide"
 }) {
+  // Below the root chrome, keep the real navigation in place and only swap
+  // the page body; otherwise every slow navigation flashed a second header.
+  if (useInsideAppChrome()) return <PageMain width={width}>{children}</PageMain>
   return (
     <div className="grid min-h-svh grid-rows-[auto_1fr]">
       <header className="pt-4">

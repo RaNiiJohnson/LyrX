@@ -1,6 +1,6 @@
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router"
-import { usePaginatedQuery } from "convex-helpers/react/cache"
-import { Disc3, FileMusic, Plus } from "lucide-react"
+import { usePaginatedQuery, useQuery } from "convex-helpers/react/cache"
+import { Disc3, FileMusic, Hourglass, Plus } from "lucide-react"
 import { useState } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
@@ -42,6 +42,8 @@ export function CatalogueDashboard() {
   const albums = usePaginatedQuery(api.catalogue.read.listMyAlbums, queryArgs, {
     initialNumItems: 24,
   })
+  const counts = useQuery(api.catalogue.read.getMyCatalogueCounts, {})
+  const activeCounts = counts?.[activeKind]
 
   return (
     <section className="flex h-full flex-col gap-6">
@@ -78,7 +80,19 @@ export function CatalogueDashboard() {
           <CreateButton kind={activeKind === "albums" ? "album" : "song"} />
         </div>
 
-        <StatusFilters value={status} onChange={setStatus} />
+        {activeCounts && activeCounts.draft > 0 && status !== "draft" ? (
+          <PendingDrafts
+            kind={activeKind}
+            count={activeCounts.draft}
+            onShow={() => setStatus("draft")}
+          />
+        ) : null}
+
+        <StatusFilters
+          value={status}
+          onChange={setStatus}
+          counts={activeCounts}
+        />
 
         <TabsContent value="songs" className="flex flex-col gap-4 pt-1">
           <CatalogueListState
@@ -115,18 +129,67 @@ export function CatalogueDashboard() {
   )
 }
 
+function PendingDrafts({
+  count,
+  kind,
+  onShow,
+}: {
+  count: number
+  kind: CatalogueKind
+  onShow: () => void
+}) {
+  const { t } = useLocale()
+  const title =
+    kind === "songs"
+      ? count === 1
+        ? t("studio.pendingDraftSong")
+        : t("studio.pendingDraftSongs", { count })
+      : count === 1
+        ? t("studio.pendingDraftAlbum")
+        : t("studio.pendingDraftAlbums", { count })
+  return (
+    <div className="mt-4 flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5 sm:p-4">
+      <span className="hidden size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary sm:grid">
+        <Hourglass className="size-4" aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium sm:text-base">{title}</p>
+        <p className="hidden text-sm text-muted-foreground sm:block">
+          {t("studio.pendingDraftsHint")}
+        </p>
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="shrink-0"
+        onClick={onShow}
+      >
+        {t("studio.showDrafts")}
+      </Button>
+    </div>
+  )
+}
+
 function StatusFilters({
+  counts,
   onChange,
   value,
 }: {
+  counts?: { all: number; draft: number; published: number }
   onChange: (value: StatusFilter) => void
   value: StatusFilter
 }) {
   const { t } = useLocale()
+  const withCount = (label: string, count?: number) =>
+    count === undefined ? label : `${label} (${count})`
   const options = [
-    { label: t("catalogue.all"), value: "all" },
-    { label: t("catalogue.drafts"), value: "draft" },
-    { label: t("catalogue.publishedPlural"), value: "published" },
+    { label: withCount(t("catalogue.all"), counts?.all), value: "all" },
+    { label: withCount(t("catalogue.drafts"), counts?.draft), value: "draft" },
+    {
+      label: withCount(t("catalogue.publishedPlural"), counts?.published),
+      value: "published",
+    },
   ] as const
   return (
     <ToggleGroup

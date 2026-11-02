@@ -9,6 +9,9 @@ const mocks = vi.hoisted(() => ({
   tab: "songs",
   navigate: vi.fn(),
   list: vi.fn(),
+  counts: undefined as
+    | undefined
+    | Record<"songs" | "albums", Record<"all" | "draft" | "published", number>>,
 }))
 vi.mock("@tanstack/react-router", () => ({
   getRouteApi: () => ({ useSearch: () => ({ tab: mocks.tab }) }),
@@ -24,6 +27,7 @@ vi.mock("convex-helpers/react/cache", async () => {
 })
 vi.mock("convex/react", () => ({
   usePaginatedQuery: (...args: Array<unknown>) => mocks.list(...args),
+  useQuery: () => mocks.counts,
 }))
 vi.mock("./catalogue-item-card", () => ({
   SongCard: () => <article>My song</article>,
@@ -49,6 +53,7 @@ beforeEach(() => {
   document.body.append(container)
   root = createRoot(container)
   mocks.tab = "songs"
+  mocks.counts = undefined
   mocks.navigate.mockReset()
   mocks.list.mockReset().mockReturnValue({
     status: "Exhausted",
@@ -140,5 +145,36 @@ describe("Studio catalogue controls", () => {
       {},
       {},
     ])
+  })
+
+  it("shows status counts and turns waiting drafts into a one-click filter", async () => {
+    mocks.counts = {
+      songs: { all: 5, draft: 2, published: 3 },
+      albums: { all: 1, draft: 0, published: 1 },
+    }
+    await render()
+    const labels = [
+      ...container.querySelectorAll<HTMLButtonElement>('[role="radio"]'),
+    ].map((button) => button.textContent)
+    expect(labels).toEqual(["Tous (5)", "Brouillons (2)", "Publiés (3)"])
+    expect(container.textContent).toContain(
+      "2 morceaux attendent d’être publiés"
+    )
+    const show = [
+      ...container.querySelectorAll<HTMLButtonElement>("button"),
+    ].find((button) => button.textContent === "Voir les brouillons")!
+    await act(async () => {
+      show.click()
+      await Promise.resolve()
+    })
+    expect(mocks.list.mock.calls.slice(-2).map((call) => call[1])).toEqual([
+      { status: "draft" },
+      { status: "draft" },
+    ])
+    expect(container.textContent).not.toContain("attendent d’être publiés")
+
+    mocks.tab = "albums"
+    await render()
+    expect(container.textContent).not.toContain("attend")
   })
 })

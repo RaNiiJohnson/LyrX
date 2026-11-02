@@ -7,7 +7,9 @@ import { query } from "../_generated/server"
 import { memberQuery } from "../lib/functions"
 import { eligibleMember } from "../discovery/projection"
 import { validatePageSize } from "../community/values"
-import { sourceId, songCard, commentCard } from "./model"
+import { sourceId, commentCard, likedSongCard } from "./model"
+import type { Id } from "../_generated/dataModel"
+import { songListingExtras } from "../catalogue/listing"
 import { publicSource, viewer } from "./access"
 
 export const summary = query({
@@ -75,7 +77,7 @@ export const comments = query({
 })
 export const likedSongs = memberQuery({
   args: { paginationOpts: paginationOptsValidator },
-  returns: paginationResultValidator(songCard),
+  returns: paginationResultValidator(likedSongCard),
   handler: async (ctx, args) => {
     validatePageSize(args.paginationOpts)
     const page = await ctx.db
@@ -84,7 +86,25 @@ export const likedSongs = memberQuery({
       .order("desc")
       .paginate(args.paginationOpts)
     const cards = await Promise.all(
-      page.page.map((row) => publicSource(ctx, row.sourceId))
+      page.page.map(async (row) => {
+        const card = await publicSource(ctx, row.sourceId)
+        if (!card) return null
+        const official = ctx.db.normalizeId("songs", row.sourceId)
+        const source = official
+          ? await ctx.db.get("songs", official)
+          : await ctx.db.get(
+              "communityContributions",
+              row.sourceId as Id<"communityContributions">
+            )
+        if (!source) return null
+        return {
+          ...card,
+          ...(await songListingExtras(ctx, source)),
+          artworkUrl: source.artworkStorageId
+            ? await ctx.storage.getUrl(source.artworkStorageId)
+            : null,
+        }
+      })
     )
     return { ...page, page: cards.filter((x) => x !== null) }
   },

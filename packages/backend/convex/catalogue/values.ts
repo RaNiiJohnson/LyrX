@@ -1,6 +1,6 @@
 import { ConvexError, type Infer, v } from "convex/values"
 import { MAX_LYRICS_TEXT_LENGTH } from "@lyrx/shared"
-import type { Doc, Id } from "../_generated/dataModel"
+import type { Doc } from "../_generated/dataModel"
 import schema from "../schema"
 import { listeningLinkValidator, songGenreValidator } from "../model"
 
@@ -94,7 +94,15 @@ export const songSummary = v.object({
   title: v.string(),
   primaryArtist: v.string(),
   albumId: v.union(v.id("albums"), v.null()),
+  albumTitle: v.union(v.string(), v.null()),
+  artworkUrl: v.union(v.string(), v.null()),
+  likeCount: v.number(),
   updatedAt: v.number(),
+})
+
+export const albumSummary = schema.doc("albums").extend({
+  artworkUrl: v.union(v.string(), v.null()),
+  trackCount: v.number(),
 })
 
 const publicSong = v.object({
@@ -372,7 +380,8 @@ export function projectPublicAlbum(album: Doc<"albums">) {
 
 export function projectSongSummary(
   song: Doc<"songs">,
-  albumId: Id<"albums"> | null
+  album: Pick<Doc<"albums">, "_id" | "title"> | null,
+  extras: { artworkUrl: string | null; likeCount: number }
 ) {
   return {
     _id: song._id,
@@ -380,7 +389,10 @@ export function projectSongSummary(
     status: song.status,
     title: song.title,
     primaryArtist: song.primaryArtist,
-    albumId,
+    albumId: album?._id ?? null,
+    albumTitle: album?.title ?? null,
+    artworkUrl: extras.artworkUrl,
+    likeCount: extras.likeCount,
     updatedAt: song.updatedAt,
   }
 }

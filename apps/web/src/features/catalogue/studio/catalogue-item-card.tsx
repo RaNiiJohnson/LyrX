@@ -2,15 +2,17 @@ import { Link } from "@tanstack/react-router"
 import type { FunctionReturnType } from "convex/server"
 import {
   Disc3,
+  ExternalLink,
   EyeOff,
   FileMusic,
+  Heart,
   MoreHorizontal,
   Pencil,
   Send,
 } from "lucide-react"
+import { useState } from "react"
 
 import type { api } from "@lyrx/backend/convex/_generated/api"
-import type { Doc } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription } from "@lyrx/ui/components/alert"
 import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
@@ -19,102 +21,106 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@lyrx/ui/components/dropdown-menu"
 
 import { useLocale } from "@/app/locale-provider"
+import { relativeTime } from "@/lib/relative-time"
 import { usePublicationControl } from "./use-publication-control"
 
 type SongSummary = FunctionReturnType<
   typeof api.catalogue.read.listMySongs
 >["page"][number]
+type AlbumSummary = FunctionReturnType<
+  typeof api.catalogue.read.listMyAlbums
+>["page"][number]
 
 export function SongCard({ song }: { song: SongSummary }) {
-  return (
-    <CatalogueItemRow kind="song" item={song} subtitle={song.primaryArtist} />
-  )
+  return <CatalogueItemRow kind="song" item={song} />
 }
 
-export function AlbumCard({ album }: { album: Doc<"albums"> }) {
+export function AlbumCard({ album }: { album: AlbumSummary }) {
   return <CatalogueItemRow kind="album" item={album} />
 }
 
-function CatalogueItemRow({
-  kind,
-  item,
-  subtitle,
-}:
-  | { kind: "song"; item: SongSummary; subtitle?: string }
-  | { kind: "album"; item: Doc<"albums">; subtitle?: string }) {
+type RowProps =
+  { kind: "song"; item: SongSummary } | { kind: "album"; item: AlbumSummary }
+
+function CatalogueItemRow(props: RowProps) {
+  const { kind, item } = props
   const { t } = useLocale()
   const publication = usePublicationControl(
     { kind, id: item._id } as Parameters<typeof usePublicationControl>[0],
     item.status
   )
+  const draft = item.status === "draft"
   const editTo =
     kind === "song" ? "/studio/songs/$songId" : "/studio/albums/$albumId"
-  const previewTo =
+  const manageTo =
     kind === "song"
       ? "/studio/songs/$songId/preview"
       : "/studio/albums/$albumId/preview"
+  const publicTo = kind === "song" ? "/songs/$songId" : "/albums/$albumId"
   const params = kind === "song" ? { songId: item._id } : { albumId: item._id }
 
   return (
     <article className="relative flex min-w-0 flex-col border-b py-3 last:border-b-0">
       <Link
-        to={previewTo}
+        to={manageTo}
         params={params}
         aria-label={item.title}
         className="absolute inset-0 z-0 rounded-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       />
       <div className="pointer-events-none relative z-10 flex min-w-0 items-center gap-3">
-        <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground sm:size-14">
-          {kind === "song" ? <FileMusic /> : <Disc3 />}
-        </div>
+        <RowArtwork kind={kind} artworkUrl={item.artworkUrl} />
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold">{item.title}</p>
-          {subtitle ? (
-            <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
-          ) : null}
-          <div className="mt-1 sm:hidden">
+          <RowDetails {...props} />
+          <div className="pointer-events-auto mt-1.5 flex items-center gap-2 sm:hidden">
             <StatusBadge status={item.status} />
+            {draft ? (
+              // On phones the draft's next step sits under the title so the
+              // details line keeps its full width.
+              <PublishButton
+                size="xs"
+                pending={publication.pending}
+                onPublish={() => void publication.changeStatus()}
+              />
+            ) : null}
           </div>
         </div>
 
-        <div className="pointer-events-auto hidden items-center gap-2 sm:flex">
-          <StatusBadge status={item.status} />
-          <Button asChild variant="outline" size="sm">
+        <div className="pointer-events-auto flex shrink-0 items-center gap-2">
+          <span className="hidden sm:inline-flex">
+            <StatusBadge status={item.status} />
+          </span>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="hidden sm:inline-flex"
+          >
             <Link to={editTo} params={params}>
               <Pencil data-icon="inline-start" /> {t("catalogue.edit")}
             </Link>
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={item.status === "draft" ? "default" : "secondary"}
-            disabled={publication.pending}
-            onClick={() => void publication.changeStatus()}
-          >
-            {item.status === "draft" ? (
-              <Send data-icon="inline-start" />
-            ) : (
-              <EyeOff data-icon="inline-start" />
-            )}
-            {item.status === "draft"
-              ? t("catalogue.publish")
-              : t("catalogue.unpublish")}
-          </Button>
-        </div>
-
-        <div className="pointer-events-auto">
+          {draft ? (
+            <PublishButton
+              size="sm"
+              className="hidden sm:inline-flex"
+              pending={publication.pending}
+              onPublish={() => void publication.changeStatus()}
+            />
+          ) : null}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="sm:hidden"
                 aria-label={t("catalogue.moreActions")}
+                title={t("catalogue.moreActions")}
               >
                 <MoreHorizontal />
               </Button>
@@ -126,17 +132,27 @@ function CatalogueItemRow({
                     <Pencil /> {t("catalogue.edit")}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant={item.status === "draft" ? "primary" : "default"}
-                  disabled={publication.pending}
-                  onSelect={() => void publication.changeStatus()}
-                >
-                  {item.status === "draft" ? <Send /> : <EyeOff />}
-                  {item.status === "draft"
-                    ? t("catalogue.publish")
-                    : t("catalogue.unpublish")}
-                </DropdownMenuItem>
+                {draft ? null : (
+                  <DropdownMenuItem asChild>
+                    <Link to={publicTo} params={params}>
+                      <ExternalLink /> {t("studio.viewPublicPage")}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuGroup>
+              {draft ? null : (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      disabled={publication.pending}
+                      onSelect={() => void publication.changeStatus()}
+                    >
+                      <EyeOff /> {t("catalogue.unpublish")}
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -147,6 +163,90 @@ function CatalogueItemRow({
         </Alert>
       ) : null}
     </article>
+  )
+}
+
+function PublishButton({
+  className,
+  onPublish,
+  pending,
+  size,
+}: {
+  className?: string
+  onPublish: () => void
+  pending: boolean
+  size: "xs" | "sm"
+}) {
+  const { t } = useLocale()
+  return (
+    <Button
+      type="button"
+      size={size}
+      className={className}
+      disabled={pending}
+      onClick={onPublish}
+    >
+      <Send data-icon="inline-start" />
+      {t("catalogue.publish")}
+    </Button>
+  )
+}
+
+function RowArtwork({
+  artworkUrl,
+  kind,
+}: {
+  artworkUrl: string | null
+  kind: "song" | "album"
+}) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-muted text-muted-foreground sm:size-14">
+      {artworkUrl && !failed ? (
+        <img
+          src={artworkUrl}
+          alt=""
+          loading="lazy"
+          className="size-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : kind === "song" ? (
+        <FileMusic />
+      ) : (
+        <Disc3 />
+      )}
+    </div>
+  )
+}
+
+function RowDetails({ kind, item }: RowProps) {
+  const { locale, t } = useLocale()
+  // Read the clock once per render of the row: the list is reactive anyway.
+  const [now] = useState(Date.now)
+  const parts = [
+    kind === "song"
+      ? (item.albumTitle ?? t("studio.releaseSingle"))
+      : item.trackCount === 1
+        ? t("studio.trackCountOne")
+        : t("studio.trackCountMany", { count: item.trackCount }),
+    t("studio.updatedAgo", { time: relativeTime(item.updatedAt, now, locale) }),
+  ]
+  const likes =
+    kind === "song" && item.status === "published" ? item.likeCount : 0
+  return (
+    <p className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+      <span className="truncate">{parts.join(" · ")}</span>
+      {likes > 0 ? (
+        <span
+          className="inline-flex shrink-0 items-center gap-1"
+          aria-label={t("studio.likesLabel", { count: likes })}
+        >
+          <span aria-hidden="true">·</span>
+          <Heart className="size-3.5" aria-hidden="true" />
+          {likes}
+        </span>
+      ) : null}
+    </p>
   )
 }
 

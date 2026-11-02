@@ -5,7 +5,8 @@ import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { LocaleProvider } from "./locale-provider"
-import { PageShell } from "./page-shell"
+import { AppChrome, PageShell } from "./page-shell"
+import { RouteBoundaryShell } from "./route-boundary-shell"
 
 type Account =
   | {
@@ -134,6 +135,41 @@ afterEach(async () => {
   await flush(() => root.unmount())
   host.remove()
   vi.unstubAllGlobals()
+})
+
+describe("persistent application chrome", () => {
+  it("keeps one header and mobile navigation when pages and pending states swap", async () => {
+    mocks.account = ready("artist")
+    const page = (body: ReactNode) =>
+      root.render(
+        <LocaleProvider>
+          <AppChrome>{body}</AppChrome>
+        </LocaleProvider>
+      )
+    await flush(() =>
+      page(
+        <PageShell width="wide">
+          <p>Studio page</p>
+        </PageShell>
+      )
+    )
+    const header = document.querySelector("header")
+    const nav = bottomNav()
+    expect(document.querySelectorAll("header")).toHaveLength(1)
+    expect(document.querySelectorAll("main")).toHaveLength(1)
+
+    await flush(() =>
+      page(
+        <RouteBoundaryShell width="wide">
+          <p>Loading</p>
+        </RouteBoundaryShell>
+      )
+    )
+    expect(document.querySelectorAll("header")).toHaveLength(1)
+    expect(document.querySelector("header")).toBe(header)
+    expect(bottomNav()).toBe(nav)
+    expect(document.querySelector("main")?.textContent).toBe("Loading")
+  })
 })
 
 describe("role-aware shared navigation", () => {

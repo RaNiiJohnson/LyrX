@@ -1,10 +1,10 @@
 import { useMutation, useQuery } from "convex/react"
-import { useState } from "react"
-import { Link, useNavigate } from "@tanstack/react-router"
+import { useEffect, useRef, useState } from "react"
+import { Navigate, useNavigate } from "@tanstack/react-router"
 import { Mic2, UserRound } from "lucide-react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
-import { isValidDisplayName, isValidHandle } from "@lyrx/shared"
+import { isValidDisplayName, isValidHandle, suggestHandle } from "@lyrx/shared"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
 import {
   Card,
@@ -24,7 +24,9 @@ import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { ToggleGroup, ToggleGroupItem } from "@lyrx/ui/components/toggle-group"
 import { toast } from "@lyrx/ui/lib/toast"
 
+import { getSignedInDestination } from "@/lib/account-navigation"
 import { useAppForm } from "@/lib/app-form"
+import { authClient } from "@/lib/auth-client"
 import { getErrorMessage } from "@/lib/errors"
 import { useLocale } from "@/app/locale-provider"
 
@@ -40,11 +42,33 @@ function OptionalLabel() {
 }
 
 export function OnboardingForm() {
-  const { t } = useLocale()
   const current = useQuery(api.members.current, {})
+
+  if (current === undefined) return <OnboardingSkeleton />
+  // Only a signed-in member whose email link was opened and who has no profile
+  // yet may see this form. Every other state goes to its own page; the server
+  // still enforces the same rule in completeOnboarding.
+  if (current.state === "anonymous") {
+    return <Navigate to="/auth/sign-in" replace />
+  }
+  if (current.state !== "onboarding-required") {
+    return (
+      <Navigate to={getSignedInDestination(current.state) ?? "/"} replace />
+    )
+  }
+
+  return <ReadyOnboardingForm />
+}
+
+function ReadyOnboardingForm() {
+  const { t } = useLocale()
   const completeOnboarding = useMutation(api.members.completeOnboarding)
   const navigate = useNavigate()
+  const session = authClient.useSession()
   const [error, setError] = useState<string | null>(null)
+  // The handle follows the display name until the member edits it directly.
+  const handleEdited = useRef(false)
+  const signUpName = session.data?.user.name
 
   const form = useAppForm({
     defaultValues: {
@@ -82,55 +106,15 @@ export function OnboardingForm() {
     },
   })
 
-  if (current === undefined) return <OnboardingSkeleton />
-  if (current.state === "anonymous") {
-    return (
-      <Alert>
-        <AlertTitle>{t("onboarding.signInTitle")}</AlertTitle>
-        <AlertDescription>
-          <Link to="/auth/sign-in">{t("onboarding.signInDescription")}</Link>
-        </AlertDescription>
-      </Alert>
-    )
-  }
-  if (current.state === "email-unverified") {
-    return (
-      <Alert>
-        <AlertTitle>{t("onboarding.emailUnverifiedTitle")}</AlertTitle>
-        <AlertDescription>
-          {t("onboarding.emailUnverifiedDescription", {
-            email: current.email ?? t("auth.email").toLowerCase(),
-          })}
-        </AlertDescription>
-      </Alert>
-    )
-  }
-  if (current.state === "ready") {
-    return (
-      <Alert>
-        <AlertTitle>{t("onboarding.alreadyTitle")}</AlertTitle>
-        <AlertDescription>
-          {t("onboarding.alreadyDescription", {
-            role:
-              current.member.role === "artist"
-                ? t("common.artist")
-                : t("common.fan"),
-          })}{" "}
-          <Link to="/profile">{t("onboarding.alreadyEdit")}</Link>
-        </AlertDescription>
-      </Alert>
-    )
-  }
-  if (current.state === "suspended") {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>{t("home.suspendedTitle")}</AlertTitle>
-        <AlertDescription>
-          {t("onboarding.suspendedDescription")}
-        </AlertDescription>
-      </Alert>
-    )
-  }
+  // Reuse the name typed at sign-up instead of asking for it twice.
+  useEffect(() => {
+    if (!signUpName || form.getFieldValue("displayName")) return
+    form.setFieldValue("displayName", signUpName, { dontUpdateMeta: true })
+    if (!handleEdited.current)
+      form.setFieldValue("handle", suggestHandle(signUpName), {
+        dontUpdateMeta: true,
+      })
+  }, [form, signUpName])
 
   return (
     <Card>
@@ -206,44 +190,73 @@ export function OnboardingForm() {
                 {t("onboarding.roleDescription")}
               </FieldDescription>
             </FieldSet>
-            <form.AppField
-              name="handle"
-              validators={{
-                onBlur: ({ value }) =>
-                  isValidHandle(value) ? undefined : t("error.invalidHandle"),
-              }}
-            >
-              {(field) => (
-                <field.TextField
-                  id="handle"
-                  label={t("onboarding.handle")}
-                  description={t("onboarding.handleDescription")}
-                  required
-                  minLength={3}
-                  maxLength={30}
-                  placeholder="rija.music"
-                />
-              )}
-            </form.AppField>
-            <form.AppField
-              name="displayName"
-              validators={{
-                onBlur: ({ value }) =>
-                  isValidDisplayName(value)
-                    ? undefined
-                    : t("error.invalidDisplayName"),
-              }}
-            >
-              {(field) => (
-                <field.TextField
-                  id="displayName"
-                  label={t("signUp.displayName")}
-                  required
-                  minLength={2}
-                  maxLength={80}
-                />
-              )}
-            </form.AppField>
+            <FieldSet className="min-w-0">
+              <FieldLegend>{t("onboarding.identityTitle")}</FieldLegend>
+              <FieldDescription>
+                {t("onboarding.identityDescription")}
+              </FieldDescription>
+              <form.AppField
+                name="displayName"
+                validators={{
+                  onBlur: ({ value }) =>
+                    isValidDisplayName(value)
+                      ? undefined
+                      : t("error.invalidDisplayName"),
+                }}
+              >
+                {(field) => (
+                  <field.TextField
+                    id="displayName"
+                    label={t("signUp.displayName")}
+                    description={t("onboarding.displayNameDescription")}
+                    autoComplete="name"
+                    required
+                    minLength={2}
+                    maxLength={80}
+                    placeholder="Rija Rasolo"
+                    onValueChange={(value) => {
+                      if (!handleEdited.current)
+                        form.setFieldValue("handle", suggestHandle(value))
+                    }}
+                  />
+                )}
+              </form.AppField>
+              <form.AppField
+                name="handle"
+                validators={{
+                  onBlur: ({ value }) =>
+                    isValidHandle(value) ? undefined : t("error.invalidHandle"),
+                }}
+              >
+                {(field) => (
+                  <field.TextField
+                    id="handle"
+                    label={t("onboarding.handle")}
+                    description={t("onboarding.handleDescription")}
+                    prefix="@"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    required
+                    minLength={3}
+                    maxLength={30}
+                    placeholder="rija.rasolo"
+                    onValueChange={(value) => {
+                      handleEdited.current = value.length > 0
+                    }}
+                  />
+                )}
+              </form.AppField>
+              <form.Subscribe
+                selector={(state) =>
+                  [state.values.displayName, state.values.handle] as const
+                }
+              >
+                {([displayName, handle]) => (
+                  <IdentityPreview displayName={displayName} handle={handle} />
+                )}
+              </form.Subscribe>
+            </FieldSet>
             <form.AppField name="bio">
               {(field) => (
                 <field.TextareaField
@@ -298,6 +311,44 @@ export function OnboardingForm() {
         </p>
       </CardFooter>
     </Card>
+  )
+}
+
+function IdentityPreview({
+  displayName,
+  handle,
+}: {
+  displayName: string
+  handle: string
+}) {
+  const { t } = useLocale()
+  const name = displayName.trim() || t("onboarding.previewName")
+  const shownHandle = handle.trim().toLocaleLowerCase("en-US")
+  return (
+    <div
+      aria-label={t("onboarding.previewLabel")}
+      className="flex min-w-0 items-center gap-3 rounded-xl border bg-muted/40 p-3"
+    >
+      <span
+        aria-hidden="true"
+        className="grid size-11 shrink-0 place-items-center rounded-full bg-brand text-base font-semibold text-brand-foreground"
+      >
+        {name.slice(0, 1).toUpperCase()}
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate font-semibold">{name}</span>
+        <span className="block truncate text-sm text-muted-foreground">
+          @{shownHandle || t("onboarding.previewHandle")}
+        </span>
+        {shownHandle ? (
+          <span className="block truncate text-xs text-muted-foreground">
+            {t("onboarding.profileAddress", {
+              path: `/profiles/${shownHandle}`,
+            })}
+          </span>
+        ) : null}
+      </span>
+    </div>
   )
 }
 

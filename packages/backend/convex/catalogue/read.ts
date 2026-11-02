@@ -4,7 +4,6 @@ import {
   paginationResultValidator,
 } from "convex/server"
 import { query } from "../_generated/server"
-import schema from "../schema"
 import { catalogueStatusValidator } from "../model"
 import { artistQuery } from "../lib/functions"
 import {
@@ -18,6 +17,7 @@ import {
   MAX_TRACKS,
   songDetail,
   albumDetail,
+  albumSummary,
   catalogueCounts,
   songSummary,
   publicSongDetail,
@@ -67,7 +67,20 @@ export const listMySongs = artistQuery({
             .query("albumTracks")
             .withIndex("by_song_id", (q) => q.eq("songId", song._id))
             .unique()
-          return projectSongSummary(song, track?.albumId ?? null)
+          const [album, artworkUrl, likes] = await Promise.all([
+            track ? ctx.db.get("albums", track.albumId) : null,
+            song.artworkStorageId
+              ? ctx.storage.getUrl(song.artworkStorageId)
+              : null,
+            ctx.db
+              .query("songLikeCounts")
+              .withIndex("by_source_id", (q) => q.eq("sourceId", song._id))
+              .unique(),
+          ])
+          return projectSongSummary(song, album, {
+            artworkUrl,
+            likeCount: likes?.count ?? 0,
+          })
         })
       ),
     }
@@ -79,7 +92,7 @@ export const listMyAlbums = artistQuery({
     paginationOpts: paginationOptsValidator,
     status: v.optional(catalogueStatusValidator),
   },
-  returns: paginationResultValidator(schema.doc("albums")),
+  returns: paginationResultValidator(albumSummary),
   handler: async (ctx, args) => {
     const page = args.status
       ? await albumsByOwnerAndStatus.paginate(ctx, {
@@ -102,7 +115,13 @@ export const listMyAlbums = artistQuery({
           const album = await ctx.db.get("albums", id)
           if (!album)
             return bad("CATALOGUE_INVARIANT", "Indexed album not found.")
-          return album
+          const [artworkUrl, trackCount] = await Promise.all([
+            album.artworkStorageId
+              ? ctx.storage.getUrl(album.artworkStorageId)
+              : null,
+            albumTracksByAlbum.count(ctx, { namespace: album._id }),
+          ])
+          return { ...album, artworkUrl, trackCount }
         })
       ),
     }

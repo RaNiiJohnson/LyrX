@@ -21,6 +21,12 @@ export const songCard = v.object({
   primaryArtist: v.string(),
   href: v.string(),
 })
+/** Liked-songs rows also carry what list and cover views display. */
+export const likedSongCard = songCard.extend({
+  artworkUrl: v.union(v.string(), v.null()),
+  albumTitle: v.union(v.string(), v.null()),
+  likeCount: v.number(),
+})
 export const commentCard = v.object({
   id: v.id("songComments"),
   body: v.string(),

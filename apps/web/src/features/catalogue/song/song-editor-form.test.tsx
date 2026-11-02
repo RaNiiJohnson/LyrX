@@ -91,4 +91,53 @@ describe("song editor layout and canonical form", () => {
     expect(mocks.mutate).not.toHaveBeenCalled()
     expect(mocks.navigate).not.toHaveBeenCalled()
   })
+
+  it.each([
+    ["Enregistrer et publier", true],
+    ["Enregistrer en brouillon", false],
+  ] as const)(
+    "lets a new song be saved with the explicit choice %s",
+    async (label, publishes) => {
+      mocks.mutate.mockResolvedValueOnce("song-1").mockResolvedValue(null)
+      await act(async () => {
+        root.render(
+          <LocaleProvider>
+            <SongEditorForm albums={[]} primaryArtist="An artist" />
+          </LocaleProvider>
+        )
+        await Promise.resolve()
+      })
+      const setValue = (
+        node: HTMLInputElement | HTMLTextAreaElement | null,
+        value: string
+      ) => {
+        if (!node) throw new Error("Missing field")
+        Object.getOwnPropertyDescriptor(
+          Object.getPrototypeOf(node),
+          "value"
+        )?.set?.call(node, value)
+        node.dispatchEvent(new Event("input", { bubbles: true }))
+      }
+      await act(async () => {
+        setValue(host.querySelector("input[name=title]"), "A title")
+        setValue(
+          host.querySelector("textarea[name=lyricsText]"),
+          "First line\nSecond line"
+        )
+        await Promise.resolve()
+      })
+      const submit = [
+        ...host.querySelectorAll<HTMLButtonElement>("button"),
+      ].find((e) => e.textContent.trim() === label)
+      expect(submit?.type).toBe("submit")
+      await act(async () => {
+        submit?.click()
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+      expect(mocks.mutate).toHaveBeenCalledTimes(publishes ? 2 : 1)
+      if (publishes)
+        expect(mocks.mutate).toHaveBeenLastCalledWith({ songId: "song-1" })
+      expect(mocks.navigate).toHaveBeenCalledOnce()
+    }
+  )
 })

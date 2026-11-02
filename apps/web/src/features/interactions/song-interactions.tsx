@@ -1,4 +1,5 @@
 import { useLocale } from "@/app/locale-provider"
+import { relativeTime } from "@/lib/relative-time"
 import { LoadMore } from "@/features/community/community-list"
 import { getErrorMessage } from "@/lib/errors"
 import { api } from "@lyrx/backend/convex/_generated/api"
@@ -289,22 +290,6 @@ function SourceInteractions({ sourceId }: { sourceId: SourceId }) {
       </div>
       <CommentList key={sourceId} comments={displayedComments} />
     </section>
-  )
-}
-function relativeTime(createdAt: number, now: number, locale: string) {
-  const seconds = Math.round((createdAt - now) / 1000),
-    absolute = Math.abs(seconds)
-  const [value, unit] =
-    absolute < 60
-      ? ([seconds, "second"] as const)
-      : absolute < 3600
-        ? ([Math.round(seconds / 60), "minute"] as const)
-        : absolute < 86400
-          ? ([Math.round(seconds / 3600), "hour"] as const)
-          : ([Math.round(seconds / 86400), "day"] as const)
-  return new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(
-    value,
-    unit
   )
 }
 function CommentList({ comments }: { comments: CommentPage }) {

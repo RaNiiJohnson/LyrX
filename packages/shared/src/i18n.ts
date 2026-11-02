@@ -498,6 +498,8 @@ const frenchMessages = {
   "signUp.description":
     "L’inscription est suivie d’une vérification email puis du choix Fan ou Artiste.",
   "signUp.displayName": "Nom affiché",
+  "signUp.displayNameDescription":
+    "Le nom visible sur votre profil. Vous choisirez votre pseudo unique après la vérification.",
   "signUp.emailDeliveryDescription":
     "Le fournisseur d’email transactionnel n’est pas encore configuré. Lyr’X ne crée pas de compte impossible à vérifier.",
   "signUp.emailDeliveryTitle": "Inscription temporairement indisponible",
@@ -521,6 +523,19 @@ const frenchMessages = {
   "verify.submit": "Renvoyer l’email",
   "verify.successTitle": "Nouvel email demandé",
   "verify.title": "Vérifier votre email",
+  "verify.checkInboxTitle": "Vérifiez votre boîte mail",
+  "verify.checkInboxDescription":
+    "Nous avons envoyé un lien de confirmation à {{email}}. Il active votre compte.",
+  "verify.stepsLabel": "Étapes suivantes",
+  "verify.stepOpen":
+    "Ouvrez l’email de Lyr’X. Pensez à regarder dans les spams ou l’onglet Promotions.",
+  "verify.stepClick": "Cliquez sur le lien de confirmation.",
+  "verify.stepProfile":
+    "Choisissez ensuite votre nom affiché, votre pseudo et votre rôle.",
+  "verify.resendIn": "Renvoyer dans {{seconds}} s",
+  "verify.wrongEmail": "Mauvaise adresse ?",
+  "verify.restartSignUp": "Recommencer l’inscription",
+  "verify.alreadyVerified": "Déjà confirmé ?",
   "home.accountBadge": "Comptes et profils",
   "home.backendDescription":
     "Le code Convex et Better Auth est présent, mais aucun déploiement de développement n’est configuré dans ce checkout.",
@@ -598,7 +613,16 @@ const frenchMessages = {
     "Proposez des paroles et des pochettes pour enrichir Lyr’X.",
   "onboarding.handle": "Pseudo public",
   "onboarding.handleDescription":
-    "Lettres minuscules, chiffres, point, tiret ou underscore.",
+    "Votre identifiant unique : il forme l’adresse de votre profil et personne d’autre ne peut le prendre. Minuscules, chiffres, point, tiret ou underscore.",
+  "onboarding.displayNameDescription":
+    "Le nom que les gens lisent sur votre profil, vos chansons et vos commentaires. Majuscules, espaces et accents acceptés.",
+  "onboarding.identityTitle": "Nom affiché et pseudo",
+  "onboarding.identityDescription":
+    "Le nom affiché peut ressembler à celui d’un autre membre ; le pseudo, lui, est unique.",
+  "onboarding.previewLabel": "Aperçu de votre profil",
+  "onboarding.previewName": "Votre nom affiché",
+  "onboarding.previewHandle": "pseudo",
+  "onboarding.profileAddress": "Adresse : {{path}}",
   "onboarding.presentation": "Présentation",
   "onboarding.profileCreated": "Profil créé",
   "onboarding.profileError": "Profil non créé",
@@ -756,6 +780,44 @@ const frenchMessages = {
   "studio.stepCredits": "Crédits et écoute",
   "studio.stepLyrics": "Paroles",
   "studio.songs": "Morceaux",
+  "studio.draftBannerTitle": "Brouillon : visible uniquement par vous",
+  "studio.draftBannerDescription":
+    "Publiez la chanson pour qu’elle apparaisse dans Lyr’X, puisse être partagée et reçoive likes et commentaires.",
+  "studio.publishedBannerTitle": "Publiée sur Lyr’X",
+  "studio.publishedBannerDescription":
+    "Les lecteurs voient cette même page, sans vos outils de gestion.",
+  "studio.viewPublicPage": "Voir la page publique",
+  "studio.commentsAfterPublish":
+    "Les likes et commentaires s’ouvriront dès la publication.",
+  "studio.saveDraft": "Enregistrer en brouillon",
+  "studio.saveAndPublish": "Enregistrer et publier",
+  "studio.publishHint":
+    "« Publier » rend la chanson visible par tous. Le brouillon reste privé et modifiable.",
+  "studio.publishedOnSave": "Chanson publiée",
+  "studio.updatedAgo": "Modifié {{time}}",
+  "studio.trackCountOne": "1 morceau",
+  "studio.trackCountMany": "{{count}} morceaux",
+  "studio.likesLabel": "{{count}} j’aime",
+  "studio.pendingDraftSong": "1 morceau attend d’être publié",
+  "studio.pendingDraftSongs": "{{count}} morceaux attendent d’être publiés",
+  "studio.pendingDraftAlbum": "1 album attend d’être publié",
+  "studio.pendingDraftAlbums": "{{count}} albums attendent d’être publiés",
+  "studio.pendingDraftsHint":
+    "Tant qu’ils sont en brouillon, vous seul pouvez les voir.",
+  "studio.showDrafts": "Voir les brouillons",
+  "albumNav.fromAlbum": "Dans l’album",
+  "albumNav.trackOf": "Morceau {{position}} sur {{count}}",
+  "albumNav.previous": "Morceau précédent",
+  "albumNav.next": "Morceau suivant",
+  "albumNav.showTracks": "Voir les morceaux",
+  "albumNav.hideTracks": "Masquer les morceaux",
+  "albumNav.openAlbum": "Voir l’album",
+  "albumNav.tracks": "Morceaux de l’album {{title}}",
+  "discovery.byArtist": "De @{{handle}}",
+  "discovery.clearArtist": "Retirer le filtre artiste",
+  "view.label": "Affichage",
+  "view.cards": "Cartes",
+  "view.list": "Liste",
   "studio.title": "Studio artiste",
   "studio.albumDeleted": "Album supprimé",
   "studio.attach": "Rattacher",
@@ -1272,6 +1334,8 @@ const englishMessages = {
   "signUp.description":
     "Registration is followed by email verification and choosing a Fan or Artist role.",
   "signUp.displayName": "Display name",
+  "signUp.displayNameDescription":
+    "The name shown on your profile. You will choose your unique handle after verification.",
   "signUp.emailDeliveryDescription":
     "The transactional email provider is not configured yet. Lyr’X will not create an account that cannot be verified.",
   "signUp.emailDeliveryTitle": "Registration temporarily unavailable",
@@ -1295,6 +1359,18 @@ const englishMessages = {
   "verify.submit": "Resend the email",
   "verify.successTitle": "New email requested",
   "verify.title": "Verify your email",
+  "verify.checkInboxTitle": "Check your inbox",
+  "verify.checkInboxDescription":
+    "We sent a confirmation link to {{email}}. It activates your account.",
+  "verify.stepsLabel": "Next steps",
+  "verify.stepOpen":
+    "Open the Lyr’X email. Check your spam or Promotions folder too.",
+  "verify.stepClick": "Click the confirmation link.",
+  "verify.stepProfile": "Then choose your display name, handle, and role.",
+  "verify.resendIn": "Resend in {{seconds}} s",
+  "verify.wrongEmail": "Wrong address?",
+  "verify.restartSignUp": "Start sign-up again",
+  "verify.alreadyVerified": "Already confirmed?",
   "home.accountBadge": "Accounts and profiles",
   "home.backendDescription":
     "The Convex and Better Auth code is ready, but no development deployment is configured in this checkout.",
@@ -1371,7 +1447,16 @@ const englishMessages = {
   "onboarding.fanRoleDescription": "Submit lyrics and artwork to enrich Lyr’X.",
   "onboarding.handle": "Public handle",
   "onboarding.handleDescription":
-    "Lowercase letters, numbers, dots, hyphens, or underscores.",
+    "Your unique identifier: it forms your profile address and nobody else can take it. Lowercase letters, numbers, dots, hyphens, or underscores.",
+  "onboarding.displayNameDescription":
+    "The name people read on your profile, songs, and comments. Capitals, spaces, and accents are allowed.",
+  "onboarding.identityTitle": "Display name and handle",
+  "onboarding.identityDescription":
+    "Your display name may look like another member’s; your handle is unique.",
+  "onboarding.previewLabel": "Profile preview",
+  "onboarding.previewName": "Your display name",
+  "onboarding.previewHandle": "handle",
+  "onboarding.profileAddress": "Address: {{path}}",
   "onboarding.presentation": "Introduction",
   "onboarding.profileCreated": "Profile created",
   "onboarding.profileError": "Profile not created",
@@ -1528,6 +1613,43 @@ const englishMessages = {
   "studio.stepCredits": "Credits and listening",
   "studio.stepLyrics": "Lyrics",
   "studio.songs": "Songs",
+  "studio.draftBannerTitle": "Draft: visible only to you",
+  "studio.draftBannerDescription":
+    "Publish the song so it appears on Lyr’X, can be shared, and receives likes and comments.",
+  "studio.publishedBannerTitle": "Published on Lyr’X",
+  "studio.publishedBannerDescription":
+    "Readers see this same page, without your management tools.",
+  "studio.viewPublicPage": "View public page",
+  "studio.commentsAfterPublish":
+    "Likes and comments open as soon as you publish.",
+  "studio.saveDraft": "Save as draft",
+  "studio.saveAndPublish": "Save and publish",
+  "studio.publishHint":
+    "“Publish” makes the song visible to everyone. A draft stays private and editable.",
+  "studio.publishedOnSave": "Song published",
+  "studio.updatedAgo": "Edited {{time}}",
+  "studio.trackCountOne": "1 song",
+  "studio.trackCountMany": "{{count}} songs",
+  "studio.likesLabel": "{{count}} likes",
+  "studio.pendingDraftSong": "1 song is waiting to be published",
+  "studio.pendingDraftSongs": "{{count}} songs are waiting to be published",
+  "studio.pendingDraftAlbum": "1 album is waiting to be published",
+  "studio.pendingDraftAlbums": "{{count}} albums are waiting to be published",
+  "studio.pendingDraftsHint": "While they are drafts, only you can see them.",
+  "studio.showDrafts": "Show drafts",
+  "albumNav.fromAlbum": "From the album",
+  "albumNav.trackOf": "Track {{position}} of {{count}}",
+  "albumNav.previous": "Previous track",
+  "albumNav.next": "Next track",
+  "albumNav.showTracks": "Show tracks",
+  "albumNav.hideTracks": "Hide tracks",
+  "albumNav.openAlbum": "Open album",
+  "albumNav.tracks": "Tracks of the album {{title}}",
+  "discovery.byArtist": "By @{{handle}}",
+  "discovery.clearArtist": "Remove the artist filter",
+  "view.label": "View",
+  "view.cards": "Cards",
+  "view.list": "List",
   "studio.title": "Artist studio",
   "studio.albumDeleted": "Album deleted",
   "studio.attach": "Attach",

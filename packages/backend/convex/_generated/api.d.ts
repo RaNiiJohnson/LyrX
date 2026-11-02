@@ -17,6 +17,7 @@ import type * as catalogue_aggregates from "../catalogue/aggregates.js";
 import type * as catalogue_albums from "../catalogue/albums.js";
 import type * as catalogue_artwork from "../catalogue/artwork.js";
 import type * as catalogue_languageMigration from "../catalogue/languageMigration.js";
+import type * as catalogue_listing from "../catalogue/listing.js";
 import type * as catalogue_lyrics from "../catalogue/lyrics.js";
 import type * as catalogue_lyricsMigration from "../catalogue/lyricsMigration.js";
 import type * as catalogue_read from "../catalogue/read.js";
@@ -76,6 +77,7 @@ declare const fullApi: ApiFromModules<{
   "catalogue/albums": typeof catalogue_albums;
   "catalogue/artwork": typeof catalogue_artwork;
   "catalogue/languageMigration": typeof catalogue_languageMigration;
+  "catalogue/listing": typeof catalogue_listing;
   "catalogue/lyrics": typeof catalogue_lyrics;
   "catalogue/lyricsMigration": typeof catalogue_lyricsMigration;
   "catalogue/read": typeof catalogue_read;

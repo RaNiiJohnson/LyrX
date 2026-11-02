@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@lyrx/ui/components/avatar"
 import { Badge } from "@lyrx/ui/components/badge"
 import { cn } from "@lyrx/ui/lib/utils"
 import { Link } from "@tanstack/react-router"
-import { Disc3, Music2 } from "lucide-react"
+import { ChevronRight, Disc3, Heart, Music2 } from "lucide-react"
 import { useState } from "react"
 
 export type DiscoverySong = {
@@ -13,6 +13,9 @@ export type DiscoverySong = {
   primaryArtist: string
   artworkUrl: string | null
   href: string
+  /** Present on public lists; null for a single. */
+  albumTitle?: string | null
+  likeCount?: number
 }
 export type DiscoveryAlbum = {
   id: string
@@ -21,6 +24,7 @@ export type DiscoveryAlbum = {
   artistHandle: string
   artworkUrl: string | null
   href: string
+  firstPublishedAt?: number
 }
 export type DiscoveryArtist = {
   handle: string
@@ -202,5 +206,152 @@ export function ArtistCard({ artist }: { artist: DiscoveryArtist }) {
         </div>
       </div>
     </Link>
+  )
+}
+
+/** One song per line, in the style of the Studio list (public, no actions). */
+export function SongListRow({ song }: { song: DiscoverySong }) {
+  const { t } = useLocale()
+  const details = [
+    song.primaryArtist,
+    song.albumTitle === undefined
+      ? undefined
+      : (song.albumTitle ?? t("studio.releaseSingle")),
+  ].filter((part): part is string => Boolean(part))
+  const likes = song.likeCount ?? 0
+  return (
+    <ListRowLink href={song.href}>
+      <CoverImage
+        src={song.artworkUrl}
+        label={song.title}
+        className="size-12 rounded-xl sm:size-14 [&_span]:text-2xl"
+      />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-semibold group-hover:underline">
+          {song.title}
+        </span>
+        <span className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <span className="truncate">{details.join(" · ")}</span>
+          {likes > 0 ? (
+            <span
+              className="inline-flex shrink-0 items-center gap-1"
+              aria-label={t("studio.likesLabel", { count: likes })}
+            >
+              <span aria-hidden="true">·</span>
+              <Heart className="size-3.5" aria-hidden="true" />
+              {likes}
+            </span>
+          ) : null}
+        </span>
+      </span>
+      {song.origin === "community" ? (
+        <Badge variant="secondary" className="hidden shrink-0 sm:inline-flex">
+          {t("discovery.sourceCommunity")}
+        </Badge>
+      ) : null}
+    </ListRowLink>
+  )
+}
+
+export function AlbumListRow({ album }: { album: DiscoveryAlbum }) {
+  const details = [
+    album.artistName,
+    album.firstPublishedAt
+      ? String(new Date(album.firstPublishedAt).getUTCFullYear())
+      : undefined,
+  ].filter((part): part is string => Boolean(part))
+  return (
+    <ListRowLink href={album.href}>
+      <CoverImage
+        src={album.artworkUrl}
+        label={album.title}
+        album
+        className="size-12 rounded-lg sm:size-14 [&_span]:text-2xl"
+      />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-semibold group-hover:underline">
+          {album.title}
+        </span>
+        <span className="block truncate text-sm text-muted-foreground">
+          {details.join(" · ")}
+        </span>
+      </span>
+    </ListRowLink>
+  )
+}
+
+function ListRowLink({
+  children,
+  href,
+}: {
+  children: React.ReactNode
+  href: string
+}) {
+  return (
+    <li className="border-b">
+      <Link
+        to={href}
+        className="group flex min-w-0 items-center gap-3 rounded-md py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-1"
+      >
+        {children}
+        <ChevronRight
+          className="size-4 shrink-0 text-muted-foreground"
+          aria-hidden="true"
+        />
+      </Link>
+    </li>
+  )
+}
+
+/** Songs as a cover-card grid or as rows, following the chosen view. */
+export function SongCollection({
+  mode,
+  songs,
+}: {
+  mode: "cards" | "list"
+  songs: Array<DiscoverySong>
+}) {
+  if (mode === "list")
+    return (
+      <ul className="flex flex-col border-t">
+        {songs.map((song) => (
+          <SongListRow key={`${song.origin}:${song.id}`} song={song} />
+        ))}
+      </ul>
+    )
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
+      {songs.map((song) => (
+        <SongCard
+          key={`${song.origin}:${song.id}`}
+          song={song}
+          presentation="cover"
+        />
+      ))}
+    </div>
+  )
+}
+
+export function AlbumCollection({
+  albums,
+  mode,
+}: {
+  albums: Array<DiscoveryAlbum>
+  mode: "cards" | "list"
+}) {
+  if (mode === "list")
+    return (
+      <ul className="flex flex-col border-t">
+        {albums.map((album) => (
+          <AlbumListRow key={album.id} album={album} />
+        ))}
+      </ul>
+    )
+  return (
+    <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+      {albums.map((album) => (
+        <AlbumCard key={album.id} album={album} />
+      ))}
+    </div>
   )
 }

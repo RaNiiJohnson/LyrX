@@ -1,5 +1,6 @@
 import { useLocale } from "@/app/locale-provider"
 import { SONG_GENRES } from "@/features/catalogue/lib/catalogue-form"
+import { Badge } from "@lyrx/ui/components/badge"
 import { Button } from "@lyrx/ui/components/button"
 import { Field, FieldGroup, FieldLabel } from "@lyrx/ui/components/field"
 import {
@@ -21,8 +22,9 @@ import { Skeleton } from "@lyrx/ui/components/skeleton"
 import { ToggleGroup, ToggleGroupItem } from "@lyrx/ui/components/toggle-group"
 import { cn } from "@lyrx/ui/lib/utils"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, X } from "lucide-react"
 import type { ReactNode } from "react"
+import { ViewModeToggle, type ViewMode } from "./view-mode"
 import {
   changeCatalogueFilter,
   genreMessageKeys,
@@ -37,10 +39,13 @@ export function CatalogueLayout({
   onSearch,
   total,
   children,
+  view,
 }: ResultsProps & {
   kind: CatalogueKind
   total: number | undefined
   children: ReactNode
+  /** Cards/list switch, offered for songs and albums. */
+  view?: { mode: ViewMode; onChange: (mode: ViewMode) => void }
 }) {
   const { t } = useLocale()
   return (
@@ -53,7 +58,22 @@ export function CatalogueLayout({
           <ResultsCount kind={kind} total={total} />
         )}
         {search.artist ? (
-          <p className="text-sm text-muted-foreground">@{search.artist}</p>
+          <div>
+            <Badge variant="secondary" className="h-7 gap-1 pr-1 text-sm">
+              {t("discovery.byArtist", { handle: search.artist })}
+              <button
+                type="button"
+                aria-label={t("discovery.clearArtist")}
+                title={t("discovery.clearArtist")}
+                className="grid size-5 place-items-center rounded-full hover:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                onClick={() =>
+                  onSearch(changeCatalogueFilter(search, { artist: undefined }))
+                }
+              >
+                <X className="size-3.5" aria-hidden="true" />
+              </button>
+            </Badge>
+          </div>
         ) : null}
       </header>
       <nav
@@ -179,6 +199,9 @@ export function CatalogueLayout({
             </SelectContent>
           </Select>
         </Field>
+        {view ? (
+          <ViewModeToggle mode={view.mode} onChange={view.onChange} />
+        ) : null}
       </FieldGroup>
       {children}
     </section>

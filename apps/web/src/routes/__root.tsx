@@ -3,6 +3,7 @@ import {
   HeadContent,
   Outlet,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router"
 import { createServerFn } from "@tanstack/react-start"
 import { lazy, Suspense, useEffect } from "react"
@@ -14,7 +15,7 @@ import { ThemeProvider } from "@lyrx/ui/components/theme-provider"
 import appCss from "@lyrx/ui/globals.css?url"
 
 import { Alert, AlertTitle, AlertDescription } from "@lyrx/ui/components/alert"
-import { PageShell } from "@/app/page-shell"
+import { AppChrome, PageShell } from "@/app/page-shell"
 
 import { BackendProvider } from "@/app/backend-provider"
 import { LocaleProvider, useLocale } from "@/app/locale-provider"
@@ -70,6 +71,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootApplication() {
   const { convexClient } = Route.useRouteContext()
   const token = Route.useLoaderData()
+  // Pages opt into the hero layout with `staticData: { fullBleed: true }` so
+  // the persistent header knows it before the page body renders.
+  const fullBleed = useRouterState({
+    select: (state) =>
+      state.matches.some((match) => match.staticData.fullBleed === true),
+  })
   return (
     <ThemeProvider
       attribute="class"
@@ -81,7 +88,9 @@ function RootApplication() {
       <LocaleProvider>
         <LocalizedDocumentMetadata />
         <BackendProvider client={convexClient} initialToken={token}>
-          {convexClient ? <Outlet /> : <ConfigurationRequired />}
+          <AppChrome fullBleed={fullBleed}>
+            {convexClient ? <Outlet /> : <ConfigurationRequired />}
+          </AppChrome>
         </BackendProvider>
         {DevelopmentTools ? (
           <Suspense fallback={null}>
@@ -135,6 +144,13 @@ function RootDocument({ children }: { children: ReactNode }) {
       </body>
     </html>
   )
+}
+
+declare module "@tanstack/react-router" {
+  interface StaticDataRouteOption {
+    /** The page body starts under the transparent header (home hero). */
+    fullBleed?: boolean
+  }
 }
 
 // Vite removes the import branch and its chunks from production builds.
