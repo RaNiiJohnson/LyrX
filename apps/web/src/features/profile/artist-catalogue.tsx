@@ -26,9 +26,9 @@ export function ArtistCatalogue({ profile }: { profile: Profile }) {
   const catalogue = useQuery(api.discovery.read.artistByHandle, {
     handle: profile.handle,
   })
+  const [mode, setMode] = useViewMode()
   if (!catalogue?.ready) return <DiscoveryLoading />
   const filter = { artist: profile.handle, page: 1, sort: "newest" } as const
-  const [mode, setMode] = useViewMode()
   // Same sections and cards as the home page: cover cards in a carousel for
   // songs, vinyl album cards in a scroll row, each with "See all".
   return (
