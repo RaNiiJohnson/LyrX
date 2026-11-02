@@ -33,6 +33,10 @@ function AlbumEditorData({ albumId }: { albumId?: Id<"albums"> }) {
       title: song.title,
       primaryArtist: song.primaryArtist,
       albumId: detail.album._id,
+      albumTitle: detail.album.title,
+      // Album-editor choices only show titles; list extras stay neutral here.
+      artworkUrl: null,
+      likeCount: 0,
       updatedAt: song.updatedAt,
     })) ?? []),
     ...songs.results.filter(

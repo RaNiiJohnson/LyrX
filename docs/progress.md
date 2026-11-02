@@ -40,6 +40,20 @@ needed; server rules are unchanged and still enforce them):
   published song keeps a single "Enregistrer". A failed publish keeps the saved
   draft and its page still offers Publish.
 
+- **Studio list (approved follow-up).** The user approved the proposed list
+  improvements. `listMySongs` rows now carry `albumTitle`, `artworkUrl` and
+  `likeCount` (from `songLikeCounts`); `listMyAlbums` rows add `artworkUrl` and
+  `trackCount` (album-track aggregate). Authorization is unchanged (owner-only
+  `artistQuery`); the extra reads are bounded by the page size. Rows show the
+  artwork, "Album or Single · Modifié il y a …" and likes once published. A
+  draft keeps "Publier" visible at every width (under the title on phones);
+  "Dépublier" moved into the "…" menu next to "Voir la page publique". Status
+  filters show counts from the existing `getMyCatalogueCounts`, and a banner
+  ("2 morceaux attendent d’être publiés" → "Voir les brouillons") appears while
+  drafts exist. The `convex:convex-reviewer` skill is not available in this
+  environment, so the backend change was reviewed locally only; a new backend
+  test covers the summary fields.
+
 Verification: `pnpm check` passes (format, lint, typecheck, 336 web tests,
 build). New tests cover the persistent chrome, sign-up redirect, draft/publish
 choice and handle suggestion. Screens were checked at 390 px and 1280 px in a
