@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   google: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
+  navigate: vi.fn(),
 }))
 vi.mock("convex/react", () => ({ useQuery: () => mocks.capabilities }))
 vi.mock("@/lib/auth-client", () => ({
@@ -30,6 +31,7 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ to, ...props }: ComponentProps<"a"> & { to: string }) => (
     <a href={to} {...props} />
   ),
+  useNavigate: () => mocks.navigate,
 }))
 
 let root: ReturnType<typeof createRoot>
@@ -82,6 +84,7 @@ beforeEach(() => {
   mocks.capabilities = undefined
   mocks.signUp.mockReset().mockResolvedValue({ error: null })
   mocks.google.mockReset().mockResolvedValue({ error: null })
+  mocks.navigate.mockReset().mockResolvedValue(undefined)
   mocks.success.mockClear()
   mocks.error.mockClear()
   host = document.createElement("div")
@@ -147,7 +150,7 @@ describe("responsive sign-up composition", () => {
     expect(googleButton.disabled).toBe(true)
   })
 
-  it("saves through the existing Better Auth call and retains the verification notice", async () => {
+  it("saves through the existing Better Auth call and opens the check-inbox page", async () => {
     mocks.capabilities = { google: true, emailDelivery: true }
     await render()
     await fill("name", "A new member")
@@ -167,9 +170,10 @@ describe("responsive sign-up composition", () => {
       callbackURL: "/account",
     })
     expect(mocks.success).toHaveBeenCalledOnce()
-    expect(document.querySelector('[role="alert"]')?.textContent).toContain(
-      "lien de vérification"
-    )
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: "/auth/verify-email",
+      search: { email: "member@example.com" },
+    })
   })
 
   it("keeps a provider failure actionable without discarding the entered email", async () => {

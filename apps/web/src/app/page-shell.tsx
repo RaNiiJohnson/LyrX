@@ -18,6 +18,8 @@ import { getPublicRuntimeConfig } from "@/lib/runtime-config"
 
 import { SearchOverlay } from "@/features/discovery/search-overlay"
 
+import { AppChromeContext, PageMain, useInsideAppChrome } from "./page-main"
+
 import { AccountSidebar, type AccountNavigationProps } from "./account-sidebar"
 import { LocaleMenu } from "./locale-menu"
 import { useLocale } from "./locale-provider"
@@ -34,43 +36,66 @@ export function PageShell({
   width?: "narrow" | "wide"
   fullBleed?: boolean
 }) {
-  return getPublicRuntimeConfig() ? (
-    <ConfiguredPageShell width={width} fullBleed={fullBleed}>
+  const insideChrome = useInsideAppChrome()
+  const main = (
+    <PageMain width={width} fullBleed={fullBleed}>
       {children}
-    </ConfiguredPageShell>
-  ) : (
-    <ShellFrame
-      width={width}
-      fullBleed={fullBleed}
-      current={{ state: "anonymous" }}
-    >
-      {children}
-    </ShellFrame>
+    </PageMain>
+  )
+  // Under the root route the chrome is already mounted and must not be
+  // recreated per page. A standalone PageShell (tests, isolated renders)
+  // still provides its own chrome.
+  if (insideChrome) return main
+  return <AppChrome fullBleed={fullBleed}>{main}</AppChrome>
+}
+
+/**
+ * Header, footer and mobile navigation shared by every page. The root route
+ * mounts it once around its <Outlet />, so navigating (including through
+ * route pending states) never unmounts or swaps the navigation.
+ */
+export function AppChrome({
+  children,
+  fullBleed = false,
+}: {
+  children: ReactNode
+  fullBleed?: boolean
+}) {
+  return (
+    <AppChromeContext.Provider value={true}>
+      {getPublicRuntimeConfig() ? (
+        <ConfiguredAppChrome fullBleed={fullBleed}>
+          {children}
+        </ConfiguredAppChrome>
+      ) : (
+        <ShellFrame fullBleed={fullBleed} current={{ state: "anonymous" }}>
+          {children}
+        </ShellFrame>
+      )}
+    </AppChromeContext.Provider>
   )
 }
 
 type CurrentAccount = FunctionReturnType<typeof api.members.current>
 type ShellFrameProps = {
   children: ReactNode
-  width: "narrow" | "wide"
   fullBleed?: boolean
   current: CurrentAccount | undefined
 }
 
-function ConfiguredPageShell({
+function ConfiguredAppChrome({
   children,
-  width,
   fullBleed,
 }: Omit<ShellFrameProps, "current">) {
   const current = useQuery(api.members.current, {})
   return (
-    <ShellFrame width={width} fullBleed={fullBleed} current={current}>
+    <ShellFrame fullBleed={fullBleed} current={current}>
       {children}
     </ShellFrame>
   )
 }
 
-function ShellFrame({ children, width, current, fullBleed }: ShellFrameProps) {
+function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
   const { t } = useLocale()
   const [atTop, setAtTop] = useState(true)
   useEffect(() => {
@@ -132,18 +157,7 @@ function ShellFrame({ children, width, current, fullBleed }: ShellFrameProps) {
         </div>
       </header>
 
-      <main
-        className={cn(
-          "mx-auto flex w-full min-w-0 flex-col gap-6 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:pb-8",
-          fullBleed
-            ? "col-start-1 row-span-2 row-start-1 max-w-none px-0 pt-0 sm:px-0 sm:pt-0"
-            : width === "wide"
-              ? "max-w-6xl"
-              : "max-w-2xl"
-        )}
-      >
-        {children}
-      </main>
+      {children}
 
       <footer
         className={cn(

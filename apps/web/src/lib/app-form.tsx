@@ -11,6 +11,12 @@ import {
 } from "@lyrx/ui/components/field"
 import { Input } from "@lyrx/ui/components/input"
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@lyrx/ui/components/input-group"
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -33,6 +39,8 @@ type TextFieldProps = Omit<
   label: ReactNode
   labelExtra?: ReactNode
   onValueChange?: (value: string) => void
+  /** Short non-editable text shown before the value, such as "@". */
+  prefix?: string
 }
 
 function TextField({
@@ -41,6 +49,7 @@ function TextField({
   label,
   labelExtra,
   onValueChange,
+  prefix,
   ...inputProps
 }: TextFieldProps) {
   const field = useFieldContext<string>()
@@ -57,18 +66,38 @@ function TextField({
       ) : (
         <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
       )}
-      <Input
-        {...inputProps}
-        id={inputId}
-        name={field.name}
-        value={field.state.value}
-        onBlur={field.handleBlur}
-        onChange={(event) => {
-          field.handleChange(event.target.value)
-          onValueChange?.(event.target.value)
-        }}
-        aria-invalid={invalid || undefined}
-      />
+      {prefix ? (
+        <InputGroup>
+          <InputGroupAddon>
+            <InputGroupText>{prefix}</InputGroupText>
+          </InputGroupAddon>
+          <InputGroupInput
+            {...inputProps}
+            id={inputId}
+            name={field.name}
+            value={field.state.value}
+            onBlur={field.handleBlur}
+            onChange={(event) => {
+              field.handleChange(event.target.value)
+              onValueChange?.(event.target.value)
+            }}
+            aria-invalid={invalid || undefined}
+          />
+        </InputGroup>
+      ) : (
+        <Input
+          {...inputProps}
+          id={inputId}
+          name={field.name}
+          value={field.state.value}
+          onBlur={field.handleBlur}
+          onChange={(event) => {
+            field.handleChange(event.target.value)
+            onValueChange?.(event.target.value)
+          }}
+          aria-invalid={invalid || undefined}
+        />
+      )}
       {invalid ? (
         <FieldError errors={toFieldErrors(field.state.meta.errors)} />
       ) : description ? (
@@ -227,19 +256,30 @@ function SelectField({
 function SubmitButton({
   children,
   disabled,
+  requireChanges = false,
   ...buttonProps
-}: ComponentProps<typeof Button>) {
+}: ComponentProps<typeof Button> & {
+  /** Keep the button disabled until at least one value differs from its default. */
+  requireChanges?: boolean
+}) {
   const form = useFormContext()
 
   return (
     <form.Subscribe
-      selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+      selector={(state) =>
+        [state.canSubmit, state.isSubmitting, state.isDefaultValue] as const
+      }
     >
-      {([canSubmit, isSubmitting]) => (
+      {([canSubmit, isSubmitting, isDefaultValue]) => (
         <Button
           {...buttonProps}
           type="submit"
-          disabled={disabled || !canSubmit || isSubmitting}
+          disabled={
+            disabled ||
+            !canSubmit ||
+            isSubmitting ||
+            (requireChanges && isDefaultValue)
+          }
         >
           {isSubmitting ? <Spinner data-icon="inline-start" /> : null}
           {children}

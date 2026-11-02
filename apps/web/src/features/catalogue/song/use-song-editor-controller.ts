@@ -38,6 +38,9 @@ export function useSongEditorController({
   const navigate = useNavigate()
   const createSong = useMutation(api.catalogue.songs.createSong)
   const updateSong = useMutation(api.catalogue.songs.updateSong)
+  const publishSong = useMutation(api.catalogue.songs.publishSong)
+  // Set by the clicked submit button: "save as draft" or "save and publish".
+  const publishOnSave = useRef(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const draft = useRef({ id: songId })
@@ -92,7 +95,20 @@ export function useSongEditorController({
           )
           return
         }
-        toast.success(songId ? t("catalogue.saved") : t("catalogue.created"))
+        const wasPublished = detail?.song.status === "published"
+        if (publishOnSave.current && !wasPublished) {
+          try {
+            await publishSong({ songId: saved.id })
+            toast.success(t("studio.publishedOnSave"))
+          } catch (caught) {
+            // The draft itself is saved; its page keeps a Publish action.
+            toast.error(t("catalogue.saveError"), {
+              description: getErrorMessage(caught, t),
+            })
+          }
+        } else {
+          toast.success(songId ? t("catalogue.saved") : t("catalogue.created"))
+        }
         await navigate({
           to: "/studio/songs/$songId/preview",
           params: { songId: saved.id },
@@ -111,6 +127,10 @@ export function useSongEditorController({
   return {
     error,
     form,
+    published: detail?.song.status === "published",
+    setPublishOnSave: (value: boolean) => {
+      publishOnSave.current = value
+    },
     saving,
     setError,
     artworkPending,

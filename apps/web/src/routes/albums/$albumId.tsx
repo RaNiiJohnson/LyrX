@@ -1,6 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute, notFound } from "@tanstack/react-router"
+import { BackButton } from "@/app/back-button"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
 import { Disc3, FileMusic } from "lucide-react"
@@ -44,6 +45,9 @@ function PublicAlbumPage() {
   return (
     <PageShell width="wide">
       <article className="mx-auto flex w-full max-w-5xl flex-col gap-8 py-4">
+        <div>
+          <BackButton fallback="/albums" />
+        </div>
         <header className="grid gap-5 sm:grid-cols-[8.25rem_1fr] sm:items-end">
           <div className="flex aspect-square size-24 items-center justify-center overflow-hidden rounded-2xl bg-muted sm:size-[8.25rem]">
             {artworkUrl ? (

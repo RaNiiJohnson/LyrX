@@ -6,6 +6,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 
+import { BackButton } from "@/app/back-button"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -41,8 +42,11 @@ function PublicSongPage() {
         detail={detail}
         actions={
           <>
-            <SavePassage sourceId={songId} lyricsText={detail.lyricsText} />
-            <CreateSharingCard target={{ kind: "song", sourceId: songId }} />
+            <BackButton fallback="/songs" />
+            <div className="flex flex-wrap items-center gap-2">
+              <SavePassage sourceId={songId} lyricsText={detail.lyricsText} />
+              <CreateSharingCard target={{ kind: "song", sourceId: songId }} />
+            </div>
           </>
         }
       />

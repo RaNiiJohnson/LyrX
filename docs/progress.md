@@ -1,5 +1,51 @@
 # Delivery progress
 
+## Trello UX follow-up — 2 November 2026 (branch `ccr-3390c328-3g9xip`)
+
+Seven user-reported web issues, fixed without backend changes (no Convex review
+needed; server rules are unchanged and still enforce them):
+
+- **Onboarding access.** `/onboarding` now shows its form only in the
+  `onboarding-required` state (signed in, email link opened, no profile). Other
+  states redirect: anonymous → sign-in, unverified → verify page, ready or
+  suspended → profile. `completeOnboarding` was already a verified mutation.
+- **Display name vs handle.** One "Nom affiché et pseudo" group explains the
+  difference, pre-fills the name typed at sign-up, suggests a handle from it
+  (`suggestHandle` in `@lyrx/shared`, tested) until the member edits it, shows
+  "@" before the handle and a live profile preview with its address.
+- **Check-inbox page.** Sign-up now opens `/auth/verify-email?email=…`, a
+  dedicated page with the address, three next steps, a resend button with a
+  60 s cooldown, and wrong-address / already-confirmed links. Without a known
+  address it keeps the previous resend form.
+- **Profile save.** `SubmitButton` gained `requireChanges`; the profile save
+  button stays disabled until a value differs from the saved one, and the saved
+  values become the new baseline.
+- **Unstable navbar.** Each page mounted its own `PageShell`, and pending
+  route states (after 150 ms, typically while a code-split page chunk loads on
+  mobile) swapped in `RouteBoundaryShell`, a different header without the
+  mobile navigation. The root now mounts `AppChrome` once around its `Outlet`;
+  `PageShell` and `RouteBoundaryShell` render only `<main>` inside it (context
+  `AppChromeContext`) and keep their standalone behaviour elsewhere. The home
+  hero declares `staticData.fullBleed`.
+- **Two song pages.** `/songs/$songId` stays the public page;
+  `/studio/songs/$songId/preview` is the owner's management view of the same
+  layout. It now shows a Draft/Published banner (Publish or "Voir la page
+  publique"), a visible Edit button, Publish/Unpublish in the menu and, once
+  published, the same likes and comments block as the public page. Public song,
+  community lyric and album pages gained a Back button (history, or the list
+  when opened from a shared link). Showing owner tools directly on the public
+  page needs a backend "viewer can manage" flag — proposed, not built.
+- **Publishing guidance.** The song editor offers "Enregistrer et publier"
+  (primary) and "Enregistrer en brouillon" with a one-line explanation; a
+  published song keeps a single "Enregistrer". A failed publish keeps the saved
+  draft and its page still offers Publish.
+
+Verification: `pnpm check` passes (format, lint, typecheck, 336 web tests,
+build). New tests cover the persistent chrome, sign-up redirect, draft/publish
+choice and handle suggestion. Screens were checked at 390 px and 1280 px in a
+throwaway harness rendering the real components with mocked Convex data; live
+deployment flows were not exercised.
+
 ## Lot 13 — Expo foundation (in progress)
 
 - Branch `codex/expo-foundation` starts at `main` (`ee54d21`). The user deferred

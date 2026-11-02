@@ -16,6 +16,7 @@ import { HorizontalRow } from "@/features/discovery/horizontal-row"
 
 export const Route = createFileRoute("/")({
   ...appRouteBoundaries,
+  staticData: { fullBleed: true },
   loader: async ({ context }) => {
     if (!context.convexQueryClient) return
     await context.queryClient.query({ ...homeQuery(), staleTime: "static" })
