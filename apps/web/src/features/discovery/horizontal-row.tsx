@@ -11,6 +11,7 @@ export function HorizontalRow({
   children,
   empty = false,
   seeAllSearch,
+  layout = "row",
 }: {
   title: string
   href: "/artists" | "/albums"
@@ -18,6 +19,8 @@ export function HorizontalRow({
   empty?: boolean
   /** Filter applied by "See all", e.g. one artist's albums. */
   seeAllSearch?: Partial<CatalogueSearch>
+  /** "list": children are rendered as given, without the scroll strip. */
+  layout?: "row" | "list"
 }) {
   const { t } = useLocale()
   const id = useId()
@@ -64,7 +67,7 @@ export function HorizontalRow({
           {title}
         </h2>
         <div className="flex items-center gap-2">
-          {!empty && (edges.before || edges.after) ? (
+          {!empty && layout === "row" && (edges.before || edges.after) ? (
             <div className="hidden gap-1 lg:flex">
               <Button
                 variant="outline"
@@ -94,7 +97,7 @@ export function HorizontalRow({
           </Button>
         </div>
       </div>
-      {empty ? (
+      {empty || layout === "list" ? (
         children
       ) : (
         <div

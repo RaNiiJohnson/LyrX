@@ -34,6 +34,8 @@ export const songCard = v.object({
   href: v.string(),
   genre: v.optional(songGenreValidator),
   recentViews: v.number(),
+  albumTitle: v.union(v.string(), v.null()),
+  likeCount: v.number(),
 })
 export const albumCard = v.object({
   id: v.string(),

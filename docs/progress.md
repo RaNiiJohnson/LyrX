@@ -78,6 +78,18 @@ needed; server rules are unchanged and still enforce them):
   the artist filter. Not changed (management or private screens): fan
   contributions, notebook, forms and moderation.
 
+- **Cards or list view.** Public song and album collections outside the home
+  page (`/songs`, `/albums`, "Mes morceaux aimés", artist profiles) offer a
+  Cards/List toggle remembered per device (`localStorage`, wrapped in
+  try/catch; first paint is always cards). List rows follow the Studio row
+  style: cover, title, "artist · album or Single · ♥ likes", a Community badge
+  for fan lyrics. Backend: discovery song cards and liked-song rows add
+  `albumTitle` (only when that album is published by the same artist) and
+  `likeCount`; liked rows also add `artworkUrl`. Shared helper
+  `catalogue/listing.ts`; reads stay bounded per card. Reviewed locally (the
+  Convex reviewer skill is unavailable here); discovery and interaction tests
+  cover the new fields. Deploy Convex before the web.
+
 Verification: `pnpm check` passes (format, lint, typecheck, 336 web tests,
 build). New tests cover the persistent chrome, sign-up redirect, draft/publish
 choice and handle suggestion. Screens were checked at 390 px and 1280 px in a

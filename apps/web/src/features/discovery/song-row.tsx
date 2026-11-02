@@ -9,7 +9,7 @@ import {
 } from "@lyrx/ui/components/carousel"
 import { useLocale } from "@/app/locale-provider"
 import type { CatalogueSearch } from "./catalogue-search"
-import { SongCard, type DiscoverySong } from "./discovery-cards"
+import { SongCard, SongCollection, type DiscoverySong } from "./discovery-cards"
 import { DiscoveryEmpty } from "./discovery-states"
 
 export function SongRow({
@@ -17,12 +17,15 @@ export function SongRow({
   songs,
   popular = false,
   seeAllSearch,
+  mode = "cards",
 }: {
   title: string
   songs: Array<DiscoverySong>
   popular?: boolean
   /** Filter applied by "See all", e.g. one artist's songs. */
   seeAllSearch?: Partial<CatalogueSearch>
+  /** "list" shows one song per line instead of the cover carousel. */
+  mode?: "cards" | "list"
 }) {
   const { t } = useLocale()
   const id = useId()
@@ -51,7 +54,9 @@ export function SongRow({
           {t("discovery.popularDescription")}
         </p>
       ) : null}
-      {songs.length ? (
+      {songs.length && mode === "list" ? (
+        <SongCollection mode="list" songs={songs} />
+      ) : songs.length ? (
         <Carousel
           opts={{ align: "start", containScroll: "trimSnaps" }}
           aria-labelledby={id}

@@ -1,5 +1,9 @@
 import { useLocale } from "@/app/locale-provider"
-import { AlbumCard } from "@/features/discovery/discovery-cards"
+import {
+  AlbumCard,
+  AlbumCollection,
+} from "@/features/discovery/discovery-cards"
+import { useViewMode, ViewModeToggle } from "@/features/discovery/view-mode"
 import { DiscoveryLoading } from "@/features/discovery/discovery-states"
 import { HorizontalRow } from "@/features/discovery/horizontal-row"
 import { SongRow } from "@/features/discovery/song-row"
@@ -24,27 +28,39 @@ export function ArtistCatalogue({ profile }: { profile: Profile }) {
   })
   if (!catalogue?.ready) return <DiscoveryLoading />
   const filter = { artist: profile.handle, page: 1, sort: "newest" } as const
+  const [mode, setMode] = useViewMode()
   // Same sections and cards as the home page: cover cards in a carousel for
   // songs, vinyl album cards in a scroll row, each with "See all".
   return (
-    <div className="flex min-w-0 flex-col gap-10 sm:gap-14">
-      <SongRow
-        title={`${t("discovery.songs")} · ${catalogue.songCount}`}
-        songs={catalogue.songs}
-        seeAllSearch={filter}
-      />
-      {catalogue.albumCount > 0 ? (
-        <HorizontalRow
-          title={`${t("discovery.albums")} · ${catalogue.albumCount}`}
-          href="/albums"
+    <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex justify-end">
+        <ViewModeToggle mode={mode} onChange={setMode} />
+      </div>
+      <div className="flex min-w-0 flex-col gap-10 sm:gap-14">
+        <SongRow
+          mode={mode}
+          title={`${t("discovery.songs")} · ${catalogue.songCount}`}
+          songs={catalogue.songs}
           seeAllSearch={filter}
-        >
-          {catalogue.albums.map((album) => (
-            <AlbumCard key={album.id} album={album} />
-          ))}
-        </HorizontalRow>
-      ) : null}
-      <AboutArtist profile={profile} />
+        />
+        {catalogue.albumCount > 0 ? (
+          <HorizontalRow
+            title={`${t("discovery.albums")} · ${catalogue.albumCount}`}
+            href="/albums"
+            seeAllSearch={filter}
+            layout={mode === "list" ? "list" : "row"}
+          >
+            {mode === "list" ? (
+              <AlbumCollection mode="list" albums={catalogue.albums} />
+            ) : (
+              catalogue.albums.map((album) => (
+                <AlbumCard key={album.id} album={album} />
+              ))
+            )}
+          </HorizontalRow>
+        ) : null}
+        <AboutArtist profile={profile} />
+      </div>
     </div>
   )
 }

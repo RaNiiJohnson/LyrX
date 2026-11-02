@@ -24,6 +24,7 @@ import { cn } from "@lyrx/ui/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, ArrowRight, X } from "lucide-react"
 import type { ReactNode } from "react"
+import { ViewModeToggle, type ViewMode } from "./view-mode"
 import {
   changeCatalogueFilter,
   genreMessageKeys,
@@ -38,10 +39,13 @@ export function CatalogueLayout({
   onSearch,
   total,
   children,
+  view,
 }: ResultsProps & {
   kind: CatalogueKind
   total: number | undefined
   children: ReactNode
+  /** Cards/list switch, offered for songs and albums. */
+  view?: { mode: ViewMode; onChange: (mode: ViewMode) => void }
 }) {
   const { t } = useLocale()
   return (
@@ -195,6 +199,9 @@ export function CatalogueLayout({
             </SelectContent>
           </Select>
         </Field>
+        {view ? (
+          <ViewModeToggle mode={view.mode} onChange={view.onChange} />
+        ) : null}
       </FieldGroup>
       {children}
     </section>

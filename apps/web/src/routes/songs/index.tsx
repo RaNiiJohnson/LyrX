@@ -7,7 +7,8 @@ import {
   CataloguePagination,
   type ResultsProps,
 } from "@/features/discovery/catalogue-layout"
-import { SongCard } from "@/features/discovery/discovery-cards"
+import { SongCollection } from "@/features/discovery/discovery-cards"
+import { useViewMode } from "@/features/discovery/view-mode"
 import {
   DiscoveryLoading,
   DiscoveryEmpty,
@@ -46,25 +47,19 @@ function SongsPage() {
 
 function SongsResults({ search, onSearch }: ResultsProps) {
   const { data } = useSuspenseQuery(songsQuery(search))
+  const [mode, setMode] = useViewMode()
   return (
     <CatalogueLayout
       kind="songs"
       search={search}
       onSearch={onSearch}
       total={data.ready ? data.total : undefined}
+      view={{ mode, onChange: setMode }}
     >
       {!data.ready ? (
         <DiscoveryLoading />
       ) : data.items.length ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
-          {data.items.map((song) => (
-            <SongCard
-              key={`${song.origin}:${song.id}`}
-              song={song}
-              presentation="cover"
-            />
-          ))}
-        </div>
+        <SongCollection mode={mode} songs={data.items} />
       ) : (
         <DiscoveryEmpty />
       )}
