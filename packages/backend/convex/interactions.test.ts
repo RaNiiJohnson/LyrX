@@ -136,7 +136,15 @@ describe("song interactions", () => {
           paginationOpts: page,
         })
       ).page
-    ).toHaveLength(1)
+    ).toEqual([
+      expect.objectContaining({
+        id: song,
+        origin: "artist",
+        artworkUrl: null,
+        albumTitle: null,
+        likeCount: 2,
+      }),
+    ])
     await Promise.all(
       Array.from({ length: 3 }, () =>
         fan.client.mutation(api.interactions.write.setLike, {

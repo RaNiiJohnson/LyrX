@@ -130,7 +130,7 @@ function ReadyProfileEditor({
       spotifyUrl: current.artistProfile?.spotifyUrl ?? "",
       customLinks: current.artistProfile?.customLinks ?? [],
     },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value, formApi }) => {
       setError(null)
       try {
         await updateProfile({
@@ -150,6 +150,9 @@ function ReadyProfileEditor({
                 }
               : undefined,
         })
+        // The saved values become the new baseline, so "Save" is disabled
+        // again until the member changes something.
+        formApi.reset(value)
         toast.success(t("profile.saved"))
       } catch (caught) {
         const message = getErrorMessage(caught, t)
@@ -490,7 +493,9 @@ function ReadyProfileEditor({
         <Separator />
         <div className="flex flex-wrap items-center justify-end gap-4">
           <form.AppForm>
-            <form.SubmitButton size="lg">{t("profile.save")}</form.SubmitButton>
+            <form.SubmitButton size="lg" requireChanges>
+              {t("profile.save")}
+            </form.SubmitButton>
           </form.AppForm>
         </div>
       </form>

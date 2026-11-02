@@ -3,6 +3,7 @@ import {
   paginationResultValidator,
 } from "convex/server"
 import { lyricsTextForSong } from "../catalogue/lyrics"
+import { songListingExtras } from "../catalogue/listing"
 import { matchingExcerpt, searchTerms } from "./searchText"
 import { ConvexError, v, type Infer } from "convex/values"
 import type { Doc, Id } from "../_generated/dataModel"
@@ -99,7 +100,9 @@ async function song(
           id as Id<"communityContributions">
         )
   if (!source || source.status !== "published") return null
+  const extras = await songListingExtras(ctx, source)
   return {
+    ...extras,
     id: String(source._id),
     origin: entry.origin,
     title: source.title,

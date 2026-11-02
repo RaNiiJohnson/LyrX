@@ -1,7 +1,8 @@
 import { useLocale } from "@/app/locale-provider"
 import { LoadMore } from "@/features/community/community-list"
+import { SongCollection } from "@/features/discovery/discovery-cards"
+import type { ViewMode } from "@/features/discovery/view-mode"
 import { api } from "@lyrx/backend/convex/_generated/api"
-import { Badge } from "@lyrx/ui/components/badge"
 import {
   Empty,
   EmptyDescription,
@@ -9,10 +10,9 @@ import {
   EmptyTitle,
 } from "@lyrx/ui/components/empty"
 import { Skeleton } from "@lyrx/ui/components/skeleton"
-import { Link } from "@tanstack/react-router"
 import { usePaginatedQuery } from "convex-helpers/react/cache"
 
-export function LikedSongList() {
+export function LikedSongList({ mode }: { mode: ViewMode }) {
   const { t } = useLocale()
   const page = usePaginatedQuery(
     api.interactions.read.likedSongs,
@@ -24,31 +24,7 @@ export function LikedSongList() {
       {page.status === "LoadingFirstPage" ? (
         <Skeleton className="h-32 w-full" />
       ) : page.results.length ? (
-        <ul className="flex flex-col gap-4">
-          {page.results.map((song) => (
-            <li
-              key={`${song.origin}:${song.id}`}
-              className="flex items-center justify-between gap-3 rounded-xl border p-4"
-            >
-              <Link
-                to={song.href}
-                className="min-w-0 wrap-anywhere hover:underline"
-              >
-                <strong>{song.title}</strong>
-                <p className="text-sm text-muted-foreground">
-                  {song.primaryArtist}
-                </p>
-              </Link>
-              <Badge variant="secondary">
-                {t(
-                  song.origin === "artist"
-                    ? "discovery.sourceArtist"
-                    : "discovery.sourceCommunity"
-                )}
-              </Badge>
-            </li>
-          ))}
-        </ul>
+        <SongCollection mode={mode} songs={page.results} />
       ) : (
         <Empty>
           <EmptyHeader>

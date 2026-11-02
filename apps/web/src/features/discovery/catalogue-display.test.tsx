@@ -272,7 +272,16 @@ describe("discovery public display states", () => {
       ready: true,
       songCount: 20,
       albumCount: 3,
-      songs: [],
+      songs: [
+        {
+          id: "song-1",
+          origin: "artist",
+          title: "First song",
+          primaryArtist: "The Artist",
+          artworkUrl: null,
+          href: "/songs/song-1",
+        },
+      ],
       albums: [],
     }
     const html = renderToStaticMarkup(<PublicProfile handle="author" />)
@@ -285,14 +294,14 @@ describe("discovery public display states", () => {
       "YouTube",
       "Spotify",
       "My site",
-      "Morceaux",
-      "Albums",
-      "À propos",
+      "Morceaux · 20",
+      "Albums · 3",
+      "À propos de l’artiste",
     ])
       expect(html).toContain(text)
-    expect(html).toContain('role="tablist"')
-    expect(html).toContain("20")
+    expect(html).not.toContain('role="tablist"')
     expect(html).toContain('href="/songs"')
+    expect(html).toContain('href="/albums"')
   })
 })
 

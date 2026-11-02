@@ -6,13 +6,18 @@ import { VerifyEmailForm } from "@/features/auth/verify-email-form"
 
 export const Route = createFileRoute("/auth/verify-email")({
   ...appRouteBoundaries,
+  validateSearch: (search: Record<string, unknown>): { email?: string } =>
+    typeof search.email === "string" && search.email.includes("@")
+      ? { email: search.email }
+      : {},
   component: VerifyEmailPage,
 })
 
 function VerifyEmailPage() {
+  const { email } = Route.useSearch()
   return (
     <PageShell>
-      <VerifyEmailForm />
+      <VerifyEmailForm email={email} />
     </PageShell>
   )
 }

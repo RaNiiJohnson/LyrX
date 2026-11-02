@@ -49,11 +49,14 @@ type ReadOnlySong = {
 
 export function SongReadOnly({
   actions,
+  albumNavigation,
   artworkAction,
   notice,
   detail,
 }: {
   actions?: ReactNode
+  /** Shown first in the side column (above the lyrics on phones). */
+  albumNavigation?: ReactNode
   artworkAction?: ArtworkAction
   notice?: ReactNode
   detail: ReadOnlySong
@@ -230,6 +233,7 @@ export function SongReadOnly({
           </section>
         </div>
         <aside className="order-1 flex min-w-0 flex-col gap-5 lg:sticky lg:top-[4.5rem] lg:order-2 lg:self-start">
+          {albumNavigation}
           <SongListeningLinks
             artworkUrl={detail.artworkUrl}
             links={detail.song.listeningLinks}

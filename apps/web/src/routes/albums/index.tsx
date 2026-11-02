@@ -7,7 +7,8 @@ import {
   CataloguePagination,
   type ResultsProps,
 } from "@/features/discovery/catalogue-layout"
-import { AlbumCard } from "@/features/discovery/discovery-cards"
+import { AlbumCollection } from "@/features/discovery/discovery-cards"
+import { useViewMode } from "@/features/discovery/view-mode"
 import {
   DiscoveryLoading,
   DiscoveryEmpty,
@@ -46,21 +47,19 @@ function AlbumsPage() {
 
 function AlbumsResults({ search, onSearch }: ResultsProps) {
   const { data } = useSuspenseQuery(albumsQuery(search))
+  const [mode, setMode] = useViewMode()
   return (
     <CatalogueLayout
       kind="albums"
       search={search}
       onSearch={onSearch}
       total={data.ready ? data.total : undefined}
+      view={{ mode, onChange: setMode }}
     >
       {!data.ready ? (
         <DiscoveryLoading />
       ) : data.items.length ? (
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-          {data.items.map((album) => (
-            <AlbumCard key={album.id} album={album} />
-          ))}
-        </div>
+        <AlbumCollection mode={mode} albums={data.items} />
       ) : (
         <DiscoveryEmpty />
       )}

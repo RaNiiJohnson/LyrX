@@ -158,6 +158,16 @@ describe("unified public discovery", () => {
       "artist",
       "community",
     ])
+    // List views get the album (singles: null) and the public like count.
+    expect(
+      page1.items.map(({ albumTitle, likeCount }) => ({
+        albumTitle,
+        likeCount,
+      }))
+    ).toEqual([
+      { albumTitle: null, likeCount: 0 },
+      { albumTitle: null, likeCount: 0 },
+    ])
     const page2 = await t.query(api.discovery.read.listSongs, {
       page: 2,
       pageSize: 2,

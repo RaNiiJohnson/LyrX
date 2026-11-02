@@ -760,6 +760,67 @@ describe("artist catalogue", () => {
     expect(first.page[0]).not.toHaveProperty("ownerMemberId")
   })
 
+  it("summarizes artwork, album and likes for the studio lists", async () => {
+    const t = backend()
+    const { client } = await artist(t, "catalogue-list-summary")
+    const albumId = await client.mutation(api.catalogue.albums.createAlbum, {
+      title: "Nosy",
+      credits: [],
+    })
+    const songId = await client.mutation(api.catalogue.songs.createSong, {
+      ...songInput("Avec album"),
+      albumContext: {
+        albumId,
+        inheritance: {
+          inheritArtwork: false,
+          inheritGenre: false,
+          inheritLabel: false,
+          inheritCredits: false,
+        },
+      },
+    })
+    const loneId = await client.mutation(
+      api.catalogue.songs.createSong,
+      songInput("Sans album")
+    )
+    await t.run(async (ctx) => {
+      const storageId = await ctx.storage.store(
+        new Blob(["artwork"], { type: "image/png" })
+      )
+      await ctx.db.patch("songs", songId, { artworkStorageId: storageId })
+      await ctx.db.insert("songLikeCounts", { sourceId: songId, count: 7 })
+    })
+
+    const songs = await client.query(api.catalogue.read.listMySongs, {
+      paginationOpts: { numItems: 10, cursor: null },
+    })
+    const withAlbum = songs.page.find(({ _id }) => _id === songId)
+    const lone = songs.page.find(({ _id }) => _id === loneId)
+    expect(withAlbum).toMatchObject({
+      albumId,
+      albumTitle: "Nosy",
+      likeCount: 7,
+    })
+    expect(withAlbum?.artworkUrl).toEqual(expect.any(String))
+    expect(lone).toMatchObject({
+      albumId: null,
+      albumTitle: null,
+      artworkUrl: null,
+      likeCount: 0,
+    })
+
+    const albums = await client.query(api.catalogue.read.listMyAlbums, {
+      paginationOpts: { numItems: 10, cursor: null },
+    })
+    expect(albums.page).toEqual([
+      expect.objectContaining({
+        _id: albumId,
+        artworkUrl: null,
+        trackCount: 1,
+      }),
+    ])
+  })
+
   it("keeps aggregate counts and status pagination in sync", async () => {
     const t = backend()
     const { client } = await artist(t, "catalogue-aggregate-counts")

@@ -126,55 +126,16 @@ describe("public profile banner replacement", () => {
       container.querySelector('[data-slot="avatar"]')?.className
     ).toContain("-mt-12")
   })
-  it("keeps the active line on the actual Radix state through clicking and arrow keys", async () => {
+  it("shows the artist catalogue as home-style sections instead of tabs", async () => {
     state.ready = true
     await render()
-    const [songs, albums, about] = tabButtons()
-    expect(songs?.getAttribute("data-state")).toBe("active")
-    expect(songs?.hasAttribute("data-active")).toBe(false)
-    expect(songs?.className).toContain(
-      "group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100"
+    expect(container.querySelector('[role="tablist"]')).toBeNull()
+    const headings = [...container.querySelectorAll("h2")].map(
+      (heading) => heading.textContent
     )
-    expect(songs?.className).not.toContain("data-active:")
-    expect(container.querySelector('[role="tablist"]')?.className).toContain(
-      "border-b"
-    )
-    expect(container.querySelector('[role="tablist"]')?.className).toContain(
-      "w-full"
-    )
-    for (const tab of tabButtons()) {
-      expect(tab.className).toContain("flex-1")
-      expect(tab.className).toContain("min-w-0")
-      expect(tab.className).not.toContain("flex-none")
-      expect(tab.querySelector("span")?.className).toContain("truncate")
-    }
-    await flush(() => {
-      albums?.dispatchEvent(
-        new MouseEvent("mousedown", { bubbles: true, button: 0 })
-      )
-      albums?.focus()
-      albums?.click()
-    })
-    expect(albums?.getAttribute("aria-selected")).toBe("true")
-    expect(songs?.getAttribute("data-state")).toBe("inactive")
-    await flush(() => {
-      albums?.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })
-      )
-    })
-    expect(document.activeElement).toBe(about)
-    expect(about?.getAttribute("data-state")).toBe("active")
-    expect(albums?.getAttribute("data-state")).toBe("inactive")
-    await flush(() => {
-      about?.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "Home", bubbles: true })
-      )
-    })
-    expect(document.activeElement).toBe(songs)
-    expect(songs?.getAttribute("aria-selected")).toBe("true")
-    expect(
-      container.querySelectorAll('[role="tab"][data-state="active"]')
-    ).toHaveLength(1)
+    expect(headings).toContain("Morceaux · 0")
+    // An artist without albums gets no empty album section.
+    expect(headings.some((heading) => heading.startsWith("Albums"))).toBe(false)
   })
   it("retains the default tab background state used by Studio", async () => {
     await render(

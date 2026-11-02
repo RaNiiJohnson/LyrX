@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Send } from "lucide-react"
 
 import type { Doc, Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Alert, AlertDescription, AlertTitle } from "@lyrx/ui/components/alert"
@@ -111,8 +111,36 @@ export function SongEditorForm({
           <div className="min-w-0 lg:col-start-2 lg:row-start-2">
             <SongCreditsStep form={controller.form} />
           </div>
-          <div className="flex flex-wrap justify-end gap-3 lg:col-start-2 lg:row-start-3">
-            <Button asChild variant="outline">
+          <div className="flex flex-col gap-3 lg:col-start-2 lg:row-start-3">
+            {controller.published ? (
+              <controller.form.SubmitButton
+                disabled={controller.artworkPending || controller.saving}
+                onClick={() => controller.setPublishOnSave(false)}
+              >
+                {t("common.save")}
+              </controller.form.SubmitButton>
+            ) : (
+              <>
+                <controller.form.SubmitButton
+                  disabled={controller.artworkPending || controller.saving}
+                  onClick={() => controller.setPublishOnSave(true)}
+                >
+                  <Send data-icon="inline-start" />
+                  {t("studio.saveAndPublish")}
+                </controller.form.SubmitButton>
+                <controller.form.SubmitButton
+                  variant="outline"
+                  disabled={controller.artworkPending || controller.saving}
+                  onClick={() => controller.setPublishOnSave(false)}
+                >
+                  {t("studio.saveDraft")}
+                </controller.form.SubmitButton>
+                <p className="text-xs text-muted-foreground">
+                  {t("studio.publishHint")}
+                </p>
+              </>
+            )}
+            <Button asChild variant="ghost">
               <Link
                 to={
                   returnAlbumId ? "/studio/albums/$albumId/preview" : "/studio"
@@ -123,11 +151,6 @@ export function SongEditorForm({
                 {t("common.cancel")}
               </Link>
             </Button>
-            <controller.form.SubmitButton
-              disabled={controller.artworkPending || controller.saving}
-            >
-              {t("common.save")}
-            </controller.form.SubmitButton>
           </div>
         </controller.form.AppForm>
       </form>

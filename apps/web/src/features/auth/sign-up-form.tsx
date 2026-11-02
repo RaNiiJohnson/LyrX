@@ -1,6 +1,6 @@
 import { useQuery } from "convex/react"
 import { useState } from "react"
-import { Link } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { isValidDisplayName } from "@lyrx/shared"
@@ -20,8 +20,8 @@ import { useLocale } from "@/app/locale-provider"
 export function SignUpForm() {
   const { t } = useLocale()
   const capabilities = useQuery(api.configuration.authCapabilities, {})
+  const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
   const [googlePending, setGooglePending] = useState(false)
 
   const form = useAppForm({
@@ -33,7 +33,6 @@ export function SignUpForm() {
     onSubmit: async ({ value }) => {
       if (!capabilities?.emailDelivery) return
       setError(null)
-      setNotice(null)
       try {
         const result = await authClient.signUp.email({
           name: value.name,
@@ -42,9 +41,12 @@ export function SignUpForm() {
           callbackURL: "/account",
         })
         if (result.error) throw result.error
-        setNotice(t("signUp.notice"))
         toast.success(t("signUp.successTitle"), {
           description: t("signUp.successDescription"),
+        })
+        await navigate({
+          to: "/auth/verify-email",
+          search: { email: value.email },
         })
       } catch (caught) {
         const message = getErrorMessage(caught, t)
@@ -78,7 +80,6 @@ export function SignUpForm() {
       title={t("signUp.title")}
       description={t("signUp.description")}
       error={error}
-      notice={notice}
       onSubmit={(event) => {
         event.preventDefault()
         event.stopPropagation()
@@ -137,6 +138,7 @@ export function SignUpForm() {
             <field.TextField
               id="name"
               label={t("signUp.displayName")}
+              description={t("signUp.displayNameDescription")}
               autoComplete="name"
               required
               minLength={2}

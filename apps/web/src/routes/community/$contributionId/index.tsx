@@ -4,6 +4,7 @@ import { convexQuery } from "@convex-dev/react-query"
 import { createFileRoute, notFound, Link } from "@tanstack/react-router"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import { BackButton } from "@/app/back-button"
 import { PageShell } from "@/app/page-shell"
 import { appRouteBoundaries } from "@/app/route-states"
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -63,13 +64,16 @@ function ContributionPage() {
         <SongReadOnly
           actions={
             <>
-              <SavePassage
-                sourceId={contributionId}
-                lyricsText={row.lyricsText}
-              />
-              <CreateSharingCard
-                target={{ kind: "song", sourceId: contributionId }}
-              />
+              <BackButton fallback="/songs" />
+              <div className="flex flex-wrap items-center gap-2">
+                <SavePassage
+                  sourceId={contributionId}
+                  lyricsText={row.lyricsText}
+                />
+                <CreateSharingCard
+                  target={{ kind: "song", sourceId: contributionId }}
+                />
+              </div>
             </>
           }
           detail={{

@@ -23,6 +23,103 @@
   and sign-out must be exercised with a real Convex deployment (see
   `docs/development.md`).
 
+
+## Trello UX follow-up — 2 November 2026 (branch `ccr-3390c328-3g9xip`)
+
+Seven user-reported web issues, fixed without backend changes (no Convex review
+needed; server rules are unchanged and still enforce them):
+
+- **Onboarding access.** `/onboarding` now shows its form only in the
+  `onboarding-required` state (signed in, email link opened, no profile). Other
+  states redirect: anonymous → sign-in, unverified → verify page, ready or
+  suspended → profile. `completeOnboarding` was already a verified mutation.
+- **Display name vs handle.** One "Nom affiché et pseudo" group explains the
+  difference, pre-fills the name typed at sign-up, suggests a handle from it
+  (`suggestHandle` in `@lyrx/shared`, tested) until the member edits it, shows
+  "@" before the handle and a live profile preview with its address.
+- **Check-inbox page.** Sign-up now opens `/auth/verify-email?email=…`, a
+  dedicated page with the address, three next steps, a resend button with a
+  60 s cooldown, and wrong-address / already-confirmed links. Without a known
+  address it keeps the previous resend form.
+- **Profile save.** `SubmitButton` gained `requireChanges`; the profile save
+  button stays disabled until a value differs from the saved one, and the saved
+  values become the new baseline.
+- **Unstable navbar.** Each page mounted its own `PageShell`, and pending
+  route states (after 150 ms, typically while a code-split page chunk loads on
+  mobile) swapped in `RouteBoundaryShell`, a different header without the
+  mobile navigation. The root now mounts `AppChrome` once around its `Outlet`;
+  `PageShell` and `RouteBoundaryShell` render only `<main>` inside it (context
+  `AppChromeContext`) and keep their standalone behaviour elsewhere. The home
+  hero declares `staticData.fullBleed`.
+- **Two song pages.** `/songs/$songId` stays the public page;
+  `/studio/songs/$songId/preview` is the owner's management view of the same
+  layout. It now shows a Draft/Published banner (Publish or "Voir la page
+  publique"), a visible Edit button, Publish/Unpublish in the menu and, once
+  published, the same likes and comments block as the public page. Public song,
+  community lyric and album pages gained a Back button (history, or the list
+  when opened from a shared link). Showing owner tools directly on the public
+  page needs a backend "viewer can manage" flag — proposed, not built.
+- **Publishing guidance.** The song editor offers "Enregistrer et publier"
+  (primary) and "Enregistrer en brouillon" with a one-line explanation; a
+  published song keeps a single "Enregistrer". A failed publish keeps the saved
+  draft and its page still offers Publish.
+
+- **Studio list (approved follow-up).** The user approved the proposed list
+  improvements. `listMySongs` rows now carry `albumTitle`, `artworkUrl` and
+  `likeCount` (from `songLikeCounts`); `listMyAlbums` rows add `artworkUrl` and
+  `trackCount` (album-track aggregate). Authorization is unchanged (owner-only
+  `artistQuery`); the extra reads are bounded by the page size. Rows show the
+  artwork, "Album or Single · Modifié il y a …" and likes once published. A
+  draft keeps "Publier" visible at every width (under the title on phones);
+  "Dépublier" moved into the "…" menu next to "Voir la page publique". Status
+  filters show counts from the existing `getMyCatalogueCounts`, and a banner
+  ("2 morceaux attendent d’être publiés" → "Voir les brouillons") appears while
+  drafts exist. The `convex:convex-reviewer` skill is not available in this
+  environment, so the backend change was reviewed locally only; a new backend
+  test covers the summary fields.
+
+- **Artist profiles.** At the user's request the public artist catalogue
+  (`/profiles/$handle`, `/artists/$handle`) now uses the home page sections
+  instead of tabs and bordered song rows: a song carousel of cover cards and an
+  album scroll row of vinyl cards, each with "Tout voir" filtered by the artist,
+  then "À propos de l’artiste" (hidden when it has no content). The album
+  section is omitted for an artist without albums, and `SongRow` hides "Tout
+  voir" when it has no songs. No backend change.
+
+- **Album navigation on song pages.** A public song that belongs to a
+  published album shows that album in the side column: cover, "Voir
+  l’album", "Morceau n sur N", previous/next and the full numbered track list
+  with the current song marked (`aria-current`). On phones the same block is
+  a compact bar above the lyrics with previous/next and a "Voir les
+  morceaux" drawer. It reads the existing public `getPublishedAlbum` query
+  (cached per album), so no backend change.
+- **Home-design audit.** `/albums` and `/artists` already matched the home
+  cards. Aligned: the `/songs` list now uses home cover cards in a 2/3/5
+  column grid; "Mes morceaux aimés" uses the same grid (liked items carry no
+  artwork yet, so covers are lettered); the album page track list is a flat
+  numbered list with whole-row links instead of one card per track; a list
+  opened from a profile's "Tout voir" shows a "De @handle" chip that clears
+  the artist filter. Not changed (management or private screens): fan
+  contributions, notebook, forms and moderation.
+
+- **Cards or list view.** Public song and album collections outside the home
+  page (`/songs`, `/albums`, "Mes morceaux aimés", artist profiles) offer a
+  Cards/List toggle remembered per device (`localStorage`, wrapped in
+  try/catch; first paint is always cards). List rows follow the Studio row
+  style: cover, title, "artist · album or Single · ♥ likes", a Community badge
+  for fan lyrics. Backend: discovery song cards and liked-song rows add
+  `albumTitle` (only when that album is published by the same artist) and
+  `likeCount`; liked rows also add `artworkUrl`. Shared helper
+  `catalogue/listing.ts`; reads stay bounded per card. Reviewed locally (the
+  Convex reviewer skill is unavailable here); discovery and interaction tests
+  cover the new fields. Deploy Convex before the web.
+
+Verification: `pnpm check` passes (format, lint, typecheck, 336 web tests,
+build). New tests cover the persistent chrome, sign-up redirect, draft/publish
+choice and handle suggestion. Screens were checked at 390 px and 1280 px in a
+throwaway harness rendering the real components with mocked Convex data; live
+deployment flows were not exercised.
+
 ## Lot 13 — Expo foundation (complete)
 
 - Branch `codex/expo-foundation` starts at `main` (`ee54d21`). The user deferred

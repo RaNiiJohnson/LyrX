@@ -163,6 +163,27 @@ describe("catalogue filters through Radix and URL navigation", () => {
       ).toContain(`/${kind}?`)
     }
   })
+  it("shows the artist filter from a profile and clears it in one click", async () => {
+    router = makeRouter("/songs?page=2&sort=newest&artist=rija.rasolo")
+    await router.load()
+    await flush(() =>
+      root.render(
+        <LocaleProvider>
+          <RouterProvider router={router} />
+        </LocaleProvider>
+      )
+    )
+    expect(container.textContent).toContain("De @rija.rasolo")
+    await flush(() =>
+      container
+        .querySelector<HTMLButtonElement>(
+          'button[aria-label="Retirer le filtre artiste"]'
+        )
+        ?.click()
+    )
+    expect(router.state.location.search).toEqual({ page: 1, sort: "newest" })
+    expect(container.textContent).not.toContain("@rija.rasolo")
+  })
   it("resets the URL page for sort/origin/genre while preserving other filters", async () => {
     router = makeRouter("/songs?page=4&sort=newest&origin=artist&genre=rock")
     await router.load()
