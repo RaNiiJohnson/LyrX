@@ -3,17 +3,21 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useEffect, useId, useRef, useState, type ReactNode } from "react"
 import { Button } from "@lyrx/ui/components/button"
 import { useLocale } from "@/app/locale-provider"
+import type { CatalogueSearch } from "./catalogue-search"
 
 export function HorizontalRow({
   title,
   href,
   children,
   empty = false,
+  seeAllSearch,
 }: {
   title: string
   href: "/artists" | "/albums"
   children: ReactNode
   empty?: boolean
+  /** Filter applied by "See all", e.g. one artist's albums. */
+  seeAllSearch?: Partial<CatalogueSearch>
 }) {
   const { t } = useLocale()
   const id = useId()
@@ -83,7 +87,7 @@ export function HorizontalRow({
             </div>
           ) : null}
           <Button asChild variant="link" size="sm">
-            <Link to={href}>
+            <Link to={href} search={seeAllSearch}>
               {t("discovery.seeAll")}
               <ArrowRight data-icon="inline-end" />
             </Link>

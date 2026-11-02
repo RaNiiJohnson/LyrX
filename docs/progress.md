@@ -54,6 +54,14 @@ needed; server rules are unchanged and still enforce them):
   environment, so the backend change was reviewed locally only; a new backend
   test covers the summary fields.
 
+- **Artist profiles.** At the user's request the public artist catalogue
+  (`/profiles/$handle`, `/artists/$handle`) now uses the home page sections
+  instead of tabs and bordered song rows: a song carousel of cover cards and an
+  album scroll row of vinyl cards, each with "Tout voir" filtered by the artist,
+  then "À propos de l’artiste" (hidden when it has no content). The album
+  section is omitted for an artist without albums, and `SongRow` hides "Tout
+  voir" when it has no songs. No backend change.
+
 Verification: `pnpm check` passes (format, lint, typecheck, 336 web tests,
 build). New tests cover the persistent chrome, sign-up redirect, draft/publish
 choice and handle suggestion. Screens were checked at 390 px and 1280 px in a
