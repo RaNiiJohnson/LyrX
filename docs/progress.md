@@ -1,6 +1,29 @@
 # Delivery progress
 
-## Lot 13 — Expo foundation (in progress)
+## Lot 14 — Mobile email authentication (in progress)
+
+- Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this
+  step to email sign-in; Google on mobile stays deferred.
+- Backend: `convex/auth.ts` adds the `@better-auth/expo` plugin and trusts the
+  `lyrx://` scheme. Nothing else changes: email verification stays mandatory and
+  verification and reset emails keep their web links.
+- Mobile: `src/lib/auth-client.ts` creates the Better Auth client against the
+  deployment's `.convex.site` host (derived from `EXPO_PUBLIC_CONVEX_URL`), with
+  `expoClient` storing the session in `expo-secure-store` and `convexClient()`;
+  the root layout uses `ConvexBetterAuthProvider`, so public queries still work
+  while signed out. New "Compte" tab: sign in, sign up (name, email, 10+ char
+  password, verification notice), forgot password, then — once signed in — the
+  profile summary, verification resend, a hint to finish onboarding on the web,
+  and sign out.
+- Flow limits: the verification email opens in the phone browser and returns to
+  `lyrx://account`; the user then signs in in the app. Password reset finishes on
+  the web page. Onboarding (pseudo and role), interactions, notebook, sharing and
+  deep links are not built yet.
+- Not verified on a device or against a deployment: sign-up, email link, sign-in
+  and sign-out must be exercised with a real Convex deployment (see
+  `docs/development.md`).
+
+## Lot 13 — Expo foundation (complete)
 
 - Branch `codex/expo-foundation` starts at `main` (`ee54d21`). The user deferred
   mobile authentication, so this lot is a **read-only public** Expo app.

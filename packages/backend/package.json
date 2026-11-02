@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@better-auth/expo": "1.6.33",
     "@convex-dev/aggregate": "0.3.4",
     "@convex-dev/better-auth": "0.12.5",
     "@convex-dev/rate-limiter": "0.3.2",

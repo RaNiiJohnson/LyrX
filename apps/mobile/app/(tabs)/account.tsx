@@ -1,0 +1,132 @@
+import { useEffect, useState } from "react"
+import { View } from "react-native"
+import { useConvexAuth, useQuery } from "convex/react"
+import { api } from "@lyrx/backend/convex/_generated/api"
+import { AuthPanel } from "@/components/auth-forms"
+import { Button } from "@/components/form"
+import {
+  Body,
+  Eyebrow,
+  Heading,
+  Loading,
+  Message,
+  Screen,
+} from "@/components/ui"
+import { VERIFIED_CALLBACK, authClient } from "@/lib/auth-client"
+import { authErrorKey } from "@/lib/errors"
+import { t } from "@/lib/i18n"
+import { space } from "@/lib/theme"
+
+function SignOut() {
+  const [pending, setPending] = useState(false)
+  const [failed, setFailed] = useState(false)
+  return (
+    <View style={{ gap: space.sm }}>
+      {failed ? <Message title={t("error.unexpected")} /> : null}
+      <Button
+        variant="outline"
+        label={t("navigation.signOut")}
+        loading={pending}
+        onPress={() => {
+          setPending(true)
+          setFailed(false)
+          authClient
+            .signOut()
+            .then((result) => setFailed(Boolean(result.error)))
+            .catch(() => setFailed(true))
+            .finally(() => setPending(false))
+        }}
+      />
+    </View>
+  )
+}
+
+function ResendVerification({ email }: { email?: string }) {
+  const [pending, setPending] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  if (!email) return null
+  return (
+    <View style={{ gap: space.sm }}>
+      {notice ? <Message title={notice} /> : null}
+      <Button
+        label={t("verify.submit")}
+        loading={pending}
+        onPress={() => {
+          setPending(true)
+          authClient
+            .sendVerificationEmail({ email, callbackURL: VERIFIED_CALLBACK })
+            .then((result) =>
+              setNotice(
+                result.error
+                  ? t(authErrorKey(result.error))
+                  : t("verify.notice")
+              )
+            )
+            .catch((caught: unknown) => setNotice(t(authErrorKey(caught))))
+            .finally(() => setPending(false))
+        }}
+      />
+    </View>
+  )
+}
+
+export default function AccountScreen() {
+  const { isLoading, isAuthenticated } = useConvexAuth()
+  const current = useQuery(api.members.current, isAuthenticated ? {} : "skip")
+  // The auth state blips to "loading" whenever the session refetches (after sign-up,
+  // when the app regains focus, around autofill). Only the first load may replace the
+  // forms with a spinner; later blips would unmount them and wipe what was typed.
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    if (!isLoading) setSettled(true)
+  }, [isLoading])
+
+  if (!isAuthenticated && (settled || !isLoading))
+    return (
+      <Screen underTopBar>
+        <AuthPanel />
+      </Screen>
+    )
+  if (isLoading || current === undefined)
+    return (
+      <Screen underTopBar>
+        <Loading />
+      </Screen>
+    )
+  if (current.state === "anonymous")
+    return (
+      <Screen underTopBar>
+        <AuthPanel />
+      </Screen>
+    )
+
+  return (
+    <Screen underTopBar>
+      {current.state === "ready" ? (
+        <View style={{ gap: space.xs }}>
+          <Eyebrow>@{current.profile.handle}</Eyebrow>
+          <Heading level={1}>{current.profile.displayName}</Heading>
+          <Body muted>
+            {t("account.signedInAs", { name: current.profile.displayName })}
+          </Body>
+        </View>
+      ) : current.state === "email-unverified" ? (
+        <>
+          <Message
+            title={t("verify.title")}
+            description={t("verify.description")}
+          />
+          <ResendVerification email={current.email} />
+        </>
+      ) : current.state === "suspended" ? (
+        <Message title={t("error.accountSuspended")} />
+      ) : (
+        <Message
+          title={t("onboarding.create")}
+          description={t("account.profileOnWeb")}
+        />
+      )}
+      <SignOut />
+    </Screen>
+  )
+}

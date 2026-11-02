@@ -44,9 +44,16 @@ cp apps/mobile/.env.example apps/mobile/.env.local   # set EXPO_PUBLIC_CONVEX_UR
 pnpm --filter @lyrx/mobile dev
 ```
 
-Open the QR code with Expo Go on a phone on the same Wi-Fi network. The app is
-read-only and public until mobile authentication is built. `pnpm check` bundles
-the Android app with `expo export`; it does not need a device.
+Open the QR code with Expo Go on a phone on the same Wi-Fi network. Browsing is
+public; the "Compte" tab offers email sign-in and sign-up through Better Auth
+(Google is not available on mobile yet). The auth host is derived from
+`EXPO_PUBLIC_CONVEX_URL` (`*.convex.cloud` → `*.convex.site`; local backend port
++1). The session is stored with `expo-secure-store`. The backend trusts the
+`lyrx://` scheme, so redeploy Convex (`pnpm --filter @lyrx/backend dev`) after
+pulling. Expo Go cannot open `lyrx://` links: after clicking the verification
+email, return to the app and sign in; use a development build to test the
+return link. `pnpm check` bundles the Android app with `expo export`; it does
+not need a device.
 
 ## Verification
 

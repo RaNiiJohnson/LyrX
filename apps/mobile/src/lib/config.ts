@@ -11,5 +11,20 @@ export function parseConvexUrl(value: string | undefined): string | null {
   }
 }
 
+/**
+ * Better Auth is served by the deployment's HTTP actions host: `*.convex.cloud` maps to
+ * `*.convex.site`, and the local backend exposes it on the next port.
+ */
+export function convexSiteUrl(convexOrigin: string | null): string | null {
+  if (!convexOrigin) return null
+  const url = new URL(convexOrigin)
+  if (url.hostname.endsWith(".convex.cloud"))
+    return `https://${url.hostname.replace(/\.convex\.cloud$/, ".convex.site")}`
+  if (url.hostname === "127.0.0.1" && url.port)
+    return `${url.protocol}//${url.hostname}:${Number(url.port) + 1}`
+  return null
+}
+
 // Expo inlines only statically written EXPO_PUBLIC_* accesses.
 export const convexUrl = parseConvexUrl(process.env.EXPO_PUBLIC_CONVEX_URL)
+export const authUrl = convexSiteUrl(convexUrl)

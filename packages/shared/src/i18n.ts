@@ -392,6 +392,13 @@ const frenchMessages = {
   "auth.googlePendingConfiguration":
     "Google sera activé lorsque les identifiants OAuth seront configurés.",
   "auth.or": "ou",
+  "account.signedInAs": "Connecté en tant que {{name}}",
+  "account.profileOnWeb":
+    "Choisissez votre pseudo et votre rôle sur le site Lyr’X, puis revenez ici.",
+  "auth.verifyThenSignIn":
+    "Une fois l’email vérifié, revenez ici et connectez-vous.",
+  "auth.showPassword": "Afficher le mot de passe",
+  "auth.hidePassword": "Masquer le mot de passe",
   "auth.password": "Mot de passe",
   "auth.passwordMinimum": "10 caractères minimum.",
   "auth.passwordRequired": "Le mot de passe est requis.",
@@ -1176,6 +1183,13 @@ const englishMessages = {
   "auth.googlePendingConfiguration":
     "Google will be enabled once the OAuth credentials are configured.",
   "auth.or": "or",
+  "account.signedInAs": "Signed in as {{name}}",
+  "account.profileOnWeb":
+    "Choose your handle and role on the Lyr’X website, then come back here.",
+  "auth.verifyThenSignIn":
+    "Once your email is verified, come back here and sign in.",
+  "auth.showPassword": "Show password",
+  "auth.hidePassword": "Hide password",
   "auth.password": "Password",
   "auth.passwordMinimum": "At least 10 characters.",
   "auth.passwordRequired": "Password is required.",

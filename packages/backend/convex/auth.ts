@@ -3,6 +3,7 @@ import {
   type AuthFunctions,
   type GenericCtx,
 } from "@convex-dev/better-auth"
+import { expo } from "@better-auth/expo"
 import { convex } from "@convex-dev/better-auth/plugins"
 import { requireActionCtx } from "@convex-dev/better-auth/utils"
 import { betterAuth, type BetterAuthOptions } from "better-auth/minimal"
@@ -42,7 +43,9 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
     appName: "Lyr'X",
     baseURL: env.SITE_URL,
     secret: env.BETTER_AUTH_SECRET,
-    trustedOrigins: [env.SITE_URL],
+    // `lyrx://` is the native app scheme (apps/mobile app.json); the Expo plugin
+    // forwards it as the request origin for email links and sessions.
+    trustedOrigins: [env.SITE_URL, "lyrx://", "lyrx://*"],
     database: authComponent.adapter(ctx),
     user: { deleteUser: { enabled: true } },
     account: {
@@ -89,7 +92,7 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
           },
         }
       : {},
-    plugins: [convex({ authConfig })],
+    plugins: [expo(), convex({ authConfig })],
     session: {
       cookieCache: {
         enabled: true,

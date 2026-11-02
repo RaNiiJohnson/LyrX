@@ -52,6 +52,13 @@ export default function TabsLayout() {
             tabBarIcon: tabIcon("search-outline"),
           }}
         />
+        <Tabs.Screen
+          name="account"
+          options={{
+            title: t("navigation.account"),
+            tabBarIcon: tabIcon("person-outline"),
+          }}
+        />
       </Tabs>
       <TopBar />
     </View>

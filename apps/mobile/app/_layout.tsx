@@ -1,10 +1,11 @@
 import { useEffect } from "react"
-import { ConvexProvider } from "convex/react"
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"
 import { useFonts } from "expo-font"
 import { Stack, type ErrorBoundaryProps } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import { StatusBar } from "expo-status-bar"
 import { Message, Screen } from "@/components/ui"
+import { providerAuthClient } from "@/lib/auth-client"
 import { convex } from "@/lib/convex"
 import { fontSources } from "@/lib/fonts"
 import { t } from "@/lib/i18n"
@@ -42,7 +43,7 @@ export default function RootLayout() {
       </Screen>
     )
   return (
-    <ConvexProvider client={convex}>
+    <ConvexBetterAuthProvider client={convex} authClient={providerAuthClient}>
       <StatusBar style="auto" />
       <Stack
         screenOptions={{
@@ -57,6 +58,6 @@ export default function RootLayout() {
         <Stack.Screen name="songs/[id]" options={{ title: "" }} />
         <Stack.Screen name="community/[id]" options={{ title: "" }} />
       </Stack>
-    </ConvexProvider>
+    </ConvexBetterAuthProvider>
   )
 }
