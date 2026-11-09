@@ -1,5 +1,28 @@
 # Delivery progress
 
+## Vercel deployment preparation — 9 November 2026 (branch `ccr-249afcb8-7bzsw8`)
+
+- Added the `nitro` plugin (3.0.261103-rc) to `apps/web/vite.config.ts`,
+  disabled under Vitest like `tanstackStart()`, and ignored `.vercel/`. Without
+  it the build emits only `dist/server/server.js`, which Vercel cannot serve.
+- Evidence: `VERCEL=1 pnpm --filter @lyrx/web build` with placeholder `VITE_`
+  values produced `.vercel/output` (`config.json`, `functions/__server.func`,
+  `static`); `pnpm typecheck` in `apps/web` passed. The web test run completed
+  but its full pass/fail summary was not captured; rerun `pnpm check` before
+  merging.
+- Documented the deployment strategy and one-time setup in
+  [development.md](development.md#deployment-vercel--convex-production):
+  keep CI as the gate, deploy through the Vercel Git integration with
+  `convex deploy --cmd`.
+- **Not verified:** any real Vercel project, Convex production deployment,
+  deploy keys, the documented build command, runtime availability of
+  `VITE_CONVEX_*` in the Vercel server environment, or Google/Resend production
+  configuration. tanstack.com was unreachable from the session, so the Nitro
+  choice rests on the local build, not on current TanStack hosting docs.
+- Known limitation: sign-in on Vercel preview URLs fails because Convex
+  `SITE_URL` is the only trusted origin.
+- No PR, merge or deployment was performed.
+
 ## Trello UX follow-up — 2 November 2026 (branch `ccr-3390c328-3g9xip`)
 
 Seven user-reported web issues, fixed without backend changes (no Convex review
