@@ -1,5 +1,29 @@
 # Delivery progress
 
+## Web style polish — branch `feat/web-style-polish`
+
+Authorised in one go by the user (step 0 plus lots A, B, C, no approval between
+lots; the other AGENTS.md rules still apply). Step 0: the Nitro/Vercel branch
+`ccr-249afcb8-7bzsw8` was built then fast-forwarded into `main`;
+`codex/mobile-auth` deliberately not merged. Baseline before work: lint and
+typecheck green, 345/345 web tests. Theme, coral and fonts are unchanged
+(`docs/product.md`).
+
+### Lot A — home release slider
+
+- Singles and albums no longer look alike. A single: "Single" (or "Extrait de
+  <album>"; "Communauté" for fan lyrics) badge, square cover, "Lire les
+  paroles". An album: "Album · <year>" badge, cover with the vinyl peeking
+  out, "Voir l’album". The vinyl is now the shared `AlbumVinyl` component in
+  `features/discovery/discovery-cards.tsx`, used by `AlbumCard` and the slider.
+- `pickReleases` skips an artist song whose album (title + artist) is already a
+  slider candidate; other singles stay. Album badge no longer reads "Albums".
+- Slides are shorter on phones (`min-h-[32rem]`, smaller cover/title) and the
+  duplicated `aria-roledescription` on the outer section was removed (the
+  Embla region keeps it). New i18n keys `releases.single|fromAlbum|album|
+  openSong|openAlbum` (FR/EN); `releases.open` stays for the mobile app.
+- Tests: four new slider tests (badges/CTA/vinyl, community, dedupe, aria).
+
 ## Vercel deployment preparation — 9 November 2026 (branch `ccr-249afcb8-7bzsw8`)
 
 - Added the `nitro` plugin (3.0.261103-rc) to `apps/web/vite.config.ts`,
