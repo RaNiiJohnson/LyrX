@@ -21,6 +21,7 @@ import { SearchOverlay } from "@/features/discovery/search-overlay"
 import { AppChromeContext, PageMain, useInsideAppChrome } from "./page-main"
 
 import { AccountSidebar, type AccountNavigationProps } from "./account-sidebar"
+import { LogoMark, Wordmark } from "./brand"
 import { LocaleMenu } from "./locale-menu"
 import { useLocale } from "./locale-provider"
 import { ThemeMenu } from "./theme-menu"
@@ -125,12 +126,8 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
             to="/"
             className="group mr-auto flex shrink-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:mr-0"
           >
-            <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-brand-foreground shadow-sm transition-transform group-hover:-rotate-3">
-              X
-            </span>
-            <span className="text-lg font-semibold tracking-tight">
-              {PRODUCT_NAME}
-            </span>
+            <LogoMark className="drop-shadow-sm transition-transform group-hover:-rotate-3" />
+            <Wordmark className="text-xl font-semibold tracking-tight" />
           </Link>
 
           <nav

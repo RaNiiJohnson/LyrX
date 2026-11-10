@@ -78,6 +78,23 @@ typecheck green, 345/345 web tests. Theme, coral and fonts are unchanged
   for `artist` on `getPublishedAlbum`. Visual check on the dev server at 390 and
   1440 px, light and dark: no horizontal overflow.
 
+### Logo — feather mark
+
+- The provisional "X" badge is replaced by an original feather drawing (user
+  request; reference image used for style only, path drawn from scratch). One
+  path in `apps/web/src/lib/brand.ts` (`evenodd`, the shaft is a tapering gap)
+  feeds `LogoMark`, `FeatherGlyph` and `Wordmark` (`apps/web/src/app/brand.tsx`)
+  and the raster share card (`drawLogoMark` in `card-renderer.ts`).
+- `Wordmark` puts the feather in place of the apostrophe ("Lyr" + feather +
+  "X", `sr-only` name for assistive tech). Used in the header and the route
+  boundary shell; running text, titles, metadata and i18n keep `PRODUCT_NAME`.
+- Static assets: `favicon.svg`, `apple-touch-icon.png` (linked in `__root.tsx`),
+  `public/brand/` (`lyrx-mark.svg`, `lyrx-mark-square.svg`,
+  `lyrx-feather.svg`, `icon-192.png`, `icon-512.png`), manifest `icons`.
+- Checks: format, lint, typecheck, 353/353 web tests. Browser: header at
+  desktop (dark) and 375 px (light), all icon URLs return 200, and a card
+  rendered with `renderCard` shows the feather mark beside "Lyr'X".
+
 ## Vercel deployment preparation — 9 November 2026 (branch `ccr-249afcb8-7bzsw8`)
 
 - Added the `nitro` plugin (3.0.261103-rc) to `apps/web/vite.config.ts`,

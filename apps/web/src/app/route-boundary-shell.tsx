@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
 
-import { PRODUCT_NAME } from "@lyrx/shared"
 import { cn } from "@lyrx/ui/lib/utils"
 
+import { LogoMark, Wordmark } from "./brand"
 import { PageMain, useInsideAppChrome } from "./page-main"
 
 /**
@@ -29,12 +29,8 @@ export function RouteBoundaryShell({
             href="/"
             className="flex h-14 items-center gap-2.5 rounded-full border bg-background px-4 shadow-sm"
           >
-            <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-brand-foreground">
-              X
-            </span>
-            <span className="text-lg font-semibold tracking-tight">
-              {PRODUCT_NAME}
-            </span>
+            <LogoMark />
+            <Wordmark className="text-xl font-semibold tracking-tight" />
           </a>
         </div>
       </header>
