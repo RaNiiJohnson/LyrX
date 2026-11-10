@@ -1,0 +1,3 @@
+/* Fraunces is only used by the shareable lyric card; loaded on demand. */
+@import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/fraunces/wght-italic.css";

@@ -160,6 +160,7 @@ export const publicSongDetail = v.object({
 
 export const publicAlbumDetail = v.object({
   album: publicAlbum,
+  artist: v.object({ displayName: v.string(), handle: v.string() }),
   tracks: v.array(v.object({ position: v.number(), song: publicSong })),
   artworkUrl: v.union(v.string(), v.null()),
 })

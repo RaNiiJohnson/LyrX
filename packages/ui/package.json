@@ -6,6 +6,7 @@
   "exports": {
     "./components/*": "./src/components/*.tsx",
     "./globals.css": "./src/styles/globals.css",
+    "./share-fonts.css": "./src/styles/share-fonts.css",
     "./lib/*": "./src/lib/*.ts"
   },
   "scripts": {

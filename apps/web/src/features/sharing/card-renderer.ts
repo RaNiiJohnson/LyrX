@@ -4,6 +4,7 @@ import {
   MAX_SHARE_TEXT_LENGTH,
   MAX_SHARE_LINES,
 } from "@lyrx/shared"
+import { loadCardFonts } from "./card-fonts"
 
 // Editorial serif reserved for the exported card, distinct from the app UI fonts.
 const CARD_FONT = '"Fraunces Variable", Georgia, serif'
@@ -90,6 +91,7 @@ async function loadArtwork(url: string, signal?: AbortSignal) {
 export async function renderCard(content: CardContent, signal?: AbortSignal) {
   if (!content.text.trim() || content.text.length > MAX_SHARE_TEXT_LENGTH)
     throw new CardRenderError("text")
+  await loadCardFonts()
   await Promise.all(
     [
       `italic 400 64px ${CARD_FONT}`,

@@ -87,6 +87,17 @@ export function CoverImage({
   )
 }
 
+/**
+ * What a song card says about where the song comes from: "Communauté" for fan
+ * lyrics, otherwise "Single" or the album name (nothing when unknown).
+ */
+function useSongBadge(song: DiscoverySong) {
+  const { t } = useLocale()
+  if (song.origin === "community") return t("discovery.sourceCommunity")
+  if (song.albumTitle === undefined) return null
+  return song.albumTitle ?? t("releases.single")
+}
+
 export function SongCard({
   song,
   presentation = "row",
@@ -94,7 +105,7 @@ export function SongCard({
   song: DiscoverySong
   presentation?: "row" | "cover"
 }) {
-  const { t } = useLocale()
+  const badge = useSongBadge(song)
   if (presentation === "cover")
     return (
       <Link
@@ -107,16 +118,14 @@ export function SongCard({
             label={song.title}
             className="aspect-square w-full bg-linear-to-br from-brand/35 via-muted to-primary/25 text-foreground"
           />
-          <Badge
-            variant="secondary"
-            className="absolute top-2 left-2 max-w-[calc(100%-1rem)] border-hero-foreground/10 bg-brand-foreground/80 text-hero-foreground"
-          >
-            {t(
-              song.origin === "community"
-                ? "discovery.sourceCommunity"
-                : "discovery.sourceArtist"
-            )}
-          </Badge>
+          {badge ? (
+            <Badge
+              variant="secondary"
+              className="absolute top-2 left-2 max-w-[calc(100%-1rem)] border-hero-foreground/10 bg-brand-foreground/80 text-hero-foreground"
+            >
+              <span className="truncate">{badge}</span>
+            </Badge>
+          ) : null}
         </div>
         <div className="flex min-w-0 flex-col gap-1">
           <h3 className="line-clamp-2 font-semibold wrap-break-word group-hover:underline">
@@ -141,13 +150,14 @@ export function SongCard({
         <p className="line-clamp-2 text-sm wrap-break-word text-muted-foreground">
           {song.primaryArtist}
         </p>
-        <Badge variant={song.origin === "community" ? "secondary" : "outline"}>
-          {t(
-            song.origin === "community"
-              ? "discovery.sourceCommunity"
-              : "discovery.sourceArtist"
-          )}
-        </Badge>
+        {badge ? (
+          <Badge
+            variant={song.origin === "community" ? "secondary" : "outline"}
+            className="max-w-full"
+          >
+            <span className="truncate">{badge}</span>
+          </Badge>
+        ) : null}
       </div>
     </Link>
   )

@@ -48,6 +48,34 @@ typecheck green, 345/345 web tests. Theme, coral and fonts are unchanged
 - Pushed to the Convex **dev** deployment only. Deploy Convex before the web
   (the new fields are optional on the client but the slider expects them).
 
+### Lot C — navigation, album page and consistency
+
+- Navigation: the desktop header now links Accueil / Titres / Albums / Artistes
+  (plus the role's own workspace); the mobile bottom bar has five slots
+  (Accueil, Titres, Albums, tool, account). The desktop footer gained links to
+  Titres / Albums / Artistes. No `/community` link is added anywhere: the
+  unified catalogue is still the entry point (an existing test guards this).
+  New keys `navigation.songs|albums|footer`, `discovery.kindSong`.
+- Album page: shows the artist (link to `/artists/$handle`) and "N titres",
+  a larger cover, and the genre translated with the shared `genreMessageKeys`.
+  `catalogue.read.getPublishedAlbum` now also returns `artist`
+  (`displayName`, `handle`) from the eligible owner it already loads.
+- `SongRow` now renders through `HorizontalRow` (native scroll, arrows, keyboard)
+  so songs, albums and artists share one behaviour; Embla is no longer used
+  there. "See all" is hidden when a row is empty (as songs already did).
+- Song cards: the repeated "Artiste" badge is replaced by "Single" or the album
+  name (nothing when unknown); "Communauté" is kept for fan contributions. Search
+  results label artist songs "Titre".
+- Fraunces (only used by share cards) moved out of `globals.css` into
+  `@lyrx/ui/share-fonts.css`, imported on demand by `features/sharing/card-fonts.ts`
+  when a share dialog opens or a card is rendered.
+- Not done: the provisional "X" logo is unchanged (no simple, consistent
+  improvement without brand input).
+- Tests: updated page-shell, discovery and display tests; new tests for the album
+  page, song-row scrolling/empty state, and artist/album badges; backend test
+  for `artist` on `getPublishedAlbum`. Visual check on the dev server at 390 and
+  1440 px, light and dark: no horizontal overflow.
+
 ## Vercel deployment preparation — 9 November 2026 (branch `ccr-249afcb8-7bzsw8`)
 
 - Added the `nitro` plugin (3.0.261103-rc) to `apps/web/vite.config.ts`,

@@ -31,6 +31,7 @@ import { useLocale } from "@/app/locale-provider"
 import { useAppForm } from "@/lib/app-form"
 import { getErrorMessage, localizedUiError } from "@/lib/errors"
 import { CardRenderError, renderCard, cardBlob } from "./card-renderer"
+import { loadCardFonts } from "./card-fonts"
 import { downloadPng, sameCard } from "./download-card"
 
 export type SharingTarget = FunctionArgs<typeof api.sharing.context>["target"]
@@ -280,6 +281,9 @@ function SharingPreview({
   const { t } = useLocale(),
     id = useId()
   const selectionRef = useLyricSelection(context.text, setRange)
+  useEffect(() => {
+    void loadCardFonts()
+  }, [])
   const valid = validShareRange(context.text, range.start, range.end)
   const prepared = useQuery(api.sharing.prepare, valid ? input : "skip")
   const [preview, setPreview] = useState<{

@@ -199,6 +199,10 @@ const frenchMessages = {
   "profile.imagesDescription":
     "Personnalisez votre avatar et, pour les artistes, votre bannière.",
   "navigation.artists": "Artistes",
+  "navigation.songs": "Titres",
+  "navigation.albums": "Albums",
+  "navigation.footer": "Liens du pied de page",
+  "discovery.kindSong": "Titre",
   "navigation.mobile": "Navigation mobile",
   "navigation.contributions": "Contributions",
   "discovery.songs": "Morceaux",
@@ -1058,6 +1062,10 @@ const englishMessages = {
   "profile.imagesDescription":
     "Customize your avatar and, for artists, your banner.",
   "navigation.artists": "Artists",
+  "navigation.songs": "Songs",
+  "navigation.albums": "Albums",
+  "navigation.footer": "Footer links",
+  "discovery.kindSong": "Song",
   "navigation.mobile": "Mobile navigation",
   "navigation.contributions": "Contributions",
   "discovery.songs": "Songs",

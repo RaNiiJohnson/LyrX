@@ -9,13 +9,16 @@ export function HorizontalRow({
   title,
   href,
   children,
+  description,
   empty = false,
   seeAllSearch,
   layout = "row",
 }: {
   title: string
-  href: "/artists" | "/albums"
+  href: "/artists" | "/albums" | "/songs"
   children: ReactNode
+  /** Optional line under the title, e.g. what "popular" means. */
+  description?: string
   empty?: boolean
   /** Filter applied by "See all", e.g. one artist's albums. */
   seeAllSearch?: Partial<CatalogueSearch>
@@ -89,14 +92,26 @@ export function HorizontalRow({
               </Button>
             </div>
           ) : null}
-          <Button asChild variant="link" size="sm">
-            <Link to={href} search={seeAllSearch}>
-              {t("discovery.seeAll")}
-              <ArrowRight data-icon="inline-end" />
-            </Link>
-          </Button>
+          {empty ? null : (
+            <Button asChild variant="link" size="sm">
+              {href === "/songs" ? (
+                <Link to="/songs" search={seeAllSearch ?? {}}>
+                  {t("discovery.seeAll")}
+                  <ArrowRight data-icon="inline-end" />
+                </Link>
+              ) : (
+                <Link to={href} search={seeAllSearch}>
+                  {t("discovery.seeAll")}
+                  <ArrowRight data-icon="inline-end" />
+                </Link>
+              )}
+            </Button>
+          )}
         </div>
       </div>
+      {description ? (
+        <p className="-mt-2 text-sm text-muted-foreground">{description}</p>
+      ) : null}
       {empty || layout === "list" ? (
         children
       ) : (

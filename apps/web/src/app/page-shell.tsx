@@ -1,7 +1,15 @@
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
-import { Home, Library, Music2, PenLine, UserRound, Users } from "lucide-react"
+import {
+  Disc3,
+  Home,
+  Library,
+  Music2,
+  PenLine,
+  UserRound,
+  Users,
+} from "lucide-react"
 import { useEffect, useState, type ReactNode } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
@@ -138,6 +146,9 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
             className="mr-auto hidden items-center gap-1 lg:flex"
           >
             <DesktopLink to="/">{t("navigation.home")}</DesktopLink>
+            <DesktopLink to="/songs">{t("navigation.songs")}</DesktopLink>
+            <DesktopLink to="/albums">{t("navigation.albums")}</DesktopLink>
+            <DesktopLink to="/artists">{t("navigation.artists")}</DesktopLink>
             {current?.state === "ready" && current.member.role === "artist" ? (
               <DesktopLink to="/studio">{t("navigation.studio")}</DesktopLink>
             ) : null}
@@ -165,11 +176,21 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
           fullBleed && "col-start-1 row-start-3"
         )}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6 text-sm text-muted-foreground">
-          <p>
-            © {new Date().getFullYear()} {PRODUCT_NAME}
-          </p>
-          <p>{t("home.eyebrow")}</p>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-6 text-sm text-muted-foreground">
+          <div className="flex flex-col gap-1">
+            <p className="font-medium text-foreground">{PRODUCT_NAME}</p>
+            <p>
+              © {new Date().getFullYear()} · {t("home.eyebrow")}
+            </p>
+          </div>
+          <nav
+            aria-label={t("navigation.footer")}
+            className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2"
+          >
+            <FooterLink to="/songs">{t("navigation.songs")}</FooterLink>
+            <FooterLink to="/albums">{t("navigation.albums")}</FooterLink>
+            <FooterLink to="/artists">{t("navigation.artists")}</FooterLink>
+          </nav>
         </div>
       </footer>
       <BottomNavigation
@@ -181,12 +202,29 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
   )
 }
 
+function FooterLink({
+  children,
+  to,
+}: {
+  children: ReactNode
+  to: "/songs" | "/albums" | "/artists"
+}) {
+  return (
+    <Link
+      to={to}
+      className="rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      {children}
+    </Link>
+  )
+}
+
 function DesktopLink({
   children,
   to,
 }: {
   children: ReactNode
-  to: "/" | "/studio" | "/community/mine"
+  to: "/" | "/songs" | "/albums" | "/artists" | "/studio" | "/community/mine"
 }) {
   return (
     <Button asChild variant="ghost">
@@ -278,10 +316,11 @@ function BottomNavigation({
   return (
     <nav
       aria-label={t("navigation.mobile")}
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <BottomLink href="/" label={t("navigation.home")} icon={Home} />
-      <BottomLink href="/songs" label={t("studio.songs")} icon={Music2} />
+      <BottomLink href="/songs" label={t("navigation.songs")} icon={Music2} />
+      <BottomLink href="/albums" label={t("navigation.albums")} icon={Disc3} />
       {pending ? (
         <div
           className="col-span-2 grid grid-cols-2"
@@ -320,6 +359,7 @@ function BottomLink({
   href:
     | "/"
     | "/songs"
+    | "/albums"
     | "/artists"
     | "/studio"
     | "/community/mine"

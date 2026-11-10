@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { LocaleProvider } from "@/app/locale-provider"
 import { CoverImage, SongCard } from "./discovery-cards"
 import { HorizontalRow } from "./horizontal-row"
+import { SongRow } from "./song-row"
 import { CataloguePagination } from "./catalogue-layout"
 
 vi.mock("@tanstack/react-router", () => ({
@@ -76,15 +77,23 @@ describe("public discovery interactions", () => {
     }
     await render(
       <>
-        <SongCard song={{ ...common, origin: "artist", href: "/songs/id" }} />
+        <SongCard
+          song={{
+            ...common,
+            origin: "artist",
+            href: "/songs/id",
+            albumTitle: null,
+          }}
+        />
         <SongCard
           song={{ ...common, origin: "community", href: "/community/id" }}
         />
       </>
     )
+    // Artist songs name their release instead of repeating "Artiste".
     expect(
       container.querySelectorAll("[data-slot=badge]")[0]?.textContent
-    ).toBe("Artiste")
+    ).toBe("Single")
     expect(
       container.querySelectorAll("[data-slot=badge]")[1]?.textContent
     ).toBe("Communauté")
@@ -93,6 +102,53 @@ describe("public discovery interactions", () => {
         link.getAttribute("href")
       )
     ).toEqual(["/songs/id", "/community/id"])
+  })
+  it.each([
+    ["cover", "Nocturnes"],
+    ["row", "Nocturnes"],
+  ] as const)(
+    "names the album on an artist song card (%s) and hides the badge when unknown",
+    async (presentation, album) => {
+      const song = {
+        id: "id",
+        title: "Song",
+        primaryArtist: "Artist",
+        artworkUrl: null,
+        origin: "artist" as const,
+        href: "/songs/id",
+      }
+      await render(
+        <>
+          <SongCard
+            song={{ ...song, albumTitle: album }}
+            presentation={presentation}
+          />
+          <SongCard song={song} presentation={presentation} />
+        </>
+      )
+      const badges = [...container.querySelectorAll("[data-slot=badge]")]
+      expect(badges.map((badge) => badge.textContent)).toEqual([album])
+    }
+  )
+  it("scrolls song rows like album and artist rows and hides See all when empty", async () => {
+    const song = {
+      id: "id",
+      title: "Song",
+      primaryArtist: "Artist",
+      artworkUrl: null,
+      origin: "artist" as const,
+      href: "/songs/id",
+      albumTitle: null,
+    }
+    await render(<SongRow title="Nouveautés" songs={[song]} />)
+    const region = container.querySelector<HTMLElement>('[role="region"]')!
+    expect(region.querySelector("a")?.textContent).toContain("Song")
+    expect(region.tabIndex).toBe(0)
+    expect(container.querySelector("[aria-roledescription]")).toBeNull()
+    expect(container.textContent).toContain("Tout voir")
+    await render(<SongRow title="Nouveautés" songs={[]} />)
+    expect(container.querySelector('[role="region"]')).toBeNull()
+    expect(container.textContent).not.toContain("Tout voir")
   })
   it("provides a labelled keyboard-scrollable region without intercepting child keys", async () => {
     await render(
