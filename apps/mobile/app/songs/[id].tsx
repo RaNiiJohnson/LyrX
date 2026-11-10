@@ -32,9 +32,13 @@ export default function SongScreen() {
       artworkUrl={detail.artworkUrl}
       badges={[
         genreLabel(song.genre, song.otherGenre),
-        detail.album?.title,
         shortDate(song.releaseDate),
       ].filter((value): value is string => Boolean(value))}
+      album={
+        detail.album
+          ? { id: detail.album.albumId, title: detail.album.title }
+          : undefined
+      }
       context={song.context}
       links={song.listeningLinks}
       lyricsText={detail.lyricsText}

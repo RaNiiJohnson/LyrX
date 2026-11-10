@@ -1,4 +1,5 @@
-const SUPPORTED = /^\/(songs|community)\/([A-Za-z0-9_-]+)$/
+const SUPPORTED =
+  /^\/(songs|community|albums|artists|profiles)\/([A-Za-z0-9_-]+)$/
 
 /** Maps a web `href` from public cards to a native route; null when the screen is not built yet. */
 export function nativeHref(href: string) {

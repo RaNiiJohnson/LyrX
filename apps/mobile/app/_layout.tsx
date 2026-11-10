@@ -67,6 +67,9 @@ export default function RootLayout() {
         <Stack.Screen name="search" options={{ title: t("search.title") }} />
         <Stack.Screen name="songs/[id]" options={{ title: "" }} />
         <Stack.Screen name="community/[id]" options={{ title: "" }} />
+        <Stack.Screen name="albums/[id]" options={{ title: "" }} />
+        <Stack.Screen name="artists/[handle]" options={{ title: "" }} />
+        <Stack.Screen name="profiles/[handle]" options={{ title: "" }} />
       </Stack>
     </ConvexBetterAuthProvider>
   )

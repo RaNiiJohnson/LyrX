@@ -1,5 +1,6 @@
 import { Linking, Pressable, Text, View } from "react-native"
-import { Stack } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { Stack, useRouter } from "expo-router"
 import { Lyrics } from "@/components/lyrics"
 import { Badge, Cover, Eyebrow, Heading, Screen } from "@/components/ui"
 import { currentLocale, t } from "@/lib/i18n"
@@ -51,6 +52,7 @@ export function SongPage({
   guestArtists = [],
   artworkUrl,
   badges = [],
+  album,
   context,
   links = [],
   lyricsText,
@@ -60,11 +62,14 @@ export function SongPage({
   guestArtists?: Array<string>
   artworkUrl: string | null
   badges?: Array<string>
+  /** Album the song belongs to; shown as a link to the album screen. */
+  album?: { id: string; title: string }
   context?: string
   links?: Array<{ provider: string; url: string }>
   lyricsText: string
 }) {
   const theme = useTheme()
+  const router = useRouter()
   return (
     <Screen>
       <Stack.Screen options={{ title }} />
@@ -95,6 +100,24 @@ export function SongPage({
             <Badge key={badge} label={badge} />
           ))}
         </View>
+      ) : null}
+      {album ? (
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push(`/albums/${album.id}`)}
+          style={({ pressed }) => ({
+            minHeight: 44,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: space.sm,
+            opacity: pressed ? 0.6 : 1,
+          })}
+        >
+          <Ionicons name="disc-outline" size={18} color={theme.brand} />
+          <Text style={{ color: theme.brand, fontFamily: fonts.sansSemibold }}>
+            {album.title}
+          </Text>
+        </Pressable>
       ) : null}
       {context ? (
         <Text

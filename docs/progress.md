@@ -119,6 +119,23 @@ Baseline before work (merge of `origin/main` into the WIP): `pnpm check` green
   screens exist (M3). Not verified: real device scrolling performance,
   keyboard behaviour on iOS/Android, haptics.
 
+- **M3 — Detail screens.** Added the album screen (cover, artist link,
+  genre/date badges, description, numbered track list, label and credits), the
+  artist profile (banner, avatar, role badge, bio, songs and albums rows, about
+  card with HTTPS-only social links) and the public fan profile, which share
+  `components/profile-page.tsx`. `nativeHref` now maps `/albums/:id`,
+  `/artists/:handle` and `/profiles/:handle` (tested), so every card and row in
+  Home, Catalogue and Search opens its screen. The album a song belongs to is a
+  link on the song page. Read-only data only; no Convex file changed.
+- Local review: the first album layout double-padded the section titles (the
+  shared `Section` already carries the gutter), fixed by using an unpadded
+  `Screen`. The backend exposes no artist handle on a song, so the artist name
+  on the song page stays plain text; the artist link exists on the album page.
+- Visual evidence: Expo web at 375 px on the dev deployment: song → album →
+  artist navigation with real data. Not verified: fan profile with real data
+  (no fan account on the dev deployment), banner-less artist layout, native
+  back gesture, real-device rendering.
+
 ## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
 
 - Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this
