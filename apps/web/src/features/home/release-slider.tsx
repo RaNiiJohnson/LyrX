@@ -309,7 +309,7 @@ export function ReleaseSlider({
                   inert={position !== index}
                   className="flex pl-0"
                 >
-                  <article className="relative isolate flex min-h-[32rem] w-full items-center overflow-hidden px-5 pt-20 pb-20 text-hero-foreground sm:min-h-[38rem] sm:pt-24 sm:pb-24 lg:min-h-[44rem] lg:px-6 lg:pt-40 lg:pb-36">
+                  <article className="relative isolate flex min-h-[32rem] w-full items-center overflow-hidden px-5 pt-20 pb-20 text-hero-foreground sm:min-h-[38rem] sm:px-10 sm:pt-24 sm:pb-24 lg:min-h-[44rem] lg:px-16 lg:pt-40 lg:pb-36 xl:px-24">
                     <ReleaseArtwork
                       key={release.artworkUrl ?? "missing"}
                       src={release.artworkUrl}
@@ -376,7 +376,7 @@ export function ReleaseSlider({
             </CarouselContent>
           </Carousel>
           {count > 1 ? (
-            <div className="absolute inset-x-0 bottom-5 mx-auto flex max-w-6xl items-center gap-3 px-5 lg:bottom-8 lg:gap-4 lg:px-6">
+            <div className="absolute inset-x-0 bottom-5 flex items-center gap-3 px-5 sm:px-10 lg:bottom-8 lg:gap-4 lg:px-16 xl:px-24">
               <span className="mr-auto shrink-0 text-sm text-hero-foreground/80">
                 {index + 1} / {count}
               </span>
@@ -499,13 +499,13 @@ function ReleaseArtwork({
     </div>
   )
   return (
-    <div className="mx-auto grid w-full max-w-6xl min-w-0 items-end justify-items-center gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-20">
+    <div className="grid w-full min-w-0 items-end justify-items-center gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:justify-items-start lg:gap-20">
       {children}
       <div
         className={
           album
-            ? "order-1 w-[min(64vw,15rem)] sm:w-[min(74vw,20rem)] lg:order-2 lg:w-[430px]"
-            : "order-1 aspect-square w-[min(56vw,13rem)] sm:w-[min(66vw,17rem)] lg:order-2 lg:w-[380px]"
+            ? "order-1 w-[min(64vw,15rem)] sm:w-[min(74vw,20rem)] lg:order-2 lg:w-[430px] lg:justify-self-end xl:w-[480px]"
+            : "order-1 aspect-square w-[min(56vw,13rem)] sm:w-[min(66vw,17rem)] lg:order-2 lg:w-[380px] lg:justify-self-end xl:w-[440px]"
         }
       >
         {album ? <AlbumVinyl>{cover}</AlbumVinyl> : cover}

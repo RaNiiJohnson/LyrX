@@ -172,7 +172,7 @@ describe("persistent application chrome", () => {
   })
 })
 
-const catalogueLinks = ["/", "/songs", "/albums", "/artists"]
+const catalogueLinks = ["/", "/songs"]
 
 describe("role-aware shared navigation", () => {
   it.each([
@@ -210,7 +210,7 @@ describe("role-aware shared navigation", () => {
     expect(document.querySelector("main")?.textContent).toBe(
       "Final page action"
     )
-    expect(hrefs(bottomNav())).toEqual(["/", "/songs", "/albums"])
+    expect(hrefs(bottomNav())).toEqual(["/", "/songs"])
     expect(document.querySelectorAll('[role="status"]')).toHaveLength(2)
     expect(hrefs(document.querySelector("header nav")!)).toEqual(catalogueLinks)
     expect(document.querySelector('a[href="/auth/sign-in"]')).toBeNull()
@@ -222,7 +222,6 @@ describe("role-aware shared navigation", () => {
     expect(hrefs(bottomNav())).toEqual([
       "/",
       "/songs",
-      "/albums",
       "/community/mine",
       "/profile",
     ])
@@ -232,19 +231,11 @@ describe("role-aware shared navigation", () => {
   it("exposes the unified catalogue and anonymous auth actions without Fan tools", async () => {
     mocks.account = { state: "anonymous" }
     await render()
-    expect(hrefs(bottomNav())).toEqual([
-      "/",
-      "/songs",
-      "/albums",
-      "/artists",
-      "/auth/sign-in",
-    ])
+    expect(hrefs(bottomNav())).toEqual(["/", "/songs", "/auth/sign-in"])
     const { menu } = await openAccount()
     expect(hrefs(menu)).toEqual([
       "/",
       "/songs",
-      "/albums",
-      "/artists",
       "/auth/sign-in",
       "/auth/sign-up",
     ])
@@ -296,13 +287,7 @@ describe("role-aware shared navigation", () => {
     async (state, href) => {
       mocks.account = { state }
       await render()
-      expect(hrefs(bottomNav())).toEqual([
-        "/",
-        "/songs",
-        "/albums",
-        "/artists",
-        href,
-      ])
+      expect(hrefs(bottomNav())).toEqual(["/", "/songs", href])
       const { menu } = await openAccount()
       expect(hrefs(menu)).toContain(href)
       expect(hrefs(menu)).not.toContain("/studio")
@@ -341,11 +326,7 @@ describe("role-aware shared navigation", () => {
       ...catalogueLinks,
       "/studio",
     ])
-    expect(hrefs(footer!.querySelector("nav")!)).toEqual([
-      "/songs",
-      "/albums",
-      "/artists",
-    ])
+    expect(hrefs(footer!.querySelector("nav")!)).toEqual(["/songs"])
   })
 
   it("localizes the mobile navigation and account sidebar in English", async () => {
@@ -402,7 +383,7 @@ describe("role-aware shared navigation", () => {
     expect(menu.textContent).toContain("A long account display name")
     const explore = menu.querySelector('nav[aria-label="Explorer"]')
     expect(explore?.className).toContain("gap-3")
-    expect(hrefs(explore!)).toEqual(["/", "/songs", "/albums", "/artists"])
+    expect(hrefs(explore!)).toEqual(["/", "/songs"])
     const tools = menu.querySelector('nav[aria-label="Espace Fan"]')
     expect(hrefs(tools!)).toEqual(["/community/new", "/community/mine"])
     expect(

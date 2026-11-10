@@ -50,19 +50,21 @@ typecheck green, 345/345 web tests. Theme, coral and fonts are unchanged
 
 ### Lot C — navigation, album page and consistency
 
-- Navigation: the desktop header now links Accueil / Titres / Albums / Artistes
-  (plus the role's own workspace); the mobile bottom bar has five slots
-  (Accueil, Titres, Albums, tool, account). The desktop footer gained links to
-  Titres / Albums / Artistes. No `/community` link is added anywhere: the
-  unified catalogue is still the entry point (an existing test guards this).
-  New keys `navigation.songs|albums|footer`, `discovery.kindSong`.
+- Navigation: one "Catalogue" entry (`/songs`) replaces Titres / Albums /
+  Artistes in the header, footer, mobile bottom bar and account menu, because
+  the catalogue page already has Morceaux / Albums / Artistes tabs. The bottom
+  bar is Accueil, Catalogue, the role's workspace (artist/fan only) and account.
+  No `/community` link is added anywhere (an existing test guards this).
+  New keys `navigation.catalogue|footer`, `discovery.kindSong`.
 - Album page: shows the artist (link to `/artists/$handle`) and "N titres",
   a larger cover, and the genre translated with the shared `genreMessageKeys`.
   `catalogue.read.getPublishedAlbum` now also returns `artist`
   (`displayName`, `handle`) from the eligible owner it already loads.
-- `SongRow` now renders through `HorizontalRow` (native scroll, arrows, keyboard)
-  so songs, albums and artists share one behaviour; Embla is no longer used
-  there. "See all" is hidden when a row is empty (as songs already did).
+- `SongRow`, albums and artists rows all go through `HorizontalRow`, which uses
+  the shadcn `Carousel` (Embla: drag, keyboard, no native scrollbar, no arrow
+  buttons). "See all" is hidden when a row is empty.
+- Home hero slider spans the full width: details on the left edge, cover (or
+  album vinyl) on the right edge, same side padding as the progress bar.
 - Song cards: the repeated "Artiste" badge is replaced by "Single" or the album
   name (nothing when unknown); "Communauté" is kept for fan contributions. Search
   results label artist songs "Titre".
@@ -72,7 +74,7 @@ typecheck green, 345/345 web tests. Theme, coral and fonts are unchanged
 - Not done: the provisional "X" logo is unchanged (no simple, consistent
   improvement without brand input).
 - Tests: updated page-shell, discovery and display tests; new tests for the album
-  page, song-row scrolling/empty state, and artist/album badges; backend test
+  page, song-row carousel/empty state, and artist/album badges; backend test
   for `artist` on `getPublishedAlbum`. Visual check on the dev server at 390 and
   1440 px, light and dark: no horizontal overflow.
 

@@ -1,15 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
-import {
-  Disc3,
-  Home,
-  Library,
-  Music2,
-  PenLine,
-  UserRound,
-  Users,
-} from "lucide-react"
+import { Home, Library, Music2, PenLine, UserRound } from "lucide-react"
 import { useEffect, useState, type ReactNode } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
@@ -146,9 +138,7 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
             className="mr-auto hidden items-center gap-1 lg:flex"
           >
             <DesktopLink to="/">{t("navigation.home")}</DesktopLink>
-            <DesktopLink to="/songs">{t("navigation.songs")}</DesktopLink>
-            <DesktopLink to="/albums">{t("navigation.albums")}</DesktopLink>
-            <DesktopLink to="/artists">{t("navigation.artists")}</DesktopLink>
+            <DesktopLink to="/songs">{t("navigation.catalogue")}</DesktopLink>
             {current?.state === "ready" && current.member.role === "artist" ? (
               <DesktopLink to="/studio">{t("navigation.studio")}</DesktopLink>
             ) : null}
@@ -187,9 +177,7 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
             aria-label={t("navigation.footer")}
             className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2"
           >
-            <FooterLink to="/songs">{t("navigation.songs")}</FooterLink>
-            <FooterLink to="/albums">{t("navigation.albums")}</FooterLink>
-            <FooterLink to="/artists">{t("navigation.artists")}</FooterLink>
+            <FooterLink to="/songs">{t("navigation.catalogue")}</FooterLink>
           </nav>
         </div>
       </footer>
@@ -202,13 +190,7 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
   )
 }
 
-function FooterLink({
-  children,
-  to,
-}: {
-  children: ReactNode
-  to: "/songs" | "/albums" | "/artists"
-}) {
+function FooterLink({ children, to }: { children: ReactNode; to: "/songs" }) {
   return (
     <Link
       to={to}
@@ -224,7 +206,7 @@ function DesktopLink({
   to,
 }: {
   children: ReactNode
-  to: "/" | "/songs" | "/albums" | "/artists" | "/studio" | "/community/mine"
+  to: "/" | "/songs" | "/studio" | "/community/mine"
 }) {
   return (
     <Button asChild variant="ghost">
@@ -307,20 +289,19 @@ function BottomNavigation({
             label: t("navigation.contributions"),
             icon: Library,
           }
-        : {
-            href: "/artists" as const,
-            label: t("navigation.artists"),
-            icon: Users,
-          }
+        : undefined
 
   return (
     <nav
       aria-label={t("navigation.mobile")}
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid auto-cols-fr grid-flow-col border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <BottomLink href="/" label={t("navigation.home")} icon={Home} />
-      <BottomLink href="/songs" label={t("navigation.songs")} icon={Music2} />
-      <BottomLink href="/albums" label={t("navigation.albums")} icon={Disc3} />
+      <BottomLink
+        href="/songs"
+        label={t("navigation.catalogue")}
+        icon={Music2}
+      />
       {pending ? (
         <div
           className="col-span-2 grid grid-cols-2"
@@ -335,7 +316,9 @@ function BottomNavigation({
         </div>
       ) : (
         <>
-          <BottomLink href={tool.href} label={tool.label} icon={tool.icon} />
+          {tool ? (
+            <BottomLink href={tool.href} label={tool.label} icon={tool.icon} />
+          ) : null}
           <BottomLink
             href={primary?.href ?? "/auth/sign-in"}
             label={
@@ -359,8 +342,6 @@ function BottomLink({
   href:
     | "/"
     | "/songs"
-    | "/albums"
-    | "/artists"
     | "/studio"
     | "/community/mine"
     | "/auth/sign-in"

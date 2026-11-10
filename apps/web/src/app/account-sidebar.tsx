@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import {
   Bookmark,
-  Disc3,
   Heart,
   Home,
   Library,
@@ -13,7 +12,6 @@ import {
   ShieldCheck,
   UserRound,
   UserRoundPlus,
-  Users,
 } from "lucide-react"
 import { useRef, useState, type ReactNode } from "react"
 
@@ -108,13 +106,7 @@ export function AccountSidebar({
               {t("navigation.home")}
             </SidebarLink>
             <SidebarLink to="/songs" icon={Music2}>
-              {t("studio.songs")}
-            </SidebarLink>
-            <SidebarLink to="/albums" icon={Disc3}>
-              {t("studio.albums")}
-            </SidebarLink>
-            <SidebarLink to="/artists" icon={Users}>
-              {t("navigation.artists")}
+              {t("navigation.catalogue")}
             </SidebarLink>
           </SidebarSection>
 
@@ -231,8 +223,6 @@ function SidebarLink({
   to:
     | "/"
     | "/songs"
-    | "/albums"
-    | "/artists"
     | "/auth/sign-in"
     | "/auth/sign-up"
     | "/auth/verify-email"
