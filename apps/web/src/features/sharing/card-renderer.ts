@@ -4,9 +4,37 @@ import {
   MAX_SHARE_TEXT_LENGTH,
   MAX_SHARE_LINES,
 } from "@lyrx/shared"
+import {
+  BRAND_CORAL,
+  BRAND_INK,
+  FEATHER_PATH,
+  FEATHER_ROTATION_DEG,
+} from "@/lib/brand"
+import { loadCardFonts } from "./card-fonts"
 
 // Editorial serif reserved for the exported card, distinct from the app UI fonts.
 const CARD_FONT = '"Fraunces Variable", Georgia, serif'
+
+/** Lyr'X app icon (feather on coral) drawn into the raster at (x, y). */
+function drawLogoMark(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number
+) {
+  ctx.save()
+  ctx.fillStyle = BRAND_CORAL
+  ctx.beginPath()
+  ctx.roundRect(x, y, size, size, size / 4)
+  ctx.fill()
+  ctx.translate(x + size / 2, y + size / 2)
+  ctx.scale((size / 64) * 0.86, (size / 64) * 0.86)
+  ctx.rotate((FEATHER_ROTATION_DEG * Math.PI) / 180)
+  ctx.translate(-32, -32)
+  ctx.fillStyle = BRAND_INK
+  ctx.fill(new Path2D(FEATHER_PATH), "evenodd")
+  ctx.restore()
+}
 
 export type CardContent = {
   text: string
@@ -90,6 +118,7 @@ async function loadArtwork(url: string, signal?: AbortSignal) {
 export async function renderCard(content: CardContent, signal?: AbortSignal) {
   if (!content.text.trim() || content.text.length > MAX_SHARE_TEXT_LENGTH)
     throw new CardRenderError("text")
+  await loadCardFonts()
   await Promise.all(
     [
       `italic 400 64px ${CARD_FONT}`,
@@ -171,11 +200,7 @@ export async function renderCard(content: CardContent, signal?: AbortSignal) {
     y += 44
   }
   // Visible Lyr'X signature is part of the raster itself, not an HTML overlay.
-  ctx.fillStyle = "#DF4F55"
-  ctx.fillRect(414, 1768, 56, 56)
-  ctx.fillStyle = "#ffffff"
-  ctx.font = `600 36px ${CARD_FONT}`
-  ctx.fillText("X", 442, 1777)
+  drawLogoMark(ctx, 414, 1768, 56)
   ctx.fillStyle = "#fff8f2"
   ctx.font = `600 44px ${CARD_FONT}`
   ctx.textAlign = "left"

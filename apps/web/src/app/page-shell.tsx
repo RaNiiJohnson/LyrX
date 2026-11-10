@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
-import { Home, Library, Music2, PenLine, UserRound, Users } from "lucide-react"
+import { Home, Library, Music2, PenLine, UserRound } from "lucide-react"
 import { useEffect, useState, type ReactNode } from "react"
 
 import { api } from "@lyrx/backend/convex/_generated/api"
@@ -21,6 +21,7 @@ import { SearchOverlay } from "@/features/discovery/search-overlay"
 import { AppChromeContext, PageMain, useInsideAppChrome } from "./page-main"
 
 import { AccountSidebar, type AccountNavigationProps } from "./account-sidebar"
+import { LogoMark, Wordmark } from "./brand"
 import { LocaleMenu } from "./locale-menu"
 import { useLocale } from "./locale-provider"
 import { ThemeMenu } from "./theme-menu"
@@ -125,12 +126,8 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
             to="/"
             className="group mr-auto flex shrink-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:mr-0"
           >
-            <span className="grid size-8 place-items-center rounded-xl bg-brand text-sm font-black text-brand-foreground shadow-sm transition-transform group-hover:-rotate-3">
-              X
-            </span>
-            <span className="text-lg font-semibold tracking-tight">
-              {PRODUCT_NAME}
-            </span>
+            <LogoMark className="drop-shadow-sm transition-transform group-hover:-rotate-3" />
+            <Wordmark className="text-xl font-semibold tracking-tight" />
           </Link>
 
           <nav
@@ -138,6 +135,7 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
             className="mr-auto hidden items-center gap-1 lg:flex"
           >
             <DesktopLink to="/">{t("navigation.home")}</DesktopLink>
+            <DesktopLink to="/songs">{t("navigation.catalogue")}</DesktopLink>
             {current?.state === "ready" && current.member.role === "artist" ? (
               <DesktopLink to="/studio">{t("navigation.studio")}</DesktopLink>
             ) : null}
@@ -165,11 +163,19 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
           fullBleed && "col-start-1 row-start-3"
         )}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6 text-sm text-muted-foreground">
-          <p>
-            © {new Date().getFullYear()} {PRODUCT_NAME}
-          </p>
-          <p>{t("home.eyebrow")}</p>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-6 text-sm text-muted-foreground">
+          <div className="flex flex-col gap-1">
+            <p className="font-medium text-foreground">{PRODUCT_NAME}</p>
+            <p>
+              © {new Date().getFullYear()} · {t("home.eyebrow")}
+            </p>
+          </div>
+          <nav
+            aria-label={t("navigation.footer")}
+            className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2"
+          >
+            <FooterLink to="/songs">{t("navigation.catalogue")}</FooterLink>
+          </nav>
         </div>
       </footer>
       <BottomNavigation
@@ -181,12 +187,23 @@ function ShellFrame({ children, current, fullBleed }: ShellFrameProps) {
   )
 }
 
+function FooterLink({ children, to }: { children: ReactNode; to: "/songs" }) {
+  return (
+    <Link
+      to={to}
+      className="rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      {children}
+    </Link>
+  )
+}
+
 function DesktopLink({
   children,
   to,
 }: {
   children: ReactNode
-  to: "/" | "/studio" | "/community/mine"
+  to: "/" | "/songs" | "/studio" | "/community/mine"
 }) {
   return (
     <Button asChild variant="ghost">
@@ -269,19 +286,19 @@ function BottomNavigation({
             label: t("navigation.contributions"),
             icon: Library,
           }
-        : {
-            href: "/artists" as const,
-            label: t("navigation.artists"),
-            icon: Users,
-          }
+        : undefined
 
   return (
     <nav
       aria-label={t("navigation.mobile")}
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid auto-cols-fr grid-flow-col border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <BottomLink href="/" label={t("navigation.home")} icon={Home} />
-      <BottomLink href="/songs" label={t("studio.songs")} icon={Music2} />
+      <BottomLink
+        href="/songs"
+        label={t("navigation.catalogue")}
+        icon={Music2}
+      />
       {pending ? (
         <div
           className="col-span-2 grid grid-cols-2"
@@ -296,7 +313,9 @@ function BottomNavigation({
         </div>
       ) : (
         <>
-          <BottomLink href={tool.href} label={tool.label} icon={tool.icon} />
+          {tool ? (
+            <BottomLink href={tool.href} label={tool.label} icon={tool.icon} />
+          ) : null}
           <BottomLink
             href={primary?.href ?? "/auth/sign-in"}
             label={
@@ -320,7 +339,6 @@ function BottomLink({
   href:
     | "/"
     | "/songs"
-    | "/artists"
     | "/studio"
     | "/community/mine"
     | "/auth/sign-in"

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { LocaleProvider } from "@/app/locale-provider"
 import { CoverImage, SongCard } from "./discovery-cards"
 import { HorizontalRow } from "./horizontal-row"
+import { SongRow } from "./song-row"
 import { CataloguePagination } from "./catalogue-layout"
 
 vi.mock("@tanstack/react-router", () => ({
@@ -76,15 +77,23 @@ describe("public discovery interactions", () => {
     }
     await render(
       <>
-        <SongCard song={{ ...common, origin: "artist", href: "/songs/id" }} />
+        <SongCard
+          song={{
+            ...common,
+            origin: "artist",
+            href: "/songs/id",
+            albumTitle: null,
+          }}
+        />
         <SongCard
           song={{ ...common, origin: "community", href: "/community/id" }}
         />
       </>
     )
+    // Artist songs name their release instead of repeating "Artiste".
     expect(
       container.querySelectorAll("[data-slot=badge]")[0]?.textContent
-    ).toBe("Artiste")
+    ).toBe("Single")
     expect(
       container.querySelectorAll("[data-slot=badge]")[1]?.textContent
     ).toBe("Communauté")
@@ -94,131 +103,73 @@ describe("public discovery interactions", () => {
       )
     ).toEqual(["/songs/id", "/community/id"])
   })
-  it("provides a labelled keyboard-scrollable region without intercepting child keys", async () => {
+  it.each([
+    ["cover", "Nocturnes"],
+    ["row", "Nocturnes"],
+  ] as const)(
+    "names the album on an artist song card (%s) and hides the badge when unknown",
+    async (presentation, album) => {
+      const song = {
+        id: "id",
+        title: "Song",
+        primaryArtist: "Artist",
+        artworkUrl: null,
+        origin: "artist" as const,
+        href: "/songs/id",
+      }
+      await render(
+        <>
+          <SongCard
+            song={{ ...song, albumTitle: album }}
+            presentation={presentation}
+          />
+          <SongCard song={song} presentation={presentation} />
+        </>
+      )
+      const badges = [...container.querySelectorAll("[data-slot=badge]")]
+      expect(badges.map((badge) => badge.textContent)).toEqual([album])
+    }
+  )
+  it("shows song rows in the shared carousel and hides See all when empty", async () => {
+    const song = {
+      id: "id",
+      title: "Song",
+      primaryArtist: "Artist",
+      artworkUrl: null,
+      origin: "artist" as const,
+      href: "/songs/id",
+      albumTitle: null,
+    }
+    await render(<SongRow title="Nouveautés" songs={[song]} />)
+    const carousel = container.querySelector<HTMLElement>(
+      '[data-slot="carousel"]'
+    )!
+    expect(carousel.querySelector("a")?.textContent).toContain("Song")
+    expect(carousel.tabIndex).toBe(0)
+    expect(container.textContent).toContain("Tout voir")
+    expect(container.querySelector("button")).toBeNull()
+    await render(<SongRow title="Nouveautés" songs={[]} />)
+    expect(container.querySelector('[data-slot="carousel"]')).toBeNull()
+    expect(container.textContent).not.toContain("Tout voir")
+  })
+  it("renders every child as a carousel item with no arrows or native scrollbar", async () => {
     await render(
       <HorizontalRow title="Albums" href="/albums">
         <a href="/albums/one">One album</a>
         <a href="/albums/two">Another album</a>
       </HorizontalRow>
     )
-    const region = container.querySelector<HTMLElement>('[role="region"]')!
-    Object.defineProperty(region, "clientWidth", {
-      configurable: true,
-      value: 300,
-    })
-    const scroll = vi.fn()
-    region.scrollBy = scroll
-    vi.spyOn(window, "matchMedia").mockReturnValue({
-      matches: true,
-    } as MediaQueryList)
-    region.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        bubbles: true,
-        key: "ArrowRight",
-        cancelable: true,
-      })
-    )
-    expect(scroll).toHaveBeenCalledWith({ left: 240, behavior: "instant" })
-    region
-      .querySelector("a")
-      ?.dispatchEvent(
-        new KeyboardEvent("keydown", { bubbles: true, key: "ArrowRight" })
-      )
-    expect(scroll).toHaveBeenCalledTimes(1)
-    expect(region.tabIndex).toBe(0)
+    const items = container.querySelectorAll('[data-slot="carousel-item"]')
+    expect(items).toHaveLength(2)
+    expect(items[1]?.textContent).toBe("Another album")
+    expect(container.querySelector("button")).toBeNull()
+    expect(container.querySelector(".overflow-x-auto")).toBeNull()
     expect(
-      document.getElementById(region.getAttribute("aria-labelledby") ?? "")
-        ?.textContent
+      document.getElementById(
+        container
+          .querySelector('[data-slot="carousel"]')
+          ?.getAttribute("aria-labelledby") ?? ""
+      )?.textContent
     ).toBe("Albums")
-  })
-  it("updates desktop overflow controls on scroll and both resize paths", async () => {
-    let resize = () => undefined
-    const observed: Array<Element> = []
-    const disconnect = vi.fn()
-    vi.stubGlobal(
-      "ResizeObserver",
-      class {
-        constructor(update: () => undefined) {
-          resize = update
-        }
-        observe(element: Element) {
-          observed.push(element)
-        }
-        disconnect = disconnect
-      }
-    )
-    await render(
-      <HorizontalRow title="Artists" href="/artists">
-        <a href="/artists/one">One artist</a>
-        <a href="/artists/two">Another artist</a>
-      </HorizontalRow>
-    )
-    const region = container.querySelector<HTMLElement>('[role="region"]')!
-    let width = 300
-    Object.defineProperties(region, {
-      clientWidth: { configurable: true, get: () => width },
-      scrollWidth: { configurable: true, value: 900 },
-    })
-    const scroll = vi.fn()
-    region.scrollBy = scroll
-    const media = vi.spyOn(window, "matchMedia").mockReturnValue({
-      matches: false,
-    } as MediaQueryList)
-    await act(async () => {
-      resize()
-      await Promise.resolve()
-    })
-    const previous = () =>
-      container.querySelector<HTMLButtonElement>(
-        '[aria-label="Éléments précédents"]'
-      )
-    const next = () =>
-      container.querySelector<HTMLButtonElement>(
-        '[aria-label="Éléments suivants"]'
-      )
-    expect(previous()?.disabled).toBe(true)
-    expect(next()?.disabled).toBe(false)
-    expect(observed).toEqual([region, ...region.children])
-    await act(async () => {
-      next()?.click()
-      await Promise.resolve()
-    })
-    expect(scroll).toHaveBeenLastCalledWith({ left: 240, behavior: "smooth" })
-    await act(async () => {
-      region.scrollLeft = 600
-      region.dispatchEvent(new Event("scroll"))
-      await Promise.resolve()
-    })
-    expect(previous()?.disabled).toBe(false)
-    expect(next()?.disabled).toBe(true)
-    media.mockReturnValue({ matches: true } as MediaQueryList)
-    await act(async () => {
-      previous()?.click()
-      await Promise.resolve()
-    })
-    expect(scroll).toHaveBeenLastCalledWith({ left: -240, behavior: "instant" })
-    await act(async () => {
-      region.scrollLeft = 0
-      width = 1000
-      resize()
-      await Promise.resolve()
-    })
-    expect(next()).toBeNull()
-    await act(async () => {
-      width = 300
-      window.dispatchEvent(new Event("resize"))
-      await Promise.resolve()
-    })
-    expect(next()?.disabled).toBe(false)
-    await render(
-      <HorizontalRow title="Artists" href="/artists" empty>
-        <p>No artists are available</p>
-      </HorizontalRow>
-    )
-    expect(next()).toBeNull()
-    expect(container.querySelector('[role="region"]')).toBeNull()
-    expect(container.textContent).toContain("No artists are available")
-    await render(<span>Unmounted row</span>)
-    expect(disconnect).toHaveBeenCalledOnce()
   })
 })

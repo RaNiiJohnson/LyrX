@@ -10,14 +10,57 @@ import {
   type CarouselApi,
 } from "@lyrx/ui/components/carousel"
 import { useLocale } from "@/app/locale-provider"
-import type {
-  DiscoverySong,
-  DiscoveryAlbum,
+import {
+  AlbumVinyl,
+  useTrackCountLabel,
+  type DiscoveryAlbum,
+  type DiscoverySong,
 } from "@/features/discovery/discovery-cards"
 import { DiscoveryEmpty } from "@/features/discovery/discovery-states"
 
 type ReleaseSong = DiscoverySong & { firstPublishedAt: number }
 type ReleaseAlbum = DiscoveryAlbum & { firstPublishedAt: number }
+type Release = {
+  kind: "single" | "album"
+  id: string
+  title: string
+  context: string
+  artworkUrl: string | null
+  href: string
+  firstPublishedAt: number
+  label: string
+  cta: string
+  excerpt?: string
+  /** Album only: first titles and how many more public ones exist. */
+  tracks?: Array<string>
+  moreTracks?: number
+}
+
+const MAX_RELEASES = 6
+const sameName = (a: string, b: string) =>
+  a.trim().toLocaleLowerCase() === b.trim().toLocaleLowerCase()
+
+/**
+ * Newest releases, albums and singles together. A track of an album that is
+ * itself a candidate is skipped: the album already represents it.
+ */
+export function pickReleases(
+  songs: ReadonlyArray<ReleaseSong>,
+  albums: ReadonlyArray<ReleaseAlbum>
+) {
+  const covered = (song: ReleaseSong) =>
+    song.origin === "artist" &&
+    Boolean(song.albumTitle) &&
+    albums.some(
+      (album) =>
+        sameName(album.title, song.albumTitle ?? "") &&
+        sameName(album.artistName, song.primaryArtist)
+    )
+  return {
+    songs: songs.filter((song) => !covered(song)),
+    albums: [...albums],
+  }
+}
 
 // Embla's selected target may wait until pointer release. Follow actual geometry
 // during dragging, including slides translated across the loop boundary.
@@ -67,35 +110,61 @@ export function ReleaseSlider({
   const [cycle, setCycle] = useState(0)
   const [reduced, setReduced] = useState(true)
   const [hidden, setHidden] = useState(false)
-  const releases = [
-    ...songs.map((song) => ({
-      ...song,
-      artworkUrl:
-        song.artworkUrl && !failedArtwork.has(song.artworkUrl)
-          ? song.artworkUrl
-          : null,
+  const trackCountLabel = useTrackCountLabel()
+  const picked = pickReleases(songs, albums)
+  const usable = (src: string | null) =>
+    src && !failedArtwork.has(src) ? src : null
+  const releases: Array<Release> = [
+    ...picked.songs.map((song): Release => ({
+      kind: "single",
+      id: `song:${song.origin}:${song.id}`,
+      title: song.title,
       context: song.primaryArtist,
-      label: t(
+      artworkUrl: usable(song.artworkUrl),
+      href: song.href,
+      firstPublishedAt: song.firstPublishedAt,
+      label:
         song.origin === "community"
-          ? "discovery.sourceCommunity"
-          : "discovery.sourceArtist"
-      ),
+          ? t("discovery.sourceCommunity")
+          : song.albumTitle
+            ? t("releases.fromAlbum", { album: song.albumTitle })
+            : t("releases.single"),
+      cta: t("releases.openSong"),
+      ...(song.lyricsExcerpt ? { excerpt: song.lyricsExcerpt } : {}),
     })),
-    ...albums.map((album) => ({
-      ...album,
-      artworkUrl:
-        album.artworkUrl && !failedArtwork.has(album.artworkUrl)
-          ? album.artworkUrl
-          : null,
+    ...picked.albums.map((album): Release => ({
+      kind: "album",
+      id: `album:${album.id}`,
+      title: album.title,
       context: album.artistName,
-      label: t("discovery.albums"),
+      artworkUrl: usable(album.artworkUrl),
+      href: album.href,
+      firstPublishedAt: album.firstPublishedAt,
+      label: album.trackCount
+        ? t("releases.albumMeta", {
+            tracks: trackCountLabel(album.trackCount),
+            year: new Date(album.firstPublishedAt).getUTCFullYear(),
+          })
+        : t("releases.album", {
+            year: new Date(album.firstPublishedAt).getUTCFullYear(),
+          }),
+      cta: t("releases.openAlbum"),
+      ...(album.tracks?.length
+        ? {
+            tracks: album.tracks.map((track) => track.title),
+            moreTracks: Math.max(
+              0,
+              (album.trackCount ?? 0) - album.tracks.length
+            ),
+          }
+        : {}),
     })),
   ]
     .sort(
       (a, b) =>
         b.firstPublishedAt - a.firstPublishedAt || a.id.localeCompare(b.id)
     )
-    .slice(0, 6)
+    .slice(0, MAX_RELEASES)
   const count = releases.length
   const index = Math.min(active, Math.max(0, count - 1))
   useEffect(() => {
@@ -175,7 +244,6 @@ export function ReleaseSlider({
   return (
     <section
       aria-labelledby={id}
-      aria-roledescription={t("releases.carousel")}
       onPointerEnter={(event) => {
         if (event.pointerType !== "touch") setHovered(true)
       }}
@@ -241,13 +309,14 @@ export function ReleaseSlider({
                   inert={position !== index}
                   className="flex pl-0"
                 >
-                  <article className="relative isolate flex min-h-[46rem] w-full items-center overflow-hidden px-5 pt-24 pb-28 text-hero-foreground lg:min-h-[44rem] lg:px-6 lg:pt-40 lg:pb-36">
+                  <article className="relative isolate flex min-h-[32rem] w-full items-center overflow-hidden px-5 pt-20 pb-20 text-hero-foreground sm:min-h-[38rem] sm:px-10 sm:pt-24 sm:pb-24 lg:min-h-[44rem] lg:px-16 lg:pt-40 lg:pb-36 xl:px-24">
                     <ReleaseArtwork
                       key={release.artworkUrl ?? "missing"}
                       src={release.artworkUrl}
                       onError={() => artworkFailed(release.artworkUrl)}
                       eager={position === 0}
                       title={release.title}
+                      album={release.kind === "album"}
                     >
                       <div className="order-2 flex w-full min-w-0 flex-col items-center gap-4 text-center lg:order-1 lg:items-start lg:gap-5 lg:text-left">
                         <Badge
@@ -256,19 +325,46 @@ export function ReleaseSlider({
                         >
                           {release.label}
                         </Badge>
-                        <h2 className="font-serif text-5xl leading-tight break-words lg:text-7xl">
+                        <h2 className="font-serif text-4xl leading-tight break-words sm:text-5xl lg:text-7xl">
                           {release.title}
                         </h2>
                         <p className="text-lg break-words text-hero-foreground/90 lg:text-xl">
                           {release.context}
                         </p>
+                        {release.excerpt ? (
+                          <p className="hidden max-w-md font-serif text-lg whitespace-pre-line text-hero-foreground/80 italic sm:block lg:text-xl">
+                            {release.excerpt}
+                          </p>
+                        ) : null}
+                        {release.tracks ? (
+                          <ol
+                            aria-label={t("releases.tracksLabel")}
+                            className="hidden max-w-md min-w-0 flex-col gap-1 text-left text-hero-foreground/85 sm:flex"
+                          >
+                            {release.tracks.map((track, number) => (
+                              <li key={number} className="flex gap-3">
+                                <span className="w-5 shrink-0 text-right text-hero-foreground/60 tabular-nums">
+                                  {number + 1}
+                                </span>
+                                <span className="truncate">{track}</span>
+                              </li>
+                            ))}
+                            {release.moreTracks ? (
+                              <li className="pl-8 text-hero-foreground/60">
+                                {t("releases.moreTracks", {
+                                  tracks: trackCountLabel(release.moreTracks),
+                                })}
+                              </li>
+                            ) : null}
+                          </ol>
+                        ) : null}
                         <Button
                           asChild
                           size="lg"
                           className="mt-2 w-full rounded-full bg-hero-foreground px-6 text-brand-foreground hover:bg-hero-foreground/90 lg:w-auto"
                         >
                           <Link to={release.href}>
-                            {t("releases.open")}
+                            {release.cta}
                             <ArrowRight data-icon="inline-end" />
                           </Link>
                         </Button>
@@ -280,7 +376,7 @@ export function ReleaseSlider({
             </CarouselContent>
           </Carousel>
           {count > 1 ? (
-            <div className="absolute inset-x-0 bottom-5 mx-auto flex max-w-6xl items-center gap-3 px-5 lg:bottom-8 lg:gap-4 lg:px-6">
+            <div className="absolute inset-x-0 bottom-5 flex items-center gap-3 px-5 sm:px-10 lg:bottom-8 lg:gap-4 lg:px-16 xl:px-24">
               <span className="mr-auto shrink-0 text-sm text-hero-foreground/80">
                 {index + 1} / {count}
               </span>
@@ -367,37 +463,53 @@ function ReleaseArtwork({
   onError,
   eager,
   title,
+  album,
   children,
 }: {
   src: string | null
   onError: () => void
   eager: boolean
   title: string
+  album: boolean
   children: ReactNode
 }) {
-  const image = src
-  return (
-    <>
-      <div className="mx-auto grid w-full max-w-6xl min-w-0 items-end justify-items-center gap-7 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-20">
-        {children}
-        <div className="order-1 size-[min(66vw,17rem)] overflow-hidden rounded-2xl bg-hero-foreground/10 shadow-2xl shadow-brand-foreground/60 lg:order-2 lg:size-[380px]">
-          {image ? (
-            <img
-              src={image}
-              draggable={false}
-              alt={title}
-              onError={onError}
-              loading={eager ? "eager" : "lazy"}
-              fetchPriority={eager ? "high" : "auto"}
-              className="size-full object-cover"
-            />
-          ) : (
-            <div className="grid size-full place-items-center bg-muted text-muted-foreground">
-              <Music2 className="size-16" aria-hidden="true" />
-            </div>
-          )}
+  const cover = (
+    <div
+      className={
+        album
+          ? "aspect-square w-full overflow-hidden rounded-lg bg-hero-foreground/10 shadow-2xl shadow-brand-foreground/60"
+          : "size-full overflow-hidden rounded-2xl bg-hero-foreground/10 shadow-2xl shadow-brand-foreground/60"
+      }
+    >
+      {src ? (
+        <img
+          src={src}
+          draggable={false}
+          alt={title}
+          onError={onError}
+          loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : "auto"}
+          className="size-full object-cover"
+        />
+      ) : (
+        <div className="grid size-full place-items-center bg-muted text-muted-foreground">
+          <Music2 className="size-12 lg:size-16" aria-hidden="true" />
         </div>
+      )}
+    </div>
+  )
+  return (
+    <div className="grid w-full min-w-0 items-end justify-items-center gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:justify-items-start lg:gap-20">
+      {children}
+      <div
+        className={
+          album
+            ? "order-1 w-[min(64vw,15rem)] sm:w-[min(74vw,20rem)] lg:order-2 lg:w-[430px] lg:justify-self-end xl:w-[480px]"
+            : "order-1 aspect-square w-[min(56vw,13rem)] sm:w-[min(66vw,17rem)] lg:order-2 lg:w-[380px] lg:justify-self-end xl:w-[440px]"
+        }
+      >
+        {album ? <AlbumVinyl>{cover}</AlbumVinyl> : cover}
       </div>
-    </>
+    </div>
   )
 }

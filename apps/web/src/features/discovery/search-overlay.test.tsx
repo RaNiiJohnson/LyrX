@@ -515,6 +515,117 @@ describe("release slider", () => {
         ?.getAttribute("aria-label")
     ).toBe("Aller au projet 2")
   })
+  const album = (id: string, extra: Record<string, unknown> = {}) => ({
+    id,
+    title: `Album ${id}`,
+    artistName: "Artist",
+    artistHandle: "artist",
+    artworkUrl: null,
+    href: `/albums/${id}`,
+    firstPublishedAt: Date.UTC(2026, 3, 1) + Number(id),
+    ...extra,
+  })
+  it("distinguishes singles from albums by badge, call to action and artwork", async () => {
+    await render(
+      <ReleaseSlider
+        songs={[
+          { ...release("1"), albumTitle: null },
+          { ...release("2"), albumTitle: "Elsewhere" },
+        ]}
+        albums={[album("9")]}
+      />
+    )
+    const slides = Array.from(container.querySelectorAll("article"))
+    const text = (index: number) => slides[index]!.textContent
+    // Newest first: the album (2026) precedes the two singles (epoch).
+    expect(text(0)).toContain("Album · 2026")
+    expect(text(0)).not.toContain("Albums")
+    expect(text(0)).toContain("Voir l’album")
+    expect(slides[0]!.querySelector('a[href="/albums/9"]')).not.toBeNull()
+    expect(text(1)).toContain("Extrait de Elsewhere")
+    expect(text(1)).toContain("Lire les paroles")
+    expect(text(2)).toContain("Single")
+    expect(text(2)).toContain("Lire les paroles")
+    expect(slides[0]!.querySelector("[data-vinyl]")).not.toBeNull()
+    expect(slides[2]!.querySelector("[data-vinyl]")).toBeNull()
+  })
+  it("shows track count, the first titles and the remaining count for an album, and an excerpt for a single", async () => {
+    await render(
+      <ReleaseSlider
+        songs={[
+          {
+            ...release("1"),
+            albumTitle: null,
+            lyricsExcerpt: "First line\nSecond line",
+          },
+        ]}
+        albums={[
+          album("9", {
+            trackCount: 12,
+            tracks: [
+              { id: "a", title: "Alpha" },
+              { id: "b", title: "Beta" },
+              { id: "c", title: "Gamma" },
+            ],
+          }),
+        ]}
+      />
+    )
+    const [albumSlide, singleSlide] = Array.from(
+      container.querySelectorAll("article")
+    )
+    expect(albumSlide!.textContent).toContain("Album · 12 titres · 2026")
+    const items = Array.from(albumSlide!.querySelectorAll("ol li")).map(
+      (li) => li.textContent
+    )
+    expect(items).toEqual(["1Alpha", "2Beta", "3Gamma", "+ 9 titres"])
+    expect(singleSlide!.textContent).toContain("First line")
+    expect(singleSlide!.querySelector("ol")).toBeNull()
+  })
+  it("labels community songs as such and never as an extract of an album", async () => {
+    await render(
+      <ReleaseSlider
+        songs={[
+          {
+            ...release("1"),
+            origin: "community",
+            albumTitle: "Free text",
+          },
+        ]}
+        albums={[]}
+      />
+    )
+    expect(container.querySelector("article")?.textContent).toContain(
+      "Communauté"
+    )
+    expect(container.querySelector("article")?.textContent).not.toContain(
+      "Extrait de"
+    )
+  })
+  it("hides a track whose album is already featured but keeps other singles", async () => {
+    await render(
+      <ReleaseSlider
+        songs={[
+          { ...release("1"), albumTitle: "Album 9" },
+          { ...release("2"), albumTitle: "Album 9", primaryArtist: "Other" },
+          { ...release("3"), albumTitle: null },
+        ]}
+        albums={[album("9")]}
+      />
+    )
+    expect(container.querySelector('a[href="/songs/1"]')).toBeNull()
+    expect(container.querySelector('a[href="/songs/2"]')).not.toBeNull()
+    expect(container.querySelector('a[href="/songs/3"]')).not.toBeNull()
+    expect(container.querySelector('a[href="/albums/9"]')).not.toBeNull()
+  })
+  it("announces the carousel once", async () => {
+    await render(
+      <ReleaseSlider songs={[release("1"), release("2")]} albums={[]} />
+    )
+    expect(
+      container.querySelectorAll("[aria-roledescription]").length
+    ).toBeLessThanOrEqual(1)
+  })
   it("bounds selection, sorts existing releases and respects reduced motion", async () => {
     window.matchMedia = vi.fn().mockReturnValue({
       matches: true,

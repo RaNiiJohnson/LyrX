@@ -299,7 +299,7 @@ function SearchResults({
                       {item.kind === "song"
                         ? t(
                             item.origin === "artist"
-                              ? "discovery.sourceArtist"
+                              ? "discovery.kindSong"
                               : "discovery.sourceCommunity"
                           )
                         : t(

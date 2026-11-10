@@ -158,6 +158,7 @@ describe("discovery public display states", () => {
           title: "Second artist song",
           primaryArtist: "Credited",
           artworkUrl: null,
+          albumTitle: null,
         },
         {
           id: "three",

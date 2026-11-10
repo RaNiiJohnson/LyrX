@@ -172,21 +172,20 @@ describe("persistent application chrome", () => {
   })
 })
 
+const catalogueLinks = ["/", "/songs"]
+
 describe("role-aware shared navigation", () => {
   it.each([
     ["artist", "/studio", "Studio"],
     ["fan", "/community/mine", "Contributions"],
   ] as const)(
-    "limits the %s header to Home and its own workspace",
+    "shows the catalogue links and only the %s's own workspace in the header",
     async (role, destination, label) => {
       mocks.account = ready(role)
       await render()
       const headerNav = document.querySelector("header nav")
-      expect(hrefs(headerNav!)).toEqual(["/", destination])
+      expect(hrefs(headerNav!)).toEqual([...catalogueLinks, destination])
       expect(headerNav?.textContent).toContain(label)
-      expect(hrefs(headerNav!)).not.toContain("/songs")
-      expect(hrefs(headerNav!)).not.toContain("/albums")
-      expect(hrefs(headerNav!)).not.toContain("/artists")
     }
   )
 
@@ -196,11 +195,13 @@ describe("role-aware shared navigation", () => {
     "onboarding-required",
     "suspended",
   ] as const)(
-    "keeps only Home in the %s header without a ready workspace",
+    "keeps only the public links in the %s header without a ready workspace",
     async (state) => {
       mocks.account = { state }
       await render()
-      expect(hrefs(document.querySelector("header nav")!)).toEqual(["/"])
+      expect(hrefs(document.querySelector("header nav")!)).toEqual(
+        catalogueLinks
+      )
     }
   )
 
@@ -211,7 +212,7 @@ describe("role-aware shared navigation", () => {
     )
     expect(hrefs(bottomNav())).toEqual(["/", "/songs"])
     expect(document.querySelectorAll('[role="status"]')).toHaveLength(2)
-    expect(hrefs(document.querySelector("header nav")!)).toEqual(["/"])
+    expect(hrefs(document.querySelector("header nav")!)).toEqual(catalogueLinks)
     expect(document.querySelector('a[href="/auth/sign-in"]')).toBeNull()
     expect(document.querySelector('a[href="/community"]')).toBeNull()
 
@@ -230,18 +231,11 @@ describe("role-aware shared navigation", () => {
   it("exposes the unified catalogue and anonymous auth actions without Fan tools", async () => {
     mocks.account = { state: "anonymous" }
     await render()
-    expect(hrefs(bottomNav())).toEqual([
-      "/",
-      "/songs",
-      "/artists",
-      "/auth/sign-in",
-    ])
+    expect(hrefs(bottomNav())).toEqual(["/", "/songs", "/auth/sign-in"])
     const { menu } = await openAccount()
     expect(hrefs(menu)).toEqual([
       "/",
       "/songs",
-      "/albums",
-      "/artists",
       "/auth/sign-in",
       "/auth/sign-up",
     ])
@@ -293,7 +287,7 @@ describe("role-aware shared navigation", () => {
     async (state, href) => {
       mocks.account = { state }
       await render()
-      expect(hrefs(bottomNav())).toEqual(["/", "/songs", "/artists", href])
+      expect(hrefs(bottomNav())).toEqual(["/", "/songs", href])
       const { menu } = await openAccount()
       expect(hrefs(menu)).toContain(href)
       expect(hrefs(menu)).not.toContain("/studio")
@@ -329,9 +323,10 @@ describe("role-aware shared navigation", () => {
     expect(bottomNav().closest("header")).toBeNull()
     expect(document.querySelector("header nav")?.className).toContain("lg:flex")
     expect(hrefs(document.querySelector("header nav")!)).toEqual([
-      "/",
+      ...catalogueLinks,
       "/studio",
     ])
+    expect(hrefs(footer!.querySelector("nav")!)).toEqual(["/songs"])
   })
 
   it("localizes the mobile navigation and account sidebar in English", async () => {
@@ -388,7 +383,7 @@ describe("role-aware shared navigation", () => {
     expect(menu.textContent).toContain("A long account display name")
     const explore = menu.querySelector('nav[aria-label="Explorer"]')
     expect(explore?.className).toContain("gap-3")
-    expect(hrefs(explore!)).toEqual(["/", "/songs", "/albums", "/artists"])
+    expect(hrefs(explore!)).toEqual(["/", "/songs"])
     const tools = menu.querySelector('nav[aria-label="Espace Fan"]')
     expect(hrefs(tools!)).toEqual(["/community/new", "/community/mine"])
     expect(

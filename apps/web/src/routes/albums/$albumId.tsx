@@ -11,6 +11,8 @@ import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
 import { Badge } from "@lyrx/ui/components/badge"
 
 import { useLocale } from "@/app/locale-provider"
+import { genreMessageKeys } from "@/features/discovery/catalogue-search"
+import { useTrackCountLabel } from "@/features/discovery/discovery-cards"
 
 export const Route = createFileRoute("/albums/$albumId")({
   ...appRouteBoundaries,
@@ -37,9 +39,14 @@ function PublicAlbumPage() {
 
   if (!detail) throw notFound()
 
-  const { album, artworkUrl, tracks } = detail
+  const trackCountLabel = useTrackCountLabel()
+  const { album, artist, artworkUrl, tracks } = detail
   const genre =
-    album.genre === "other" ? album.otherGenre : album.genre?.replace("-", " ")
+    album.genre === "other"
+      ? album.otherGenre
+      : album.genre
+        ? t(genreMessageKeys[album.genre])
+        : undefined
 
   return (
     <PageShell width="wide">
@@ -47,12 +54,12 @@ function PublicAlbumPage() {
         <div>
           <BackButton fallback="/albums" />
         </div>
-        <header className="grid gap-5 sm:grid-cols-[8.25rem_1fr] sm:items-end">
-          <div className="flex aspect-square size-24 items-center justify-center overflow-hidden rounded-2xl bg-muted sm:size-[8.25rem]">
+        <header className="grid gap-6 sm:grid-cols-[14rem_1fr] sm:items-end">
+          <div className="flex aspect-square size-44 items-center justify-center overflow-hidden rounded-2xl bg-muted shadow-lg sm:size-56">
             {artworkUrl ? (
               <img src={artworkUrl} alt="" className="size-full object-cover" />
             ) : (
-              <Disc3 className="size-10 text-muted-foreground" aria-hidden />
+              <Disc3 className="size-14 text-muted-foreground" aria-hidden />
             )}
           </div>
           <div className="flex min-w-0 flex-col gap-3">
@@ -62,6 +69,17 @@ function PublicAlbumPage() {
             <h1 className="text-4xl leading-none font-semibold tracking-tight sm:text-5xl">
               {album.title}
             </h1>
+            <p className="text-base text-muted-foreground">
+              <Link
+                to="/artists/$handle"
+                params={{ handle: artist.handle }}
+                className="font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                {artist.displayName}
+              </Link>
+              {" · "}
+              {trackCountLabel(tracks.length)}
+            </p>
             <div className="flex flex-wrap gap-2">
               {genre ? <Badge variant="secondary">{genre}</Badge> : null}
               {album.releaseDate ? (
@@ -89,9 +107,6 @@ function PublicAlbumPage() {
             <h2 id="album-tracks-title" className="text-xl font-semibold">
               {t("studio.albumTracks")}
             </h2>
-            <span className="text-sm text-muted-foreground">
-              {tracks.length}
-            </span>
           </div>
           <ol className="flex flex-col border-t">
             {tracks.map(({ position, song }) => (

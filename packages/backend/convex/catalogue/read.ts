@@ -268,7 +268,8 @@ export const getPublishedAlbum = query({
   handler: async (ctx, args) => {
     const album = await ctx.db.get("albums", args.albumId)
     if (!album || album.status !== "published") return null
-    if (!(await eligibleMember(ctx, album.ownerMemberId, "artist"))) return null
+    const owner = await eligibleMember(ctx, album.ownerMemberId, "artist")
+    if (!owner) return null
     const rows = await ctx.db
       .query("albumTracks")
       .withIndex("by_album_id_and_position", (q) => q.eq("albumId", album._id))
@@ -290,6 +291,10 @@ export const getPublishedAlbum = query({
     )
     return {
       album: projectPublicAlbum(album),
+      artist: {
+        displayName: owner.profile.displayName,
+        handle: owner.profile.handle,
+      },
       tracks: tracks.map(({ track, song }) => ({
         position: track.position,
         song: projectPublicSong(song),

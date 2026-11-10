@@ -16,6 +16,8 @@ export type DiscoverySong = {
   /** Present on public lists; null for a single. */
   albumTitle?: string | null
   likeCount?: number
+  /** Two or three public lyric lines; only provided on the home selection. */
+  lyricsExcerpt?: string
 }
 export type DiscoveryAlbum = {
   id: string
@@ -25,6 +27,9 @@ export type DiscoveryAlbum = {
   artworkUrl: string | null
   href: string
   firstPublishedAt?: number
+  /** Published tracks (capped by the backend) and the first three titles. */
+  trackCount?: number
+  tracks?: Array<{ id: string; title: string }>
 }
 export type DiscoveryArtist = {
   handle: string
@@ -33,6 +38,13 @@ export type DiscoveryArtist = {
   songCount: number
   albumCount: number
   href: string
+}
+
+/** "1 titre" / "12 titres", with the locale's own wording. */
+export function useTrackCountLabel() {
+  const { t } = useLocale()
+  return (count: number) =>
+    count === 1 ? t("catalogue.trackOne") : t("catalogue.trackMany", { count })
 }
 
 export function CoverImage({
@@ -75,6 +87,17 @@ export function CoverImage({
   )
 }
 
+/**
+ * What a song card says about where the song comes from: "Communauté" for fan
+ * lyrics, otherwise "Single" or the album name (nothing when unknown).
+ */
+function useSongBadge(song: DiscoverySong) {
+  const { t } = useLocale()
+  if (song.origin === "community") return t("discovery.sourceCommunity")
+  if (song.albumTitle === undefined) return null
+  return song.albumTitle ?? t("releases.single")
+}
+
 export function SongCard({
   song,
   presentation = "row",
@@ -82,7 +105,7 @@ export function SongCard({
   song: DiscoverySong
   presentation?: "row" | "cover"
 }) {
-  const { t } = useLocale()
+  const badge = useSongBadge(song)
   if (presentation === "cover")
     return (
       <Link
@@ -95,16 +118,14 @@ export function SongCard({
             label={song.title}
             className="aspect-square w-full bg-linear-to-br from-brand/35 via-muted to-primary/25 text-foreground"
           />
-          <Badge
-            variant="secondary"
-            className="absolute top-2 left-2 max-w-[calc(100%-1rem)] border-hero-foreground/10 bg-brand-foreground/80 text-hero-foreground"
-          >
-            {t(
-              song.origin === "community"
-                ? "discovery.sourceCommunity"
-                : "discovery.sourceArtist"
-            )}
-          </Badge>
+          {badge ? (
+            <Badge
+              variant="secondary"
+              className="absolute top-2 left-2 max-w-[calc(100%-1rem)] border-hero-foreground/10 bg-brand-foreground/80 text-hero-foreground"
+            >
+              <span className="truncate">{badge}</span>
+            </Badge>
+          ) : null}
         </div>
         <div className="flex min-w-0 flex-col gap-1">
           <h3 className="line-clamp-2 font-semibold wrap-break-word group-hover:underline">
@@ -129,15 +150,48 @@ export function SongCard({
         <p className="line-clamp-2 text-sm wrap-break-word text-muted-foreground">
           {song.primaryArtist}
         </p>
-        <Badge variant={song.origin === "community" ? "secondary" : "outline"}>
-          {t(
-            song.origin === "community"
-              ? "discovery.sourceCommunity"
-              : "discovery.sourceArtist"
-          )}
-        </Badge>
+        {badge ? (
+          <Badge
+            variant={song.origin === "community" ? "secondary" : "outline"}
+            className="max-w-full"
+          >
+            <span className="truncate">{badge}</span>
+          </Badge>
+        ) : null}
       </div>
     </Link>
+  )
+}
+
+/**
+ * A record sleeve with a vinyl peeking out on the right. The sleeve itself is
+ * `children` so callers keep control of image loading; the wrapper reserves
+ * 15% of its width for the disc.
+ */
+export function AlbumVinyl({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn("relative isolate w-full pr-[15%]", className)}>
+      <div
+        aria-hidden="true"
+        data-vinyl
+        className="absolute top-[8%] right-0 -z-10 grid aspect-square w-[72%] place-items-center rounded-full border border-hero-foreground/15 bg-brand-foreground shadow-md"
+        style={{
+          backgroundImage:
+            "repeating-radial-gradient(circle, transparent 0px, transparent 3px, color-mix(in oklab, var(--hero-foreground) 12%, transparent) 3.5px, transparent 4px)",
+        }}
+      >
+        <span className="grid size-[30%] place-items-center rounded-full border border-hero-foreground/15 bg-muted">
+          <span className="size-2 rounded-full bg-brand-foreground" />
+        </span>
+      </div>
+      {children}
+    </div>
   )
 }
 
@@ -147,26 +201,14 @@ export function AlbumCard({ album }: { album: DiscoveryAlbum }) {
       to={album.href}
       className="group flex min-w-0 flex-col gap-3 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <div className="relative isolate w-full pr-[15%]">
-        <div
-          aria-hidden="true"
-          className="absolute top-[8%] right-0 -z-10 grid aspect-square w-[72%] place-items-center rounded-full border border-hero-foreground/15 bg-brand-foreground shadow-md"
-          style={{
-            backgroundImage:
-              "repeating-radial-gradient(circle, transparent 0px, transparent 3px, color-mix(in oklab, var(--hero-foreground) 12%, transparent) 3.5px, transparent 4px)",
-          }}
-        >
-          <span className="grid size-[30%] place-items-center rounded-full border border-hero-foreground/15 bg-muted">
-            <span className="size-2 rounded-full bg-brand-foreground" />
-          </span>
-        </div>
+      <AlbumVinyl>
         <CoverImage
           src={album.artworkUrl}
           label={album.title}
           album
           className="aspect-square w-full rounded-lg bg-linear-to-br from-primary/35 via-muted to-brand/25 text-foreground shadow-md"
         />
-      </div>
+      </AlbumVinyl>
       <div className="flex min-w-0 flex-col gap-1">
         <h3 className="line-clamp-2 font-semibold wrap-break-word group-hover:underline">
           {album.title}

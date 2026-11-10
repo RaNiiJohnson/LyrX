@@ -3,7 +3,9 @@ import {
   paginationResultValidator,
 } from "convex/server"
 import { lyricsTextForSong } from "../catalogue/lyrics"
+import { albumTracksByAlbum } from "../catalogue/aggregates"
 import { songListingExtras } from "../catalogue/listing"
+import { lyricsPreview } from "./lyricsPreview"
 import { matchingExcerpt, searchTerms } from "./searchText"
 import { ConvexError, v, type Infer } from "convex/values"
 import type { Doc, Id } from "../_generated/dataModel"
@@ -76,7 +78,8 @@ async function rows(
 }
 async function song(
   ctx: QueryCtx,
-  entry: Doc<"discoveryEntries">
+  entry: Doc<"discoveryEntries">,
+  options: { excerpt?: boolean } = {}
 ): Promise<Infer<typeof songCard> | null> {
   if (entry.kind !== "song" || !entry.origin) return null
   if (
@@ -101,6 +104,7 @@ async function song(
         )
   if (!source || source.status !== "published") return null
   const extras = await songListingExtras(ctx, source)
+  const excerpt = options.excerpt ? lyricsPreview(source.lyricsText) : undefined
   return {
     ...extras,
     id: String(source._id),
@@ -117,7 +121,35 @@ async function song(
         : `/community/${source._id}`,
     ...(source.genre ? { genre: source.genre } : {}),
     recentViews: entry.recentViews,
+    // Already-read public source; no extra document is fetched.
+    ...(excerpt ? { lyricsExcerpt: excerpt } : {}),
   }
+}
+// An album card needs the count and three titles, never every song document
+// (lyrics make them large): the count comes from the album's track aggregate
+// and the titles from reading songs in album order until three are public.
+const ALBUM_CARD_TRACK_PREVIEW = 3
+const ALBUM_CARD_TRACK_SCAN = 100
+async function albumTracks(ctx: QueryCtx, source: Doc<"albums">) {
+  const [trackCount, rows] = await Promise.all([
+    albumTracksByAlbum.count(ctx, { namespace: source._id }),
+    ctx.db
+      .query("albumTracks")
+      .withIndex("by_album_id_and_position", (q) => q.eq("albumId", source._id))
+      .take(ALBUM_CARD_TRACK_SCAN),
+  ])
+  const tracks: Array<{ id: string; title: string }> = []
+  for (const row of rows) {
+    if (tracks.length === ALBUM_CARD_TRACK_PREVIEW) break
+    const song = await ctx.db.get("songs", row.songId)
+    // Same rule as the public album page: published songs of the album owner.
+    if (
+      song?.status === "published" &&
+      song.ownerMemberId === source.ownerMemberId
+    )
+      tracks.push({ id: String(song._id), title: song.title })
+  }
+  return { trackCount, tracks }
 }
 async function album(
   ctx: QueryCtx,
@@ -138,6 +170,7 @@ async function album(
       : null,
     firstPublishedAt: entry.publishedAt,
     href: `/albums/${id}`,
+    ...(await albumTracks(ctx, source)),
   }
 }
 async function artist(
@@ -326,7 +359,9 @@ export const home = query({
     ) =>
       Promise.all(entries.map((entry) => (entry ? project(ctx, entry) : null)))
     const [songs, popularSongs, albums, artists] = await Promise.all([
-      hydrate(songRows.entries, song),
+      hydrate(songRows.entries, (c, entry) =>
+        song(c, entry, { excerpt: true })
+      ),
       hydrate(popularRows.entries, song),
       hydrate(albumRows.entries, album),
       hydrate(artistRows.entries, artist),

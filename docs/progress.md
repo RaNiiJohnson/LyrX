@@ -24,6 +24,124 @@
   `docs/development.md`).
 
 
+## Web style polish — branch `feat/web-style-polish`
+
+Authorised in one go by the user (step 0 plus lots A, B, C, no approval between
+lots; the other AGENTS.md rules still apply). Step 0: the Nitro/Vercel branch
+`ccr-249afcb8-7bzsw8` was built then fast-forwarded into `main`;
+`codex/mobile-auth` deliberately not merged. Baseline before work: lint and
+typecheck green, 345/345 web tests. Theme, coral and fonts are unchanged
+(`docs/product.md`).
+
+### Lot A — home release slider
+
+- Singles and albums no longer look alike. A single: "Single" (or "Extrait de
+  <album>"; "Communauté" for fan lyrics) badge, square cover, "Lire les
+  paroles". An album: "Album · <year>" badge, cover with the vinyl peeking
+  out, "Voir l’album". The vinyl is now the shared `AlbumVinyl` component in
+  `features/discovery/discovery-cards.tsx`, used by `AlbumCard` and the slider.
+- `pickReleases` skips an artist song whose album (title + artist) is already a
+  slider candidate; other singles stay. Album badge no longer reads "Albums".
+- Slides are shorter on phones (`min-h-[32rem]`, smaller cover/title) and the
+  duplicated `aria-roledescription` on the outer section was removed (the
+  Embla region keeps it). New i18n keys `releases.single|fromAlbum|album|
+  openSong|openAlbum` (FR/EN); `releases.open` stays for the mobile app.
+- Tests: four new slider tests (badges/CTA/vinyl, community, dedupe, aria).
+
+### Lot B — richer album cards and lyric excerpts
+
+- `albumCard` (`discovery/model.ts`, `read.ts`) now returns `trackCount` and
+  the first three public track titles (`tracks`). `songCard` gets an optional
+  `lyricsExcerpt` (2–3 public lines, headings skipped, `discovery/lyricsPreview.ts`),
+  set only for the home "newest" songs from the source document already read.
+  Legacy songs without `lyricsText` get no excerpt.
+- Slider: album shows "Album · 12 titres · 2026", a numbered list of the first
+  three titles plus "+ N titres"; singles show the excerpt in serif italic.
+  Both are hidden below `sm` to keep phone slides short.
+- Convex review (convex-reviewer): no leak (tracks use the public album rule,
+  excerpts only from already-public sources). Important finding fixed: the first
+  version read up to 40 whole `songs` documents per album card (lyrics can be
+  large). Now `trackCount` comes from the `albumTracksByAlbum` aggregate and the
+  preview reads songs in album order only until three public titles are found.
+- Accepted trade-off: the count is the album's track count, so it includes a
+  track whose song was unpublished after the album was published, and may
+  differ by that amount from the album page. Fixing it would need a
+  denormalised public count on `discoveryEntries`.
+- Tests: `lyricsPreview.test.ts` and a discovery test covering count, preview
+  order, drafts/foreign songs not leaking, and excerpts on home only.
+- Pushed to the Convex **dev** deployment only. Deploy Convex before the web
+  (the new fields are optional on the client but the slider expects them).
+
+### Lot C — navigation, album page and consistency
+
+- Navigation: one "Catalogue" entry (`/songs`) replaces Titres / Albums /
+  Artistes in the header, footer, mobile bottom bar and account menu, because
+  the catalogue page already has Morceaux / Albums / Artistes tabs. The bottom
+  bar is Accueil, Catalogue, the role's workspace (artist/fan only) and account.
+  No `/community` link is added anywhere (an existing test guards this).
+  New keys `navigation.catalogue|footer`, `discovery.kindSong`.
+- Album page: shows the artist (link to `/artists/$handle`) and "N titres",
+  a larger cover, and the genre translated with the shared `genreMessageKeys`.
+  `catalogue.read.getPublishedAlbum` now also returns `artist`
+  (`displayName`, `handle`) from the eligible owner it already loads.
+- `SongRow`, albums and artists rows all go through `HorizontalRow`, which uses
+  the shadcn `Carousel` (Embla: drag, keyboard, no native scrollbar, no arrow
+  buttons). "See all" is hidden when a row is empty.
+- Home hero slider spans the full width: details on the left edge, cover (or
+  album vinyl) on the right edge, same side padding as the progress bar.
+- Song cards: the repeated "Artiste" badge is replaced by "Single" or the album
+  name (nothing when unknown); "Communauté" is kept for fan contributions. Search
+  results label artist songs "Titre".
+- Fraunces (only used by share cards) moved out of `globals.css` into
+  `@lyrx/ui/share-fonts.css`, imported on demand by `features/sharing/card-fonts.ts`
+  when a share dialog opens or a card is rendered.
+- Not done: the provisional "X" logo is unchanged (no simple, consistent
+  improvement without brand input).
+- Tests: updated page-shell, discovery and display tests; new tests for the album
+  page, song-row carousel/empty state, and artist/album badges; backend test
+  for `artist` on `getPublishedAlbum`. Visual check on the dev server at 390 and
+  1440 px, light and dark: no horizontal overflow.
+
+### Logo — feather mark
+
+- The provisional "X" badge is replaced by an original feather drawing (user
+  request; reference image used for style only, path drawn from scratch). One
+  path in `apps/web/src/lib/brand.ts` (`evenodd`, the shaft is a tapering gap)
+  feeds `LogoMark`, `FeatherGlyph` and `Wordmark` (`apps/web/src/app/brand.tsx`)
+  and the raster share card (`drawLogoMark` in `card-renderer.ts`).
+- `Wordmark` puts the feather in place of the apostrophe ("Lyr" + feather +
+  "X", `sr-only` name for assistive tech). Used in the header and the route
+  boundary shell; running text, titles, metadata and i18n keep `PRODUCT_NAME`.
+- Static assets: `favicon.svg`, `apple-touch-icon.png` (linked in `__root.tsx`),
+  `public/brand/` (`lyrx-mark.svg`, `lyrx-mark-square.svg`,
+  `lyrx-feather.svg`, `icon-192.png`, `icon-512.png`), manifest `icons`.
+- Checks: format, lint, typecheck, 353/353 web tests. Browser: header at
+  desktop (dark) and 375 px (light), all icon URLs return 200, and a card
+  rendered with `renderCard` shows the feather mark beside "Lyr'X".
+
+## Vercel deployment preparation — 9 November 2026 (branch `ccr-249afcb8-7bzsw8`)
+
+- Added the `nitro` plugin (3.0.261103-rc) to `apps/web/vite.config.ts`,
+  disabled under Vitest like `tanstackStart()`, and ignored `.vercel/`. Without
+  it the build emits only `dist/server/server.js`, which Vercel cannot serve.
+- Evidence: `VERCEL=1 pnpm --filter @lyrx/web build` with placeholder `VITE_`
+  values produced `.vercel/output` (`config.json`, `functions/__server.func`,
+  `static`); `pnpm typecheck` in `apps/web` passed. The web test run completed
+  but its full pass/fail summary was not captured; rerun `pnpm check` before
+  merging.
+- Documented the deployment strategy and one-time setup in
+  [development.md](development.md#deployment-vercel--convex-production):
+  keep CI as the gate, deploy through the Vercel Git integration with
+  `convex deploy --cmd`.
+- **Not verified:** any real Vercel project, Convex production deployment,
+  deploy keys, the documented build command, runtime availability of
+  `VITE_CONVEX_*` in the Vercel server environment, or Google/Resend production
+  configuration. tanstack.com was unreachable from the session, so the Nitro
+  choice rests on the local build, not on current TanStack hosting docs.
+- Known limitation: sign-in on Vercel preview URLs fails because Convex
+  `SITE_URL` is the only trusted origin.
+- No PR, merge or deployment was performed.
+
 ## Trello UX follow-up — 2 November 2026 (branch `ccr-3390c328-3g9xip`)
 
 Seven user-reported web issues, fixed without backend changes (no Convex review

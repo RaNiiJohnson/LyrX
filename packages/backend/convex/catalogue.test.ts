@@ -469,7 +469,13 @@ describe("artist catalogue", () => {
     })
     await expect(
       t.query(api.catalogue.read.getPublishedAlbum, { albumId })
-    ).resolves.toMatchObject({ album: { status: "published" } })
+    ).resolves.toMatchObject({
+      album: { status: "published" },
+      artist: {
+        displayName: expect.any(String),
+        handle: expect.any(String),
+      },
+    })
     await client.mutation(api.catalogue.albums.unpublishAlbum, { albumId })
     await expect(
       t.query(api.catalogue.read.getPublishedAlbum, { albumId })

@@ -98,6 +98,98 @@ authentication schema, push Convex functions, run migrations, or publish the
 site. Those live checks remain explicit development/release steps. Actions
 have read-only repository permissions and are pinned to commit SHAs.
 
+## Deployment (Vercel + Convex production)
+
+The web app is TanStack Start on Vite. `apps/web/vite.config.ts` uses the
+`nitro()` plugin: when the build runs on Vercel it emits `.vercel/output`
+(server function plus static assets). Without Nitro the build only produces
+`dist/server/server.js`, which Vercel cannot serve. Nitro 3 is a release
+candidate and requires Node.js 22.22 or newer; select Node.js 22.x on Vercel.
+
+Verified locally: `VERCEL=1 pnpm --filter @lyrx/web build` produces
+`.vercel/output` with `config.json`, `functions/__server.func` and `static`.
+Not verified: an actual Vercel project, a Convex production deployment or the
+Convex build command below. Record real evidence in [progress.md](progress.md)
+after the first deployment.
+
+### Strategy
+
+Keep [CI](../.github/workflows/ci.yml) as the quality gate and let the Vercel
+Git integration deploy: a preview per pull request and production from `main`.
+Make the `Check project` job a required status check on `main` in GitHub so
+broken code is not deployed. Deployment secrets live in Vercel and Convex, not
+in GitHub Actions.
+
+### One-time setup
+
+1. **Convex production.** In the Convex project create or select the production
+   deployment, then generate a Production deploy key and a Preview deploy key.
+2. **Convex production environment.** Set runtime values on production only,
+   never reusing development values:
+
+   ```bash
+   pnpm --filter @lyrx/backend exec convex env set --prod BETTER_AUTH_SECRET '<new random secret, 32+ characters>'
+   pnpm --filter @lyrx/backend exec convex env set --prod SITE_URL 'https://<production-domain>'
+   pnpm --filter @lyrx/backend exec convex env set --prod RESEND_API_KEY '<secret>'
+   pnpm --filter @lyrx/backend exec convex env set --prod RESEND_WEBHOOK_SECRET '<secret>'
+   # Optional, enables Google sign-in:
+   pnpm --filter @lyrx/backend exec convex env set --prod GOOGLE_CLIENT_ID '<client-id>'
+   pnpm --filter @lyrx/backend exec convex env set --prod GOOGLE_CLIENT_SECRET '<secret>'
+   ```
+
+   Use the explicit `--prod` flag on each command; these are operator steps.
+3. **Providers.** Add `https://<production-domain>/api/auth/callback/google` to
+   the Google OAuth client. Point the Resend webhook to
+   `https://<production-deployment>.convex.site/resend-webhook`.
+4. **Vercel project.** Import the GitHub repository. Use the repository root as
+   Root Directory, Node.js 22.x, Install Command
+   `pnpm install --frozen-lockfile`, and this Build Command:
+
+   ```bash
+   pnpm --filter @lyrx/backend exec convex deploy \
+     --cmd-url-env-var-name VITE_CONVEX_URL \
+     --cmd 'VITE_CONVEX_SITE_URL=${VITE_CONVEX_URL%.cloud}.site pnpm --filter @lyrx/web build'
+   ```
+
+   `convex deploy` pushes the functions, then runs the web build with
+   `VITE_CONVEX_URL` set to the target deployment. It only provides the
+   `.convex.cloud` URL, so the command derives the `.convex.site` one.
+5. **Vercel environment variables.**
+
+   | Variable              | Production        | Preview              |
+   | --------------------- | ----------------- | -------------------- |
+   | `CONVEX_DEPLOY_KEY`   | Production key    | Preview key          |
+   | `VITE_SITE_URL`       | production URL    | not set (see below)  |
+
+   `VITE_*` values are baked into the client bundle at build time and are public;
+   `CONVEX_DEPLOY_KEY` is a secret and must never carry a `VITE_` prefix. The
+   server also reads `VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` from
+   `process.env` (`apps/web/src/lib/auth-server.ts`), so they must exist in the
+   Vercel runtime environment, not only during the build; confirm this on the
+   first deployment.
+6. **After the first production deployment.** A new production database has no
+   legacy rows, so the lot migrations in this guide are not needed. Create the
+   first administrator with the bootstrap command in
+   [authentication.md](authentication.md), adding `--prod` deliberately.
+
+### Preview deployments
+
+A Convex preview deployment starts empty and has its own URL. Better Auth only
+trusts the origin in the Convex `SITE_URL` (`packages/backend/convex/auth.ts`),
+so sign-in on a Vercel preview URL fails until that value matches the preview.
+Treat previews as unauthenticated visual checks unless a preview-specific
+`SITE_URL` workflow is added. This is a known limitation, not yet solved.
+
+### Rollback and safety
+
+- Convex schema changes are deployed with the web build. Follow the existing
+  widen-migrate-narrow rule in this guide and deploy Convex before the web when
+  a change adds fields the web reads.
+- Roll back the web by promoting a previous deployment in Vercel. A Convex
+  rollback is a new `convex deploy` of the previous commit; data is not
+  reverted.
+- Never run `--prod` migrations without explicit authorization.
+
 ## Legacy lyrics migration
 
 Lot 5 keeps `songs.lyricsText` optional while deployments may still contain the
