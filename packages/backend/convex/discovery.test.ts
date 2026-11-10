@@ -417,6 +417,73 @@ describe("unified public discovery", () => {
     ).toMatchObject({ ready: true, total: 0 })
   })
 
+  it("adds public track counts, a three-title preview and lyric excerpts without leaking drafts", async () => {
+    const t = await backend(),
+      owner = await member(t, "rich-owner"),
+      other = await member(t, "rich-other")
+    const first = await song(t, owner.memberId, "Track one", 1)
+    const draft = await song(t, owner.memberId, "Secret draft", 2, "draft")
+    const second = await song(t, owner.memberId, "Track two", 3)
+    const foreign = await song(t, other.memberId, "Foreign", 4)
+    const third = await song(t, owner.memberId, "Track three", 5)
+    const fourth = await song(t, owner.memberId, "Track four", 6)
+    const albumId = await t.run(async (rawCtx) => {
+      const ctx = catalogueAggregateTriggers.wrapDB(rawCtx)
+      const id = await ctx.db.insert("albums", {
+        ownerMemberId: owner.memberId,
+        title: "Rich album",
+        status: "published",
+        firstPublishedAt: 100,
+        credits: [],
+        createdAt: 100,
+        updatedAt: 100,
+      })
+      for (const [position, songId] of [
+        first,
+        draft,
+        foreign,
+        second,
+        third,
+        fourth,
+      ].entries())
+        await ctx.db.insert("albumTracks", {
+          albumId: id,
+          songId,
+          ownerMemberId: owner.memberId,
+          position,
+          createdAt: 100,
+          updatedAt: 100,
+        })
+      return id
+    })
+    const home = await t.query(api.discovery.read.home, {})
+    const card = home.albums.find((item) => item.id === albumId)!
+    // The count is the album's track aggregate (no song documents are read);
+    // the preview only ever contains public tracks.
+    expect(card.trackCount).toBe(6)
+    expect(card.tracks.map((track) => track.title)).toEqual([
+      "Track one",
+      "Track two",
+      "Track three",
+    ])
+    expect(JSON.stringify(home)).not.toContain("Secret draft")
+    expect(JSON.stringify(card)).not.toContain("Foreign")
+    const list = await t.query(api.discovery.read.listAlbums, { page: 1 })
+    expect(list.items[0]).toMatchObject({ trackCount: 6 })
+    // Excerpts: home "newest" songs only, headings skipped, no draft source.
+    expect(
+      home.songs.every((item) => item.lyricsExcerpt === "Raw lyrics")
+    ).toBe(true)
+    expect(home.songs.map((item) => item.title)).not.toContain("Secret draft")
+    expect(
+      home.popularSongs.every((item) => item.lyricsExcerpt === undefined)
+    ).toBe(true)
+    const songs = await t.query(api.discovery.read.listSongs, { page: 1 })
+    expect(songs.items.every((item) => item.lyricsExcerpt === undefined)).toBe(
+      true
+    )
+  })
+
   it("propagates large album inheritance through bounded discovery jobs without stale counts", async () => {
     const t = await backend(),
       owner = await member(t, "inherit-owner")

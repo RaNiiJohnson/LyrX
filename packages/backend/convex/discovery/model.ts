@@ -36,6 +36,12 @@ export const songCard = v.object({
   recentViews: v.number(),
   albumTitle: v.union(v.string(), v.null()),
   likeCount: v.number(),
+  /** Two or three public lyric lines; only the home selection sets it. */
+  lyricsExcerpt: v.optional(v.string()),
+})
+export const albumTrackPreview = v.object({
+  id: v.string(),
+  title: v.string(),
 })
 export const albumCard = v.object({
   id: v.string(),
@@ -45,6 +51,10 @@ export const albumCard = v.object({
   artworkUrl: v.union(v.string(), v.null()),
   firstPublishedAt: v.number(),
   href: v.string(),
+  /** Tracks in the album (from the track aggregate, no song reads). */
+  trackCount: v.number(),
+  /** The first three published tracks, in album order. */
+  tracks: v.array(albumTrackPreview),
 })
 export const artistCard = v.object({
   handle: v.string(),

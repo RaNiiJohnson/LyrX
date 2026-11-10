@@ -24,6 +24,30 @@ typecheck green, 345/345 web tests. Theme, coral and fonts are unchanged
   openSong|openAlbum` (FR/EN); `releases.open` stays for the mobile app.
 - Tests: four new slider tests (badges/CTA/vinyl, community, dedupe, aria).
 
+### Lot B — richer album cards and lyric excerpts
+
+- `albumCard` (`discovery/model.ts`, `read.ts`) now returns `trackCount` and
+  the first three public track titles (`tracks`). `songCard` gets an optional
+  `lyricsExcerpt` (2–3 public lines, headings skipped, `discovery/lyricsPreview.ts`),
+  set only for the home "newest" songs from the source document already read.
+  Legacy songs without `lyricsText` get no excerpt.
+- Slider: album shows "Album · 12 titres · 2026", a numbered list of the first
+  three titles plus "+ N titres"; singles show the excerpt in serif italic.
+  Both are hidden below `sm` to keep phone slides short.
+- Convex review (convex-reviewer): no leak (tracks use the public album rule,
+  excerpts only from already-public sources). Important finding fixed: the first
+  version read up to 40 whole `songs` documents per album card (lyrics can be
+  large). Now `trackCount` comes from the `albumTracksByAlbum` aggregate and the
+  preview reads songs in album order only until three public titles are found.
+- Accepted trade-off: the count is the album's track count, so it includes a
+  track whose song was unpublished after the album was published, and may
+  differ by that amount from the album page. Fixing it would need a
+  denormalised public count on `discoveryEntries`.
+- Tests: `lyricsPreview.test.ts` and a discovery test covering count, preview
+  order, drafts/foreign songs not leaking, and excerpts on home only.
+- Pushed to the Convex **dev** deployment only. Deploy Convex before the web
+  (the new fields are optional on the client but the slider expects them).
+
 ## Vercel deployment preparation — 9 November 2026 (branch `ccr-249afcb8-7bzsw8`)
 
 - Added the `nitro` plugin (3.0.261103-rc) to `apps/web/vite.config.ts`,

@@ -16,6 +16,8 @@ export type DiscoverySong = {
   /** Present on public lists; null for a single. */
   albumTitle?: string | null
   likeCount?: number
+  /** Two or three public lyric lines; only provided on the home selection. */
+  lyricsExcerpt?: string
 }
 export type DiscoveryAlbum = {
   id: string
@@ -25,6 +27,9 @@ export type DiscoveryAlbum = {
   artworkUrl: string | null
   href: string
   firstPublishedAt?: number
+  /** Published tracks (capped by the backend) and the first three titles. */
+  trackCount?: number
+  tracks?: Array<{ id: string; title: string }>
 }
 export type DiscoveryArtist = {
   handle: string
@@ -33,6 +38,13 @@ export type DiscoveryArtist = {
   songCount: number
   albumCount: number
   href: string
+}
+
+/** "1 titre" / "12 titres", with the locale's own wording. */
+export function useTrackCountLabel() {
+  const { t } = useLocale()
+  return (count: number) =>
+    count === 1 ? t("catalogue.trackOne") : t("catalogue.trackMany", { count })
 }
 
 export function CoverImage({

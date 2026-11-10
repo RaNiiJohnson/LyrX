@@ -12,6 +12,7 @@ import {
 import { useLocale } from "@/app/locale-provider"
 import {
   AlbumVinyl,
+  useTrackCountLabel,
   type DiscoveryAlbum,
   type DiscoverySong,
 } from "@/features/discovery/discovery-cards"
@@ -29,6 +30,10 @@ type Release = {
   firstPublishedAt: number
   label: string
   cta: string
+  excerpt?: string
+  /** Album only: first titles and how many more public ones exist. */
+  tracks?: Array<string>
+  moreTracks?: number
 }
 
 const MAX_RELEASES = 6
@@ -105,6 +110,7 @@ export function ReleaseSlider({
   const [cycle, setCycle] = useState(0)
   const [reduced, setReduced] = useState(true)
   const [hidden, setHidden] = useState(false)
+  const trackCountLabel = useTrackCountLabel()
   const picked = pickReleases(songs, albums)
   const usable = (src: string | null) =>
     src && !failedArtwork.has(src) ? src : null
@@ -124,6 +130,7 @@ export function ReleaseSlider({
             ? t("releases.fromAlbum", { album: song.albumTitle })
             : t("releases.single"),
       cta: t("releases.openSong"),
+      ...(song.lyricsExcerpt ? { excerpt: song.lyricsExcerpt } : {}),
     })),
     ...picked.albums.map((album): Release => ({
       kind: "album",
@@ -133,10 +140,24 @@ export function ReleaseSlider({
       artworkUrl: usable(album.artworkUrl),
       href: album.href,
       firstPublishedAt: album.firstPublishedAt,
-      label: t("releases.album", {
-        year: new Date(album.firstPublishedAt).getUTCFullYear(),
-      }),
+      label: album.trackCount
+        ? t("releases.albumMeta", {
+            tracks: trackCountLabel(album.trackCount),
+            year: new Date(album.firstPublishedAt).getUTCFullYear(),
+          })
+        : t("releases.album", {
+            year: new Date(album.firstPublishedAt).getUTCFullYear(),
+          }),
       cta: t("releases.openAlbum"),
+      ...(album.tracks?.length
+        ? {
+            tracks: album.tracks.map((track) => track.title),
+            moreTracks: Math.max(
+              0,
+              (album.trackCount ?? 0) - album.tracks.length
+            ),
+          }
+        : {}),
     })),
   ]
     .sort(
@@ -310,6 +331,33 @@ export function ReleaseSlider({
                         <p className="text-lg break-words text-hero-foreground/90 lg:text-xl">
                           {release.context}
                         </p>
+                        {release.excerpt ? (
+                          <p className="hidden max-w-md font-serif text-lg whitespace-pre-line text-hero-foreground/80 italic sm:block lg:text-xl">
+                            {release.excerpt}
+                          </p>
+                        ) : null}
+                        {release.tracks ? (
+                          <ol
+                            aria-label={t("releases.tracksLabel")}
+                            className="hidden max-w-md min-w-0 flex-col gap-1 text-left text-hero-foreground/85 sm:flex"
+                          >
+                            {release.tracks.map((track, number) => (
+                              <li key={number} className="flex gap-3">
+                                <span className="w-5 shrink-0 text-right text-hero-foreground/60 tabular-nums">
+                                  {number + 1}
+                                </span>
+                                <span className="truncate">{track}</span>
+                              </li>
+                            ))}
+                            {release.moreTracks ? (
+                              <li className="pl-8 text-hero-foreground/60">
+                                {t("releases.moreTracks", {
+                                  tracks: trackCountLabel(release.moreTracks),
+                                })}
+                              </li>
+                            ) : null}
+                          </ol>
+                        ) : null}
                         <Button
                           asChild
                           size="lg"

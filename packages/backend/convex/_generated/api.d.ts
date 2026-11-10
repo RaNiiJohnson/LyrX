@@ -33,6 +33,7 @@ import type * as community_values from "../community/values.js";
 import type * as community_write from "../community/write.js";
 import type * as configuration from "../configuration.js";
 import type * as crons from "../crons.js";
+import type * as discovery_lyricsPreview from "../discovery/lyricsPreview.js";
 import type * as discovery_maintenance from "../discovery/maintenance.js";
 import type * as discovery_model from "../discovery/model.js";
 import type * as discovery_projection from "../discovery/projection.js";
@@ -93,6 +94,7 @@ declare const fullApi: ApiFromModules<{
   "community/write": typeof community_write;
   configuration: typeof configuration;
   crons: typeof crons;
+  "discovery/lyricsPreview": typeof discovery_lyricsPreview;
   "discovery/maintenance": typeof discovery_maintenance;
   "discovery/model": typeof discovery_model;
   "discovery/projection": typeof discovery_projection;

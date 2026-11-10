@@ -549,6 +549,39 @@ describe("release slider", () => {
     expect(slides[0]!.querySelector("[data-vinyl]")).not.toBeNull()
     expect(slides[2]!.querySelector("[data-vinyl]")).toBeNull()
   })
+  it("shows track count, the first titles and the remaining count for an album, and an excerpt for a single", async () => {
+    await render(
+      <ReleaseSlider
+        songs={[
+          {
+            ...release("1"),
+            albumTitle: null,
+            lyricsExcerpt: "First line\nSecond line",
+          },
+        ]}
+        albums={[
+          album("9", {
+            trackCount: 12,
+            tracks: [
+              { id: "a", title: "Alpha" },
+              { id: "b", title: "Beta" },
+              { id: "c", title: "Gamma" },
+            ],
+          }),
+        ]}
+      />
+    )
+    const [albumSlide, singleSlide] = Array.from(
+      container.querySelectorAll("article")
+    )
+    expect(albumSlide!.textContent).toContain("Album · 12 titres · 2026")
+    const items = Array.from(albumSlide!.querySelectorAll("ol li")).map(
+      (li) => li.textContent
+    )
+    expect(items).toEqual(["1Alpha", "2Beta", "3Gamma", "+ 9 titres"])
+    expect(singleSlide!.textContent).toContain("First line")
+    expect(singleSlide!.querySelector("ol")).toBeNull()
+  })
   it("labels community songs as such and never as an extract of an album", async () => {
     await render(
       <ReleaseSlider
