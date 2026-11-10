@@ -1,111 +1,170 @@
-import { useState } from "react"
-import { Pressable, Text, TextInput, View } from "react-native"
+import { useEffect, useState } from "react"
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native"
+import { Ionicons } from "@expo/vector-icons"
 import { usePaginatedQuery } from "convex/react"
 import { api } from "@lyrx/backend/convex/_generated/api"
-import { Body, Loading, Message, Screen, SongRow } from "@/components/ui"
+import { TOUCH } from "@/components/kit"
+import { Body, GUTTER, Message, SongRow } from "@/components/ui"
 import { t } from "@/lib/i18n"
+import { SEARCH_DEBOUNCE_MS, validSearch } from "@/lib/search-text"
 import { fonts, radius, space, useTheme } from "@/lib/theme"
 
-/** Mirrors the server bounds so an invalid request shows guidance instead of an error screen. */
-function validSearch(text: string) {
-  const terms = text.split(/\s+/).filter(Boolean)
-  return (
-    text.length > 0 &&
-    text.length <= 200 &&
-    terms.length > 0 &&
-    terms.length <= 16 &&
-    terms.every((term) => term.length <= 32)
-  )
-}
+const PAGE = 12
 
 export default function SearchScreen() {
   const theme = useTheme()
   const [draft, setDraft] = useState("")
-  const [submitted, setSubmitted] = useState("")
-  const valid = validSearch(submitted)
+  const [query, setQuery] = useState("")
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(draft.trim()), SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(timer)
+  }, [draft])
+  const valid = validSearch(query)
   const results = usePaginatedQuery(
     api.discovery.read.search,
-    valid ? { text: submitted } : "skip",
-    { initialNumItems: 12 }
+    valid ? { text: query } : "skip",
+    { initialNumItems: PAGE }
   )
-  const submit = () => setSubmitted(draft.trim())
+
+  const status = !query
+    ? "start"
+    : !valid
+      ? "invalid"
+      : results.status === "LoadingFirstPage"
+        ? "loading"
+        : results.results.length
+          ? "results"
+          : "empty"
+
   return (
-    <Screen>
-      <View style={{ gap: space.sm }}>
-        <TextInput
-          value={draft}
-          onChangeText={setDraft}
-          onSubmitEditing={submit}
-          placeholder={t("search.placeholder")}
-          placeholderTextColor={theme.mutedForeground}
-          accessibilityLabel={t("search.title")}
-          returnKeyType="search"
-          autoCorrect={false}
-          style={{
-            color: theme.foreground,
-            backgroundColor: theme.card,
-            borderColor: theme.border,
-            borderWidth: 1,
-            borderRadius: radius.pill,
-            paddingHorizontal: space.md + 4,
-            paddingVertical: 12,
-            fontFamily: fonts.sans,
-            fontSize: 16,
-          }}
-        />
-        <Pressable
-          accessibilityRole="button"
-          onPress={submit}
-          style={{
-            alignItems: "center",
-            padding: 12,
-            borderRadius: radius.pill,
-            backgroundColor: theme.primary,
-          }}
-        >
-          <Text
-            style={{
-              color: theme.primaryForeground,
-              fontFamily: fonts.sansSemibold,
-            }}
-          >
-            {t("search.submit")}
-          </Text>
-        </Pressable>
-      </View>
-      {!submitted ? <Body muted>{t("search.start")}</Body> : null}
-      {submitted && !valid ? <Message title={t("search.invalid")} /> : null}
-      {valid && results.status === "LoadingFirstPage" ? <Loading /> : null}
-      {valid && results.status !== "LoadingFirstPage" ? (
-        results.results.length ? (
-          <View accessibilityLabel={t("search.resultsLabel")}>
-            {results.results.map((item) => (
-              <SongRow
-                key={`${item.kind}-${item.id}-${item.href}`}
-                href={item.href}
-                artworkUrl={item.artworkUrl}
-                title={item.title}
-                subtitle={item.context}
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <FlatList
+        data={status === "results" ? results.results : []}
+        keyExtractor={(item) => `${item.kind}-${item.id}-${item.href}`}
+        renderItem={({ item }) => (
+          <SongRow
+            href={item.href}
+            artworkUrl={item.artworkUrl}
+            title={item.title}
+            subtitle={item.context}
+          />
+        )}
+        accessibilityLabel={t("search.resultsLabel")}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={{
+          paddingHorizontal: GUTTER,
+          paddingTop: space.md,
+          paddingBottom: space.xl,
+        }}
+        ListHeaderComponent={
+          <View style={{ paddingBottom: space.md }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                minHeight: TOUCH + 4,
+                borderRadius: radius.pill,
+                borderWidth: 1,
+                borderColor: theme.border,
+                backgroundColor: theme.card,
+                paddingLeft: space.md,
+              }}
+            >
+              <Ionicons
+                name="search-outline"
+                size={20}
+                color={theme.mutedForeground}
               />
-            ))}
-            {results.status === "CanLoadMore" ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => results.loadMore(12)}
-                style={{ alignItems: "center", padding: space.sm }}
-              >
-                <Text
-                  style={{ color: theme.brand, fontFamily: fonts.sansBold }}
+              <TextInput
+                value={draft}
+                onChangeText={setDraft}
+                placeholder={t("search.placeholder")}
+                placeholderTextColor={theme.mutedForeground}
+                accessibilityLabel={t("search.title")}
+                returnKeyType="search"
+                autoFocus
+                autoCorrect={false}
+                autoCapitalize="none"
+                onSubmitEditing={() => setQuery(draft.trim())}
+                style={{
+                  flex: 1,
+                  color: theme.foreground,
+                  fontFamily: fonts.sans,
+                  fontSize: 16,
+                  paddingHorizontal: space.sm,
+                  paddingVertical: 12,
+                }}
+              />
+              {draft ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t("common.remove")}
+                  hitSlop={8}
+                  onPress={() => setDraft("")}
+                  style={{
+                    width: TOUCH,
+                    height: TOUCH,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  {t("common.loadMore")}
-                </Text>
-              </Pressable>
-            ) : null}
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={theme.mutedForeground}
+                  />
+                </Pressable>
+              ) : null}
+            </View>
           </View>
-        ) : (
-          <Message title={t("search.empty")} />
-        )
-      ) : null}
-    </Screen>
+        }
+        ListEmptyComponent={
+          status === "start" ? (
+            <Body muted>{t("search.start")}</Body>
+          ) : status === "invalid" ? (
+            <Message title={t("search.invalid")} />
+          ) : status === "loading" ? (
+            <View style={{ padding: space.xl }}>
+              <ActivityIndicator color={theme.primary} />
+            </View>
+          ) : (
+            <Message title={t("search.empty")} />
+          )
+        }
+        ListFooterComponent={
+          status === "results" && results.status === "CanLoadMore" ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => results.loadMore(PAGE)}
+              style={{
+                minHeight: TOUCH,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: theme.brand, fontFamily: fonts.sansBold }}>
+                {t("common.loadMore")}
+              </Text>
+            </Pressable>
+          ) : status === "results" && results.status === "LoadingMore" ? (
+            <View style={{ padding: space.lg }}>
+              <ActivityIndicator color={theme.primary} />
+            </View>
+          ) : undefined
+        }
+        onEndReachedThreshold={0.5}
+        onEndReached={() => {
+          if (results.status === "CanLoadMore") results.loadMore(PAGE)
+        }}
+      />
+    </View>
   )
 }

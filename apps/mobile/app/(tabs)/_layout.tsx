@@ -54,6 +54,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="catalogue"
+        options={{
+          title: t("navigation.catalogue"),
+          tabBarIcon: tabIcon("musical-notes-outline", "musical-notes"),
+        }}
+      />
+      <Tabs.Screen
         name="account"
         options={{
           title: t("navigation.account"),

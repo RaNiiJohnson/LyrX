@@ -11,7 +11,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native"
-import { Link } from "expo-router"
+import { useRouter } from "expo-router"
 import { t } from "@/lib/i18n"
 import { nativeHref } from "@/lib/routes"
 import { fonts, radius, space, useTheme, withAlpha } from "@/lib/theme"
@@ -246,18 +246,18 @@ function NativeLink({
   style?: StyleProp<ViewStyle>
   children: ReactNode
 }) {
+  const router = useRouter()
   const target = nativeHref(href)
   if (!target) return <View style={[style, { opacity: 0.7 }]}>{children}</View>
   return (
-    <Link href={target} asChild>
-      <Pressable
-        accessibilityRole="link"
-        accessibilityLabel={label}
-        style={({ pressed }) => [style, { opacity: pressed ? 0.6 : 1 }]}
-      >
-        {children}
-      </Pressable>
-    </Link>
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={label}
+      onPress={() => router.push(target)}
+      style={({ pressed }) => [style, { opacity: pressed ? 0.6 : 1 }]}
+    >
+      {children}
+    </Pressable>
   )
 }
 
@@ -502,6 +502,45 @@ export function SongRow({
       <Cover uri={artworkUrl} label={title} size={64} />
       <View style={{ flex: 1 }}>
         <CardText title={title} subtitle={subtitle} />
+      </View>
+    </NativeLink>
+  )
+}
+
+/** List row for an artist: round avatar, name and handle with counts. */
+export function ArtistRow({
+  href,
+  avatarUrl,
+  name,
+  handle,
+  songCount,
+}: {
+  href: string
+  avatarUrl: string | null
+  name: string
+  handle: string
+  songCount: number
+}) {
+  const theme = useTheme()
+  return (
+    <NativeLink
+      href={href}
+      label={name}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.md,
+        paddingVertical: space.md,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.border,
+      }}
+    >
+      <Cover uri={avatarUrl} label={name} size={64} rounded={radius.pill} />
+      <View style={{ flex: 1 }}>
+        <CardText
+          title={name}
+          subtitle={`@${handle} · ${t("discovery.songsCount", { count: songCount })}`}
+        />
       </View>
     </NativeLink>
   )

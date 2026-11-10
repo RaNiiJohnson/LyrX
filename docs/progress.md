@@ -94,6 +94,31 @@ Baseline before work (merge of `origin/main` into the WIP): `pnpm check` green
   render. Not verified: real device/simulator, haptics, native `Appearance`
   override, SecureStore, safe-area insets on a notched phone.
 
+#### M2 — Discovery: catalogue and search (fixed point `f9b5e78`)
+
+- Catalogue tab: Songs / Albums / Artists pills, a filter sheet (sort; origin and
+  genre for songs only), removable filter chips, result count, skeleton rows,
+  empty and error states with retry, pull-to-refresh and infinite loading in a
+  `FlatList`. Same page-based `listSongs` / `listAlbums` / `listArtists` queries
+  as the web; "popular" stays songs-only and an artist filter forces the artist
+  origin, as on the web. `useCatalogue` fetches each page once and appends it
+  (a newer filter set supersedes any request in flight); the pure rules live in
+  `lib/catalogue.ts` with tests.
+- Search: 500 ms debounce (as on the web), server bounds checked client-side
+  (`lib/search-text.ts`, tested), clear button, cursor pages loaded on scroll.
+  The submit button is gone; the keyboard "search" key still runs immediately.
+- i18n: `discovery.filters`, `discovery.retry`, `discovery.reset` added to
+  `packages/shared` in FR and EN.
+- Local review: one defect found and fixed while checking the web export —
+  `Link asChild` dropped the function `style` of `Pressable`, so every list row
+  and card lost its layout; `NativeLink` now uses `router.push` instead.
+  Convex review not applicable (no Convex file changed).
+- Visual evidence: Expo web export at 375 px on the dev deployment: songs,
+  albums and artists tabs, genre filter (empty state), filter sheet, prefix
+  search ("esre") all behave. Album and artist rows stay inert until their
+  screens exist (M3). Not verified: real device scrolling performance,
+  keyboard behaviour on iOS/Android, haptics.
+
 ## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
 
 - Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this
