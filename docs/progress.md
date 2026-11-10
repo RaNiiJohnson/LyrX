@@ -1,6 +1,71 @@
 # Delivery progress
 
-## Lot 14 — Mobile email authentication (in progress)
+## Mobile app — branch `feat/mobile-app` (in progress)
+
+Goal: finish `apps/mobile` (Expo / expo-router) with the web's features, product
+rules and visual identity, but with native mobile UX (bottom tabs, pull-to-refresh,
+virtualised lists, sheets, safe areas, keyboard handling). Convex is not modified;
+only the development deployment is ever targeted. Base: `codex/mobile-auth`
+(`d337537`, equal to `origin/codex/mobile-auth`) merged with `origin/main`
+(web style polish, feather logo); the only conflict was this file.
+
+### Inventory (what the web does → what the mobile covers at the start)
+
+| Web area (route)                                                        | Mobile at start                                   |
+| ----------------------------------------------------------------------- | ------------------------------------------------- |
+| Home `/`: release slider, newest, artists, albums, popular rows         | Done (older "X" logo, albums slide has no vinyl)  |
+| Catalogue `/songs`, `/albums`, `/artists`: tabs, origin/genre/artist filters, sort, cards/list, pagination | Missing |
+| Search overlay (500 ms debounce, native cursor pages)                   | Basic search tab (submit button, no debounce)     |
+| Song `/songs/$id`: lyrics, listening links, album navigation, likes, comments, report, save passage, share card, view recording | Read-only page (lyrics + links) |
+| Community song `/community/$id` (+ edit, report)                        | Read-only page                                    |
+| Album `/albums/$id`, artist `/artists/$handle`, profile `/profiles/$handle` | Missing                                       |
+| Account: sign-in/up, verify email, forgot/reset password                | Done (WIP evaluated below)                        |
+| Onboarding (handle, display name, role), profile editor (avatar, banner, bio, links), account deletion | Missing |
+| Notebook `/notebook` (collections, passages), liked songs `/liked`     | Missing                                           |
+| Fan contributions `/community/mine\|new\|$id/edit`, duplicate warning   | Missing                                           |
+| Studio `/studio…` (songs, albums, artwork, publish, tracks)             | Missing                                           |
+| Admin `/admin/community`, `/admin/comments` (moderation)                | Missing (web-first tool, see lot M9)              |
+| FR/EN, light/dark/system preference                                     | Device language/scheme only, no preference        |
+
+### WIP evaluation (`codex/mobile-auth`)
+
+Kept: `auth-client.ts` (expo client + SecureStore + `convexClient()`), `errors.ts`
+(+ tests), `config.ts` (+ tests), the auth forms and account tab, `ui.tsx` cards,
+hero, lyrics and song page. Corrected/replaced as lots land: provisional "X"
+brand mark (web uses the feather wordmark), device-only theme/locale, tab shell
+(add Catalogue and role tab, drop the floating top bar in favour of native
+headers), `Screen` (non-virtualised `ScrollView` only, no refresh), `nativeHref`
+(only songs/community routes).
+
+### Lots
+
+Each lot ends with a commit, the local lot review of
+`.agents/rules/lot-completion.md` and a green `pnpm check`.
+
+1. **M1 Shell and design system** — preferences (theme, language) persisted,
+   feather logo, tab shell (Accueil, Catalogue, Espace by role, Compte), UI kit
+   (buttons, fields, sheets, skeletons, refreshable/virtualised screens), routes
+   helper for every public href, tests.
+2. **M2 Discovery** — home parity (slider, rows), catalogue tabs with filters/sort
+   and cards/list, search (debounce, cursor pages).
+3. **M3 Detail pages** — song (lyrics, sections, links, album navigation, likes,
+   comments, report, native share, view recording), album, artist, profile,
+   community song.
+4. **M4 Account** — verify-email and reset flows, onboarding, profile editor with
+   image upload, account deletion, language/theme settings.
+5. **M5 Fan space** — liked songs, private notebook (collections, save passage),
+   fan contributions (list, create, edit, duplicate warning, report), share card.
+6. **M6 Artist studio** — dashboard, song and album forms, artwork, publish,
+   unpublish, delete, track order.
+7. **M7 Moderation** — admin screens, only if web parity is judged necessary.
+8. **M8 Polish and verification** — deep links, accessibility pass, Expo web
+   export screenshots, `docs/development.md`, final review, PR.
+
+### Lot status
+
+_(updated as each lot lands)_
+
+## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
 
 - Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this
   step to email sign-in; Google on mobile stays deferred.
