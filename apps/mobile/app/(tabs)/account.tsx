@@ -4,6 +4,7 @@ import { useConvexAuth, useQuery } from "convex/react"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { AuthPanel } from "@/components/auth-forms"
 import { Button } from "@/components/form"
+import { PreferencesPanel } from "@/components/preferences"
 import {
   Body,
   Eyebrow,
@@ -83,25 +84,27 @@ export default function AccountScreen() {
 
   if (!isAuthenticated && (settled || !isLoading))
     return (
-      <Screen underTopBar>
+      <Screen>
         <AuthPanel />
+        <PreferencesPanel />
       </Screen>
     )
   if (isLoading || current === undefined)
     return (
-      <Screen underTopBar>
+      <Screen>
         <Loading />
       </Screen>
     )
   if (current.state === "anonymous")
     return (
-      <Screen underTopBar>
+      <Screen>
         <AuthPanel />
+        <PreferencesPanel />
       </Screen>
     )
 
   return (
-    <Screen underTopBar>
+    <Screen>
       {current.state === "ready" ? (
         <View style={{ gap: space.xs }}>
           <Eyebrow>@{current.profile.handle}</Eyebrow>
@@ -126,6 +129,7 @@ export default function AccountScreen() {
           description={t("account.profileOnWeb")}
         />
       )}
+      <PreferencesPanel />
       <SignOut />
     </Screen>
   )

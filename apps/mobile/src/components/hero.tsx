@@ -8,7 +8,6 @@ import {
   useWindowDimensions,
 } from "react-native"
 import { Link } from "expo-router"
-import { useTopBarInset } from "@/components/top-bar"
 import { Badge, Cover } from "@/components/ui"
 import { t } from "@/lib/i18n"
 import { nativeHref } from "@/lib/routes"
@@ -27,7 +26,6 @@ export type Release = {
 export function Hero({ releases }: { releases: Array<Release> }) {
   const theme = useTheme()
   const { width } = useWindowDimensions()
-  const barInset = useTopBarInset()
   const [active, setActive] = useState(0)
   if (!releases.length) return null
   const index = Math.min(active, releases.length - 1)
@@ -76,7 +74,7 @@ export function Hero({ releases }: { releases: Array<Release> }) {
                 alignItems: "center",
                 gap: space.md,
                 paddingHorizontal: space.lg,
-                paddingTop: barInset + space.md,
+                paddingTop: space.lg,
                 paddingBottom: space.xl + space.md,
               }}
             >

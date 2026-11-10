@@ -2,7 +2,7 @@ import { Linking, Pressable, Text, View } from "react-native"
 import { Stack } from "expo-router"
 import { Lyrics } from "@/components/lyrics"
 import { Badge, Cover, Eyebrow, Heading, Screen } from "@/components/ui"
-import { t } from "@/lib/i18n"
+import { currentLocale, t } from "@/lib/i18n"
 import { safeExternalUrl } from "@/lib/routes"
 import { fonts, radius, space, useTheme } from "@/lib/theme"
 
@@ -36,7 +36,7 @@ export function genreLabel(genre?: string, otherGenre?: string) {
 
 export function shortDate(date: number | undefined) {
   if (date === undefined) return undefined
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(currentLocale(), {
     day: "numeric",
     month: "short",
     year: "numeric",

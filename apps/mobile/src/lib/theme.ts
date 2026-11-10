@@ -1,10 +1,19 @@
 import { useColorScheme } from "react-native"
-import { THEME_TOKENS } from "@lyrx/shared"
+import { THEME_TOKENS, type ThemeMode } from "@lyrx/shared"
+import { usePreferences } from "@/lib/preferences-store"
 
 export { fonts } from "@/lib/fonts"
 
+/** The shown scheme: the explicit light/dark choice, else the device's. */
+export function useScheme(): ThemeMode {
+  const device = useColorScheme()
+  const { theme } = usePreferences()
+  if (theme !== "system") return theme
+  return device === "dark" ? "dark" : "light"
+}
+
 export function useTheme() {
-  return THEME_TOKENS[useColorScheme() === "dark" ? "dark" : "light"]
+  return THEME_TOKENS[useScheme()]
 }
 
 /** Hex colour with an alpha channel, for the translucent overlays the web builds with `/15`-style utilities. */

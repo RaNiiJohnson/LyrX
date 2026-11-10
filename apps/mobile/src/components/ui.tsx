@@ -1,8 +1,9 @@
-import type { ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import {
   ActivityIndicator,
   Image,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -11,7 +12,6 @@ import {
   type ViewStyle,
 } from "react-native"
 import { Link } from "expo-router"
-import { useTopBarInset } from "@/components/top-bar"
 import { t } from "@/lib/i18n"
 import { nativeHref } from "@/lib/routes"
 import { fonts, radius, space, useTheme, withAlpha } from "@/lib/theme"
@@ -21,25 +21,41 @@ export const GUTTER = space.md
 export function Screen({
   children,
   padded = true,
-  underTopBar = false,
+  onRefresh,
 }: {
   children: ReactNode
   padded?: boolean
-  /** Tab screens reserve room for the floating bar; the hero opts out and draws behind it. */
-  underTopBar?: boolean
+  /** Adds native pull-to-refresh; the spinner stays until the returned promise settles. */
+  onRefresh?: () => Promise<unknown> | void
 }) {
   const theme = useTheme()
-  const barInset = useTopBarInset()
+  const [refreshing, setRefreshing] = useState(false)
   return (
     <ScrollView
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={{
         paddingHorizontal: padded ? GUTTER : 0,
-        paddingTop: underTopBar ? barInset : padded ? space.md : 0,
+        paddingTop: padded ? space.md : 0,
         paddingBottom: space.xl,
         gap: space.xl,
       }}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      contentInsetAdjustmentBehavior="automatic"
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            tintColor={theme.mutedForeground}
+            onRefresh={() => {
+              setRefreshing(true)
+              Promise.resolve(onRefresh())
+                .catch(() => undefined)
+                .finally(() => setRefreshing(false))
+            }}
+          />
+        ) : undefined
+      }
     >
       {children}
     </ScrollView>

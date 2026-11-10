@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"
 import { useFonts } from "expo-font"
 import { Stack, type ErrorBoundaryProps } from "expo-router"
@@ -8,8 +8,9 @@ import { Message, Screen } from "@/components/ui"
 import { providerAuthClient } from "@/lib/auth-client"
 import { convex } from "@/lib/convex"
 import { fontSources } from "@/lib/fonts"
-import { t } from "@/lib/i18n"
-import { fonts, useTheme } from "@/lib/theme"
+import { t, useLocale } from "@/lib/i18n"
+import { hydratePreferences } from "@/lib/preferences-store"
+import { fonts, useScheme, useTheme } from "@/lib/theme"
 
 void SplashScreen.preventAutoHideAsync()
 
@@ -27,8 +28,14 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 
 export default function RootLayout() {
   const theme = useTheme()
+  const scheme = useScheme()
+  const locale = useLocale()
   const [loaded, failed] = useFonts(fontSources)
-  const ready = loaded || failed !== null
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false)
+  useEffect(() => {
+    void hydratePreferences().then(() => setPreferencesLoaded(true))
+  }, [])
+  const ready = (loaded || failed !== null) && preferencesLoaded
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync()
   }, [ready])
@@ -44,8 +51,10 @@ export default function RootLayout() {
     )
   return (
     <ConvexBetterAuthProvider client={convex} authClient={providerAuthClient}>
-      <StatusBar style="auto" />
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       <Stack
+        // Strings come from a module-level `t`, so a language change re-mounts the tree.
+        key={locale}
         screenOptions={{
           headerStyle: { backgroundColor: theme.background },
           headerTintColor: theme.foreground,
@@ -55,6 +64,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="search" options={{ title: t("search.title") }} />
         <Stack.Screen name="songs/[id]" options={{ title: "" }} />
         <Stack.Screen name="community/[id]" options={{ title: "" }} />
       </Stack>

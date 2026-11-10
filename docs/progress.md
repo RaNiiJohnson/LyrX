@@ -63,7 +63,36 @@ Each lot ends with a commit, the local lot review of
 
 ### Lot status
 
-_(updated as each lot lands)_
+Baseline before work (merge of `origin/main` into the WIP): `pnpm check` green
+(web 353 tests, mobile 11 tests, `expo export --platform android`).
+
+#### M1 — Shell and design system (fixed point `41d7b1b`)
+
+- Preferences: language (system/FR/EN) and theme (system/light/dark) chosen in
+  the Account tab, saved with AsyncStorage, hydrated before the first screen.
+  `t()` reads the current choice; the root `Stack` is keyed by language so the
+  tree re-mounts on change. `useScheme` applies the theme choice itself because
+  `Appearance.setColorScheme` does not exist on react-native-web (found while
+  checking on the web export); native chrome also follows it where available.
+- Brand: `LogoMark`, `FeatherGlyph`, `Wordmark`, `Brand` drawn from the web's
+  `FEATHER_PATH` with `react-native-svg`; replaces the provisional "X" tile.
+- Shell: the floating `TopBar` is replaced by native tab headers (brand on the
+  left, search action on the right); search is now a stack screen. Catalogue and
+  role tabs are added in the lots that build their screens (M2, M5, M6), so no
+  tab opens an empty screen.
+- UI kit (`components/kit.tsx`): `IconButton`, `Segmented`, `Chip`, `Skeleton`,
+  `Sheet`, 44 pt touch targets, haptic ticks; `Screen` gains pull-to-refresh and
+  keyboard dismissal. Song dates now follow the chosen language.
+- Tests: `preferences.test.ts` (parse tolerance, language resolution); vitest
+  alias `@/` added.
+- Local review (`41d7b1b...HEAD`): checked the diff against the web header and
+  `docs/product.md` (theme and coral tokens unchanged). One defect found and
+  fixed: `Intl.DateTimeFormat(undefined)` ignored the app language. Convex
+  review not applicable (no Convex file changed).
+- Visual evidence: Expo web export at 375 px against the documented dev
+  deployment (read-only home query): feather header, tab bar, hero and rows
+  render. Not verified: real device/simulator, haptics, native `Appearance`
+  override, SecureStore, safe-area insets on a notched phone.
 
 ## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
 

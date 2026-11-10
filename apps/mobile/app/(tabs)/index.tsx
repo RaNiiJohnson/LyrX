@@ -24,13 +24,13 @@ export default function HomeScreen() {
   const home = useQuery(api.discovery.read.home, {})
   if (home === undefined)
     return (
-      <Screen underTopBar>
+      <Screen>
         <Loading />
       </Screen>
     )
   if (!home.ready)
     return (
-      <Screen underTopBar>
+      <Screen>
         <Message
           title={t("discovery.errorTitle")}
           description={t("search.unavailable")}

@@ -30,7 +30,7 @@ export default function SearchScreen() {
   )
   const submit = () => setSubmitted(draft.trim())
   return (
-    <Screen underTopBar>
+    <Screen>
       <View style={{ gap: space.sm }}>
         <TextInput
           value={draft}
