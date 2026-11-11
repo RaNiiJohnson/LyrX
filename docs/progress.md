@@ -229,6 +229,28 @@ Baseline before work (merge of `origin/main` into the WIP): `pnpm check` green
   deployment) — lists, create/update/delete, publish, artwork pick/crop/upload on
   a device, track reorder/attach/detach, keyboard avoidance on the long forms.
 
+- **M7 — Moderation: deferred by decision.** Web parity was judged not
+  necessary: `/admin/community` and `/admin/comments` are desk tools for a few
+  administrators, they need an admin account to be exercised (none can be created
+  on the dev deployment, so nothing could be verified), and the backend already
+  exposes them to the web. Members who open such a path through a deep link get
+  the new "Page not found" screen. Revisit if administrators need to moderate
+  from a phone.
+- **M8 — Polish and verification.** Deep links: the `lyrx` scheme was already in
+  `app.json` and expo-router maps `lyrx://<web path>` to the native screens built
+  in M2–M6; `+not-found` handles unknown paths. Accessibility pass over every
+  `Pressable`: all carry a role and a label or visible text, icon buttons are
+  44 pt with a label, state is exposed on tabs, buttons and live notices (saved,
+  published); nothing needed changing beyond the studio screens written to the
+  same rules. `docs/development.md` documents deep links, the Studio tab and the
+  absence of mobile moderation. Local review of the whole branch: no Convex file
+  changed in M1–M8; secrets are never read from `.env*`; external links stay
+  HTTPS-only (`safeExternalUrl`); signed-in screens are gated by `MemberGate`.
+  Not verified (cumulative, all needing a real account or device): every
+  signed-in flow of M4–M6, native image picker and upload, share sheet, haptics,
+  keyboard avoidance on long forms, deep link opening from the OS, Universal/App
+  Links, screen reader behaviour (VoiceOver/TalkBack) and Dynamic Type.
+
 ## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
 
 - Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this

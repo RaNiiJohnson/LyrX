@@ -55,6 +55,18 @@ email, return to the app and sign in; use a development build to test the
 return link. `pnpm check` bundles the Android app with `expo export`; it does
 not need a device.
 
+Deep links use the `lyrx://` scheme and the same paths as the web
+(`lyrx://songs/<id>`, `lyrx://albums/<id>`, `lyrx://artists/<handle>`,
+`lyrx://community/<id>`, `lyrx://profiles/<handle>`); a path with no native screen
+lands on a "Page not found" screen. Test one with
+`npx uri-scheme open lyrx://songs/<id> --android` (or `--ios`) against a development
+build. Universal/App Links on the production domain are not configured.
+
+The artist Studio tab only appears for a signed-in artist account, and the studio
+screens call the same Convex functions as the web studio. Pick the artwork with the
+system photo picker; images are cropped and resized on the device before upload.
+There is no mobile moderation UI: moderation stays on the web `/admin` screens.
+
 ## Verification
 
 ```bash
