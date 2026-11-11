@@ -44,9 +44,28 @@ cp apps/mobile/.env.example apps/mobile/.env.local   # set EXPO_PUBLIC_CONVEX_UR
 pnpm --filter @lyrx/mobile dev
 ```
 
-Open the QR code with Expo Go on a phone on the same Wi-Fi network. The app is
-read-only and public until mobile authentication is built. `pnpm check` bundles
-the Android app with `expo export`; it does not need a device.
+Open the QR code with Expo Go on a phone on the same Wi-Fi network. Browsing is
+public; the "Compte" tab offers email sign-in and sign-up through Better Auth
+(Google is not available on mobile yet). The auth host is derived from
+`EXPO_PUBLIC_CONVEX_URL` (`*.convex.cloud` → `*.convex.site`; local backend port
++1). The session is stored with `expo-secure-store`. The backend trusts the
+`lyrx://` scheme, so redeploy Convex (`pnpm --filter @lyrx/backend dev`) after
+pulling. Expo Go cannot open `lyrx://` links: after clicking the verification
+email, return to the app and sign in; use a development build to test the
+return link. `pnpm check` bundles the Android app with `expo export`; it does
+not need a device.
+
+Deep links use the `lyrx://` scheme and the same paths as the web
+(`lyrx://songs/<id>`, `lyrx://albums/<id>`, `lyrx://artists/<handle>`,
+`lyrx://community/<id>`, `lyrx://profiles/<handle>`); a path with no native screen
+lands on a "Page not found" screen. Test one with
+`npx uri-scheme open lyrx://songs/<id> --android` (or `--ios`) against a development
+build. Universal/App Links on the production domain are not configured.
+
+The artist Studio tab only appears for a signed-in artist account, and the studio
+screens call the same Convex functions as the web studio. Pick the artwork with the
+system photo picker; images are cropped and resized on the device before upload.
+There is no mobile moderation UI: moderation stays on the web `/admin` screens.
 
 ## Verification
 

@@ -1,5 +1,280 @@
 # Delivery progress
 
+## Mobile app — branch `feat/mobile-app` (in progress)
+
+Goal: finish `apps/mobile` (Expo / expo-router) with the web's features, product
+rules and visual identity, but with native mobile UX (bottom tabs, pull-to-refresh,
+virtualised lists, sheets, safe areas, keyboard handling). Convex is not modified;
+only the development deployment is ever targeted. Base: `codex/mobile-auth`
+(`d337537`, equal to `origin/codex/mobile-auth`) merged with `origin/main`
+(web style polish, feather logo); the only conflict was this file.
+
+### Inventory (what the web does → what the mobile covers at the start)
+
+| Web area (route)                                                        | Mobile at start                                   |
+| ----------------------------------------------------------------------- | ------------------------------------------------- |
+| Home `/`: release slider, newest, artists, albums, popular rows         | Done (older "X" logo, albums slide has no vinyl)  |
+| Catalogue `/songs`, `/albums`, `/artists`: tabs, origin/genre/artist filters, sort, cards/list, pagination | Missing |
+| Search overlay (500 ms debounce, native cursor pages)                   | Basic search tab (submit button, no debounce)     |
+| Song `/songs/$id`: lyrics, listening links, album navigation, likes, comments, report, save passage, share card, view recording | Read-only page (lyrics + links) |
+| Community song `/community/$id` (+ edit, report)                        | Read-only page                                    |
+| Album `/albums/$id`, artist `/artists/$handle`, profile `/profiles/$handle` | Missing                                       |
+| Account: sign-in/up, verify email, forgot/reset password                | Done (WIP evaluated below)                        |
+| Onboarding (handle, display name, role), profile editor (avatar, banner, bio, links), account deletion | Missing |
+| Notebook `/notebook` (collections, passages), liked songs `/liked`     | Missing                                           |
+| Fan contributions `/community/mine\|new\|$id/edit`, duplicate warning   | Missing                                           |
+| Studio `/studio…` (songs, albums, artwork, publish, tracks)             | Missing                                           |
+| Admin `/admin/community`, `/admin/comments` (moderation)                | Missing (web-first tool, see lot M9)              |
+| FR/EN, light/dark/system preference                                     | Device language/scheme only, no preference        |
+
+### WIP evaluation (`codex/mobile-auth`)
+
+Kept: `auth-client.ts` (expo client + SecureStore + `convexClient()`), `errors.ts`
+(+ tests), `config.ts` (+ tests), the auth forms and account tab, `ui.tsx` cards,
+hero, lyrics and song page. Corrected/replaced as lots land: provisional "X"
+brand mark (web uses the feather wordmark), device-only theme/locale, tab shell
+(add Catalogue and role tab, drop the floating top bar in favour of native
+headers), `Screen` (non-virtualised `ScrollView` only, no refresh), `nativeHref`
+(only songs/community routes).
+
+### Lots
+
+Each lot ends with a commit, the local lot review of
+`.agents/rules/lot-completion.md` and a green `pnpm check`.
+
+1. **M1 Shell and design system** — preferences (theme, language) persisted,
+   feather logo, tab shell (Accueil, Catalogue, Espace by role, Compte), UI kit
+   (buttons, fields, sheets, skeletons, refreshable/virtualised screens), routes
+   helper for every public href, tests.
+2. **M2 Discovery** — home parity (slider, rows), catalogue tabs with filters/sort
+   and cards/list, search (debounce, cursor pages).
+3. **M3 Detail pages** — song (lyrics, sections, links, album navigation, likes,
+   comments, report, native share, view recording), album, artist, profile,
+   community song.
+4. **M4 Account** — verify-email and reset flows, onboarding, profile editor with
+   image upload, account deletion, language/theme settings.
+5. **M5 Fan space** — liked songs, private notebook (collections, save passage),
+   fan contributions (list, create, edit, duplicate warning, report), share card.
+6. **M6 Artist studio** — dashboard, song and album forms, artwork, publish,
+   unpublish, delete, track order.
+7. **M7 Moderation** — admin screens, only if web parity is judged necessary.
+8. **M8 Polish and verification** — deep links, accessibility pass, Expo web
+   export screenshots, `docs/development.md`, final review, PR.
+
+### Lot status
+
+Baseline before work (merge of `origin/main` into the WIP): `pnpm check` green
+(web 353 tests, mobile 11 tests, `expo export --platform android`).
+
+#### M1 — Shell and design system (fixed point `41d7b1b`)
+
+- Preferences: language (system/FR/EN) and theme (system/light/dark) chosen in
+  the Account tab, saved with AsyncStorage, hydrated before the first screen.
+  `t()` reads the current choice; the root `Stack` is keyed by language so the
+  tree re-mounts on change. `useScheme` applies the theme choice itself because
+  `Appearance.setColorScheme` does not exist on react-native-web (found while
+  checking on the web export); native chrome also follows it where available.
+- Brand: `LogoMark`, `FeatherGlyph`, `Wordmark`, `Brand` drawn from the web's
+  `FEATHER_PATH` with `react-native-svg`; replaces the provisional "X" tile.
+- Shell: the floating `TopBar` is replaced by native tab headers (brand on the
+  left, search action on the right); search is now a stack screen. Catalogue and
+  role tabs are added in the lots that build their screens (M2, M5, M6), so no
+  tab opens an empty screen.
+- UI kit (`components/kit.tsx`): `IconButton`, `Segmented`, `Chip`, `Skeleton`,
+  `Sheet`, 44 pt touch targets, haptic ticks; `Screen` gains pull-to-refresh and
+  keyboard dismissal. Song dates now follow the chosen language.
+- Tests: `preferences.test.ts` (parse tolerance, language resolution); vitest
+  alias `@/` added.
+- Local review (`41d7b1b...HEAD`): checked the diff against the web header and
+  `docs/product.md` (theme and coral tokens unchanged). One defect found and
+  fixed: `Intl.DateTimeFormat(undefined)` ignored the app language. Convex
+  review not applicable (no Convex file changed).
+- Visual evidence: Expo web export at 375 px against the documented dev
+  deployment (read-only home query): feather header, tab bar, hero and rows
+  render. Not verified: real device/simulator, haptics, native `Appearance`
+  override, SecureStore, safe-area insets on a notched phone.
+
+#### M2 — Discovery: catalogue and search (fixed point `f9b5e78`)
+
+- Catalogue tab: Songs / Albums / Artists pills, a filter sheet (sort; origin and
+  genre for songs only), removable filter chips, result count, skeleton rows,
+  empty and error states with retry, pull-to-refresh and infinite loading in a
+  `FlatList`. Same page-based `listSongs` / `listAlbums` / `listArtists` queries
+  as the web; "popular" stays songs-only and an artist filter forces the artist
+  origin, as on the web. `useCatalogue` fetches each page once and appends it
+  (a newer filter set supersedes any request in flight); the pure rules live in
+  `lib/catalogue.ts` with tests.
+- Search: 500 ms debounce (as on the web), server bounds checked client-side
+  (`lib/search-text.ts`, tested), clear button, cursor pages loaded on scroll.
+  The submit button is gone; the keyboard "search" key still runs immediately.
+- i18n: `discovery.filters`, `discovery.retry`, `discovery.reset` added to
+  `packages/shared` in FR and EN.
+- Local review: one defect found and fixed while checking the web export —
+  `Link asChild` dropped the function `style` of `Pressable`, so every list row
+  and card lost its layout; `NativeLink` now uses `router.push` instead.
+  Convex review not applicable (no Convex file changed).
+- Visual evidence: Expo web export at 375 px on the dev deployment: songs,
+  albums and artists tabs, genre filter (empty state), filter sheet, prefix
+  search ("esre") all behave. Album and artist rows stay inert until their
+  screens exist (M3). Not verified: real device scrolling performance,
+  keyboard behaviour on iOS/Android, haptics.
+
+- **M3 — Detail screens.** Added the album screen (cover, artist link,
+  genre/date badges, description, numbered track list, label and credits), the
+  artist profile (banner, avatar, role badge, bio, songs and albums rows, about
+  card with HTTPS-only social links) and the public fan profile, which share
+  `components/profile-page.tsx`. `nativeHref` now maps `/albums/:id`,
+  `/artists/:handle` and `/profiles/:handle` (tested), so every card and row in
+  Home, Catalogue and Search opens its screen. The album a song belongs to is a
+  link on the song page. Read-only data only; no Convex file changed.
+- Local review: the first album layout double-padded the section titles (the
+  shared `Section` already carries the gutter), fixed by using an unpadded
+  `Screen`. The backend exposes no artist handle on a song, so the artist name
+  on the song page stays plain text; the artist link exists on the album page.
+- Visual evidence: Expo web at 375 px on the dev deployment: song → album →
+  artist navigation with real data. Not verified: fan profile with real data
+  (no fan account on the dev deployment), banner-less artist layout, native
+  back gesture, real-device rendering.
+
+- **M4 — Account: onboarding, profile, deletion.** New `onboarding` screen (role
+  fan/artist, display name prefilled from the sign-up name, handle suggested from
+  the name until edited, bio, artist presentation, five social URLs, up to eight
+  custom links) calling `members.completeOnboarding`; new `profile-edit` screen
+  (`members.updateMyProfile`, avatar for everyone, banner for artists, "view public
+  profile"); account deletion on the Account tab (typed confirmation word, optional
+  password, `authClient.deleteUser`, success only when the endpoint answers
+  `User deleted`, re-authentication path). The Account tab now links to all three.
+  Image flow: system photo picker (no permission prompt), crop to 1:1 / 3:1,
+  `expo-image-manipulator` re-encodes a bounded JPEG (avatar 512 px / 5 MB, banner
+  1920 px / 10 MB, same limits as the web), then `generateProfileImageUploadUrl` →
+  POST → `saveProfileImage`. Pure rules live in `lib/profile-form.ts`,
+  `lib/image-policy.ts`, `lib/account-deletion.ts` and `appErrorKey` (Convex
+  `data.code` → message), all tested (40 mobile tests). `TextField` gains `hint`
+  and multiline; `Screen` adjusts for the iOS keyboard. i18n: `profile.pickImage`
+  (FR/EN). No Convex file changed.
+- Local review: `members.current` returns storage ids, not URLs, so the editor
+  reads avatar/banner URLs from `publicByHandle`; the public-profile button uses the
+  saved handle, not the one being typed; `storageId` is typed, not cast to `never`.
+- Visual evidence: Expo web at 375 px, signed out: onboarding guard
+  ("sign-in required"); a temporary preview route (removed) rendered the artist
+  fields, validation error, multiline, custom links and the deletion panel, where an
+  empty confirmation is refused locally with no network request. Not verified: any
+  signed-in flow (no account creation on the dev deployment) — onboarding with a real
+  account, profile save, real-device photo picker and crop, image upload to Convex
+  storage, account deletion and re-authentication, keyboard avoidance on iOS/Android,
+  SecureStore.
+
+- **M5 — Fan space.** Song and community pages gain likes (optimistic toggle),
+  comments (composer, request id per submit, delete with a confirmation sheet,
+  report sheet with category and details), a "Choose a passage" mode and a native
+  text share. Passage selection works on lyric lines with raw UTF-16 offsets
+  (`lib/lyric-lines.ts`, tested), within the web's limits (360 chars / 10 lines
+  for sharing, 1000 chars for the notebook) and saves through
+  `notebook.passages` with `sourceText` equal to the current lyrics. New screens:
+  `liked` (liked songs), `notebook` (collections, rename/delete with passages
+  moved to the default one, move/remove passage, "lyrics changed" and
+  "unavailable" states), `contributions` (own list with moderation status,
+  edit/new), `contribution-edit` (create with the `findMatches` duplicate warning
+  shown once before "Publish my version", stable `requestId`; edit with
+  `expectedRevision` and `clearFlags`; pure rules in `lib/contribution-form.ts`,
+  tested) and a "Report this contribution" sheet on public contributions for
+  members other than the author. Members who are not ready see a sign-in notice
+  (`MemberGate`); the likes/comments/notebook backend functions need an active
+  member, contributions a fan. The Account tab links to all fan screens.
+  `appErrorKey` covers the new Convex codes (tested); `Button` gains a
+  `destructive` variant; i18n: `common.share`. No Convex file changed.
+- Local review: interactions are skipped (not just hidden) for members who are not
+  ready, since their queries would throw; the author check for the report entry
+  compares the contributor handle with the viewer's. Deviations from the web: the
+  share action is native text sharing instead of a PNG story card (needs
+  `react-native-view-shot`, a new native dependency); the contribution form
+  omits artwork, credits and listening links (planned with the studio forms in
+  M6). No dedicated fan tab: Account hosts the links (the Espace tab arrives
+  with the studio in M6).
+- Visual evidence: Expo web at 375 px, signed out, real community contribution:
+  lyrics, "Choose a passage" mode (raw sections, close button), interactions
+  sign-in prompt; `/contributions` shows the sign-in gate. Not verified: every
+  signed-in flow (no account creation on the dev deployment) — like, comment,
+  delete, report, saving a passage, notebook, liked list, contribution publish/
+  edit and duplicate warning, native share sheet, selection by touch on a real
+  device, keyboard avoidance.
+
+- **M6 — Artist studio.** New artist-only "Studio" tab (hidden with `href: null`
+  until `members.current` is a ready artist): catalogue counts, pending-drafts
+  hint, Songs/Albums switch, All/Drafts/Published filter, paginated rows with
+  status badge, edit and one-tap publish/unpublish. `studio-song` (create/edit:
+  title, artists, lyrics text, context, description, date, genre, label, credits,
+  listening links with provider chips and HTTPS check, artwork, save draft, save
+  and publish, publish/unpublish, delete with a confirmation sheet) and
+  `studio-album` (details, artwork, track list with up/down reorder through
+  `reorderAlbumTracks`, detach, attach an existing single, create a song for the
+  album, publish/unpublish, delete). Songs inside an album pass their
+  `albumContext` and hide the fields they inherit; new songs created for an album
+  inherit everything, attached singles keep their own metadata (same defaults as
+  the web). Image pipeline generalised to `pickImage(kind)` with an `artwork`
+  policy (1:1, 10 MB input, 1600 px, JPEG .85); `ArtworkField` runs
+  generate → upload → register → save. Pure form rules in `lib/studio-form.ts`
+  (tested), studio error codes added to the `appErrorKey` tests; i18n:
+  `catalogue.artworkAfterSave`. No Convex file changed.
+- Local review: the server resets a saved item to draft, so "Save draft" is the
+  only save label and the publish hint is shown next to it; `updateSong` always
+  receives the existing album context (omitting it would leave inherited values
+  stale); the studio routes are gated with `MemberGate role="artist"`.
+  Deviations from the web: no multi-step wizard (one scrolling form), up/down
+  buttons instead of drag-and-drop, no inline player or lyric-section tools;
+  inheritance toggles per field are not editable on mobile (the album decides).
+- Visual evidence: Expo web at 375 px, signed out: Studio tab absent, `/studio-song`
+  and `/studio-album` show the sign-in gate with the right header title. Not
+  verified: every signed-in studio flow (no account creation on the dev
+  deployment) — lists, create/update/delete, publish, artwork pick/crop/upload on
+  a device, track reorder/attach/detach, keyboard avoidance on the long forms.
+
+- **M7 — Moderation: deferred by decision.** Web parity was judged not
+  necessary: `/admin/community` and `/admin/comments` are desk tools for a few
+  administrators, they need an admin account to be exercised (none can be created
+  on the dev deployment, so nothing could be verified), and the backend already
+  exposes them to the web. Members who open such a path through a deep link get
+  the new "Page not found" screen. Revisit if administrators need to moderate
+  from a phone.
+- **M8 — Polish and verification.** Deep links: the `lyrx` scheme was already in
+  `app.json` and expo-router maps `lyrx://<web path>` to the native screens built
+  in M2–M6; `+not-found` handles unknown paths. Accessibility pass over every
+  `Pressable`: all carry a role and a label or visible text, icon buttons are
+  44 pt with a label, state is exposed on tabs, buttons and live notices (saved,
+  published); nothing needed changing beyond the studio screens written to the
+  same rules. `docs/development.md` documents deep links, the Studio tab and the
+  absence of mobile moderation. Local review of the whole branch: no Convex file
+  changed in M1–M8; secrets are never read from `.env*`; external links stay
+  HTTPS-only (`safeExternalUrl`); signed-in screens are gated by `MemberGate`.
+  Not verified (cumulative, all needing a real account or device): every
+  signed-in flow of M4–M6, native image picker and upload, share sheet, haptics,
+  keyboard avoidance on long forms, deep link opening from the OS, Universal/App
+  Links, screen reader behaviour (VoiceOver/TalkBack) and Dynamic Type.
+
+## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
+
+- Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this
+  step to email sign-in; Google on mobile stays deferred.
+- Backend: `convex/auth.ts` adds the `@better-auth/expo` plugin and trusts the
+  `lyrx://` scheme. Nothing else changes: email verification stays mandatory and
+  verification and reset emails keep their web links.
+- Mobile: `src/lib/auth-client.ts` creates the Better Auth client against the
+  deployment's `.convex.site` host (derived from `EXPO_PUBLIC_CONVEX_URL`), with
+  `expoClient` storing the session in `expo-secure-store` and `convexClient()`;
+  the root layout uses `ConvexBetterAuthProvider`, so public queries still work
+  while signed out. New "Compte" tab: sign in, sign up (name, email, 10+ char
+  password, verification notice), forgot password, then — once signed in — the
+  profile summary, verification resend, a hint to finish onboarding on the web,
+  and sign out.
+- Flow limits: the verification email opens in the phone browser and returns to
+  `lyrx://account`; the user then signs in in the app. Password reset finishes on
+  the web page. Onboarding (pseudo and role), interactions, notebook, sharing and
+  deep links are not built yet.
+- Not verified on a device or against a deployment: sign-up, email link, sign-in
+  and sign-out must be exercised with a real Convex deployment (see
+  `docs/development.md`).
+
+
 ## Web style polish — branch `feat/web-style-polish`
 
 Authorised in one go by the user (step 0 plus lots A, B, C, no approval between
@@ -214,7 +489,7 @@ choice and handle suggestion. Screens were checked at 390 px and 1280 px in a
 throwaway harness rendering the real components with mocked Convex data; live
 deployment flows were not exercised.
 
-## Lot 13 — Expo foundation (in progress)
+## Lot 13 — Expo foundation (complete)
 
 - Branch `codex/expo-foundation` starts at `main` (`ee54d21`). The user deferred
   mobile authentication, so this lot is a **read-only public** Expo app.

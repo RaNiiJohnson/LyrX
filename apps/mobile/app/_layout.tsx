@@ -1,14 +1,16 @@
-import { useEffect } from "react"
-import { ConvexProvider } from "convex/react"
+import { useEffect, useState } from "react"
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"
 import { useFonts } from "expo-font"
 import { Stack, type ErrorBoundaryProps } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import { StatusBar } from "expo-status-bar"
 import { Message, Screen } from "@/components/ui"
+import { providerAuthClient } from "@/lib/auth-client"
 import { convex } from "@/lib/convex"
 import { fontSources } from "@/lib/fonts"
-import { t } from "@/lib/i18n"
-import { fonts, useTheme } from "@/lib/theme"
+import { t, useLocale } from "@/lib/i18n"
+import { hydratePreferences } from "@/lib/preferences-store"
+import { fonts, useScheme, useTheme } from "@/lib/theme"
 
 void SplashScreen.preventAutoHideAsync()
 
@@ -26,8 +28,14 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 
 export default function RootLayout() {
   const theme = useTheme()
+  const scheme = useScheme()
+  const locale = useLocale()
   const [loaded, failed] = useFonts(fontSources)
-  const ready = loaded || failed !== null
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false)
+  useEffect(() => {
+    void hydratePreferences().then(() => setPreferencesLoaded(true))
+  }, [])
+  const ready = (loaded || failed !== null) && preferencesLoaded
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync()
   }, [ready])
@@ -42,9 +50,11 @@ export default function RootLayout() {
       </Screen>
     )
   return (
-    <ConvexProvider client={convex}>
-      <StatusBar style="auto" />
+    <ConvexBetterAuthProvider client={convex} authClient={providerAuthClient}>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       <Stack
+        // Strings come from a module-level `t`, so a language change re-mounts the tree.
+        key={locale}
         screenOptions={{
           headerStyle: { backgroundColor: theme.background },
           headerTintColor: theme.foreground,
@@ -54,9 +64,21 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="search" options={{ title: t("search.title") }} />
         <Stack.Screen name="songs/[id]" options={{ title: "" }} />
         <Stack.Screen name="community/[id]" options={{ title: "" }} />
+        <Stack.Screen name="albums/[id]" options={{ title: "" }} />
+        <Stack.Screen name="artists/[handle]" options={{ title: "" }} />
+        <Stack.Screen name="profiles/[handle]" options={{ title: "" }} />
+        <Stack.Screen
+          name="onboarding"
+          options={{ title: t("onboarding.create") }}
+        />
+        <Stack.Screen
+          name="profile-edit"
+          options={{ title: t("onboarding.alreadyEdit") }}
+        />
       </Stack>
-    </ConvexProvider>
+    </ConvexBetterAuthProvider>
   )
 }

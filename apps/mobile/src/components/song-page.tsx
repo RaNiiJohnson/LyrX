@@ -1,8 +1,15 @@
+import type { ReactNode } from "react"
 import { Linking, Pressable, Text, View } from "react-native"
-import { Stack } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useRouter } from "expo-router"
 import { Lyrics } from "@/components/lyrics"
+import { PassageLyrics } from "@/components/passage-lyrics"
+import {
+  SongInteractions,
+  type SongSourceId,
+} from "@/components/song-interactions"
 import { Badge, Cover, Eyebrow, Heading, Screen } from "@/components/ui"
-import { t } from "@/lib/i18n"
+import { currentLocale, t } from "@/lib/i18n"
 import { safeExternalUrl } from "@/lib/routes"
 import { fonts, radius, space, useTheme } from "@/lib/theme"
 
@@ -36,7 +43,7 @@ export function genreLabel(genre?: string, otherGenre?: string) {
 
 export function shortDate(date: number | undefined) {
   if (date === undefined) return undefined
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(currentLocale(), {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -51,23 +58,32 @@ export function SongPage({
   guestArtists = [],
   artworkUrl,
   badges = [],
+  album,
   context,
   links = [],
   lyricsText,
+  sourceId,
+  footer,
 }: {
   title: string
   primaryArtist: string
   guestArtists?: Array<string>
   artworkUrl: string | null
   badges?: Array<string>
+  /** Album the song belongs to; shown as a link to the album screen. */
+  album?: { id: string; title: string }
   context?: string
   links?: Array<{ provider: string; url: string }>
   lyricsText: string
+  /** Public source id; enables likes, comments, saving and sharing passages. */
+  sourceId?: SongSourceId
+  /** Extra content under the interactions, e.g. the report entry point. */
+  footer?: ReactNode
 }) {
   const theme = useTheme()
+  const router = useRouter()
   return (
     <Screen>
-      <Stack.Screen options={{ title }} />
       <View
         style={{ flexDirection: "row", gap: space.md, alignItems: "flex-end" }}
       >
@@ -95,6 +111,24 @@ export function SongPage({
             <Badge key={badge} label={badge} />
           ))}
         </View>
+      ) : null}
+      {album ? (
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push(`/albums/${album.id}`)}
+          style={({ pressed }) => ({
+            minHeight: 44,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: space.sm,
+            opacity: pressed ? 0.6 : 1,
+          })}
+        >
+          <Ionicons name="disc-outline" size={18} color={theme.brand} />
+          <Text style={{ color: theme.brand, fontFamily: fonts.sansSemibold }}>
+            {album.title}
+          </Text>
+        </Pressable>
       ) : null}
       {context ? (
         <Text
@@ -141,10 +175,21 @@ export function SongPage({
           })}
         </View>
       ) : null}
-      <View style={{ gap: space.md }}>
-        <Heading>{t("studio.lyrics")}</Heading>
-        <Lyrics text={lyricsText} />
-      </View>
+      {sourceId ? (
+        <PassageLyrics
+          sourceId={sourceId}
+          title={title}
+          primaryArtist={primaryArtist}
+          lyricsText={lyricsText}
+        />
+      ) : (
+        <View style={{ gap: space.md }}>
+          <Heading>{t("studio.lyrics")}</Heading>
+          <Lyrics text={lyricsText} />
+        </View>
+      )}
+      {sourceId ? <SongInteractions sourceId={sourceId} /> : null}
+      {footer}
     </Screen>
   )
 }

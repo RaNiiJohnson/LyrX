@@ -1,8 +1,9 @@
-import type { ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import {
   ActivityIndicator,
   Image,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -10,8 +11,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native"
-import { Link } from "expo-router"
-import { useTopBarInset } from "@/components/top-bar"
+import { useRouter } from "expo-router"
 import { t } from "@/lib/i18n"
 import { nativeHref } from "@/lib/routes"
 import { fonts, radius, space, useTheme, withAlpha } from "@/lib/theme"
@@ -21,25 +21,42 @@ export const GUTTER = space.md
 export function Screen({
   children,
   padded = true,
-  underTopBar = false,
+  onRefresh,
 }: {
   children: ReactNode
   padded?: boolean
-  /** Tab screens reserve room for the floating bar; the hero opts out and draws behind it. */
-  underTopBar?: boolean
+  /** Adds native pull-to-refresh; the spinner stays until the returned promise settles. */
+  onRefresh?: () => Promise<unknown> | void
 }) {
   const theme = useTheme()
-  const barInset = useTopBarInset()
+  const [refreshing, setRefreshing] = useState(false)
   return (
     <ScrollView
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={{
         paddingHorizontal: padded ? GUTTER : 0,
-        paddingTop: underTopBar ? barInset : padded ? space.md : 0,
+        paddingTop: padded ? space.md : 0,
         paddingBottom: space.xl,
         gap: space.xl,
       }}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      automaticallyAdjustKeyboardInsets
+      contentInsetAdjustmentBehavior="automatic"
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            tintColor={theme.mutedForeground}
+            onRefresh={() => {
+              setRefreshing(true)
+              Promise.resolve(onRefresh())
+                .catch(() => undefined)
+                .finally(() => setRefreshing(false))
+            }}
+          />
+        ) : undefined
+      }
     >
       {children}
     </ScrollView>
@@ -230,18 +247,18 @@ function NativeLink({
   style?: StyleProp<ViewStyle>
   children: ReactNode
 }) {
+  const router = useRouter()
   const target = nativeHref(href)
   if (!target) return <View style={[style, { opacity: 0.7 }]}>{children}</View>
   return (
-    <Link href={target} asChild>
-      <Pressable
-        accessibilityRole="link"
-        accessibilityLabel={label}
-        style={({ pressed }) => [style, { opacity: pressed ? 0.6 : 1 }]}
-      >
-        {children}
-      </Pressable>
-    </Link>
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={label}
+      onPress={() => router.push(target)}
+      style={({ pressed }) => [style, { opacity: pressed ? 0.6 : 1 }]}
+    >
+      {children}
+    </Pressable>
   )
 }
 
@@ -491,6 +508,45 @@ export function SongRow({
   )
 }
 
+/** List row for an artist: round avatar, name and handle with counts. */
+export function ArtistRow({
+  href,
+  avatarUrl,
+  name,
+  handle,
+  songCount,
+}: {
+  href: string
+  avatarUrl: string | null
+  name: string
+  handle: string
+  songCount: number
+}) {
+  const theme = useTheme()
+  return (
+    <NativeLink
+      href={href}
+      label={name}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: space.md,
+        paddingVertical: space.md,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.border,
+      }}
+    >
+      <Cover uri={avatarUrl} label={name} size={64} rounded={radius.pill} />
+      <View style={{ flex: 1 }}>
+        <CardText
+          title={name}
+          subtitle={`@${handle} · ${t("discovery.songsCount", { count: songCount })}`}
+        />
+      </View>
+    </NativeLink>
+  )
+}
+
 export function Section({
   title,
   description,
@@ -553,7 +609,7 @@ export function Message({
         padding: space.md,
         borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: theme.border,
+        borderColor: theme.outline,
         backgroundColor: theme.card,
       }}
     >
