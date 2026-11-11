@@ -23,3 +23,14 @@ describe("image policy", () => {
     expect(acceptableInput("avatar", undefined)).toBe(true)
   })
 })
+
+describe("artwork policy", () => {
+  it("caps the longest side at 1600 px and accepts up to 10 MB", () => {
+    expect(resizeFor("artwork", { width: 3200, height: 3200 })).toEqual({
+      width: 1600,
+    })
+    expect(resizeFor("artwork", { width: 1200, height: 1200 })).toBeNull()
+    expect(acceptableInput("artwork", 10 * 1024 * 1024)).toBe(true)
+    expect(acceptableInput("artwork", 10 * 1024 * 1024 + 1)).toBe(false)
+  })
+})

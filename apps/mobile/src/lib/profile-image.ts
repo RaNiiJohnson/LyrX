@@ -4,7 +4,7 @@ import {
   IMAGE_POLICIES,
   acceptableInput,
   resizeFor,
-  type ProfileImageKind,
+  type ImageKind,
 } from "@/lib/image-policy"
 
 export type PreparedImage = { uri: string; mimeType: "image/jpeg" }
@@ -18,13 +18,13 @@ export class InvalidImageError extends Error {
  * shape and re-encodes a bounded JPEG, so only the prepared file is ever uploaded.
  * Returns null when the member cancels.
  */
-export async function pickProfileImage(
-  kind: ProfileImageKind
+export async function pickImage(
+  kind: ImageKind
 ): Promise<PreparedImage | null> {
   const picked = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ["images"],
     allowsEditing: true,
-    aspect: kind === "avatar" ? [1, 1] : [3, 1],
+    aspect: kind === "banner" ? [3, 1] : [1, 1],
     quality: 1,
     exif: false,
   })

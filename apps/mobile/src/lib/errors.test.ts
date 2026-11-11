@@ -46,6 +46,17 @@ describe("appErrorKey", () => {
     expect(code("FAN_REQUIRED")).toBe("community.fanOnly")
   })
 
+  it("maps the artist studio codes", () => {
+    const code = (value: string) => appErrorKey({ data: { code: value } })
+    expect(code("ALBUM_NEEDS_PUBLISHED_TRACK")).toBe(
+      "error.albumNeedsPublishedTrack"
+    )
+    expect(code("SONG_ALREADY_IN_ALBUM")).toBe("error.songAlreadyInAlbum")
+    expect(code("INVALID_LYRICS")).toBe("error.invalidLyrics")
+    expect(code("INVALID_UPLOAD_INTENT")).toBe("error.invalidUploadIntent")
+    expect(code("ARTIST_ROLE_REQUIRED")).toBe("error.artistRoleRequired")
+  })
+
   it("falls back on auth and transport rules", () => {
     expect(appErrorKey({ code: "INVALID_PASSWORD" })).toBe(
       "error.invalidCredentials"

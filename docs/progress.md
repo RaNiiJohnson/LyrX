@@ -199,6 +199,36 @@ Baseline before work (merge of `origin/main` into the WIP): `pnpm check` green
   edit and duplicate warning, native share sheet, selection by touch on a real
   device, keyboard avoidance.
 
+- **M6 — Artist studio.** New artist-only "Studio" tab (hidden with `href: null`
+  until `members.current` is a ready artist): catalogue counts, pending-drafts
+  hint, Songs/Albums switch, All/Drafts/Published filter, paginated rows with
+  status badge, edit and one-tap publish/unpublish. `studio-song` (create/edit:
+  title, artists, lyrics text, context, description, date, genre, label, credits,
+  listening links with provider chips and HTTPS check, artwork, save draft, save
+  and publish, publish/unpublish, delete with a confirmation sheet) and
+  `studio-album` (details, artwork, track list with up/down reorder through
+  `reorderAlbumTracks`, detach, attach an existing single, create a song for the
+  album, publish/unpublish, delete). Songs inside an album pass their
+  `albumContext` and hide the fields they inherit; new songs created for an album
+  inherit everything, attached singles keep their own metadata (same defaults as
+  the web). Image pipeline generalised to `pickImage(kind)` with an `artwork`
+  policy (1:1, 10 MB input, 1600 px, JPEG .85); `ArtworkField` runs
+  generate → upload → register → save. Pure form rules in `lib/studio-form.ts`
+  (tested), studio error codes added to the `appErrorKey` tests; i18n:
+  `catalogue.artworkAfterSave`. No Convex file changed.
+- Local review: the server resets a saved item to draft, so "Save draft" is the
+  only save label and the publish hint is shown next to it; `updateSong` always
+  receives the existing album context (omitting it would leave inherited values
+  stale); the studio routes are gated with `MemberGate role="artist"`.
+  Deviations from the web: no multi-step wizard (one scrolling form), up/down
+  buttons instead of drag-and-drop, no inline player or lyric-section tools;
+  inheritance toggles per field are not editable on mobile (the album decides).
+- Visual evidence: Expo web at 375 px, signed out: Studio tab absent, `/studio-song`
+  and `/studio-album` show the sign-in gate with the right header title. Not
+  verified: every signed-in studio flow (no account creation on the dev
+  deployment) — lists, create/update/delete, publish, artwork pick/crop/upload on
+  a device, track reorder/attach/detach, keyboard avoidance on the long forms.
+
 ## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
 
 - Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this

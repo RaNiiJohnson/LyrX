@@ -362,6 +362,8 @@ const frenchMessages = {
   "catalogue.add": "Ajouter",
   "catalogue.artwork": "Pochette",
   "catalogue.artworkDescription": "JPEG, PNG ou WebP, 10 Mo maximum.",
+  "catalogue.artworkAfterSave":
+    "Enregistrez d’abord le brouillon pour ajouter une pochette.",
   "catalogue.editArtwork": "Modifier la pochette",
   "catalogue.addArtwork": "Ajouter une pochette",
   "catalogue.clearArtworkSelection": "Retirer la sélection",
@@ -1230,6 +1232,7 @@ const englishMessages = {
   "catalogue.add": "Add",
   "catalogue.artwork": "Artwork",
   "catalogue.artworkDescription": "JPEG, PNG, or WebP, up to 10 MB.",
+  "catalogue.artworkAfterSave": "Save the draft first to add artwork.",
   "catalogue.editArtwork": "Change artwork",
   "catalogue.addArtwork": "Add artwork",
   "catalogue.clearArtworkSelection": "Clear selection",

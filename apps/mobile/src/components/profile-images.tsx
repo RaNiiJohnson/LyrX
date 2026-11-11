@@ -10,7 +10,7 @@ import { t } from "@/lib/i18n"
 import type { ProfileImageKind } from "@/lib/image-policy"
 import {
   InvalidImageError,
-  pickProfileImage,
+  pickImage,
   uploadToStorage,
 } from "@/lib/profile-image"
 import { fonts, radius, space, useTheme } from "@/lib/theme"
@@ -39,7 +39,7 @@ function ImageSlot({
     setNotice(null)
     setPending(true)
     try {
-      const image = await pickProfileImage(kind)
+      const image = await pickImage(kind)
       if (!image) return
       const { uploadUrl, uploadIntentId } = await generateUploadUrl({ kind })
       const storageId = await uploadToStorage(image, uploadUrl)
