@@ -97,11 +97,14 @@ export function LinkButton({
 export function TextField({
   label,
   error,
+  hint,
   secure,
   ...input
 }: {
   label: string
   error?: string | null
+  /** Helper text under the field, hidden while an error is shown. */
+  hint?: string
   secure?: boolean
 } & Omit<ComponentProps<typeof TextInput>, "secureTextEntry" | "style">) {
   const theme = useTheme()
@@ -136,8 +139,10 @@ export function TextField({
           {...input}
           style={{
             flex: 1,
-            minHeight: 48,
+            minHeight: input.multiline ? 112 : 48,
             paddingHorizontal: space.md,
+            paddingVertical: input.multiline ? space.sm : 0,
+            textAlignVertical: input.multiline ? "top" : "center",
             color: theme.foreground,
             fontFamily: fonts.sans,
             fontSize: 16,
@@ -161,6 +166,17 @@ export function TextField({
           </Pressable>
         ) : null}
       </View>
+      {hint && !error ? (
+        <Text
+          style={{
+            color: theme.mutedForeground,
+            fontFamily: fonts.sans,
+            fontSize: 13,
+          }}
+        >
+          {hint}
+        </Text>
+      ) : null}
       {error ? (
         <Text
           accessibilityRole="alert"

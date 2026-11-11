@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react"
 import { View } from "react-native"
+import { useRouter } from "expo-router"
 import { useConvexAuth, useQuery } from "convex/react"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import { AuthPanel } from "@/components/auth-forms"
+import { DeleteAccount } from "@/components/delete-account"
 import { Button } from "@/components/form"
 import { PreferencesPanel } from "@/components/preferences"
 import {
@@ -72,6 +74,7 @@ function ResendVerification({ email }: { email?: string }) {
 }
 
 export default function AccountScreen() {
+  const router = useRouter()
   const { isLoading, isAuthenticated } = useConvexAuth()
   const current = useQuery(api.members.current, isAuthenticated ? {} : "skip")
   // The auth state blips to "loading" whenever the session refetches (after sign-up,
@@ -112,6 +115,23 @@ export default function AccountScreen() {
           <Body muted>
             {t("account.signedInAs", { name: current.profile.displayName })}
           </Body>
+          <View style={{ gap: space.sm, paddingTop: space.md }}>
+            <Button
+              label={t("onboarding.alreadyEdit")}
+              onPress={() => router.push("/profile-edit")}
+            />
+            <Button
+              variant="outline"
+              label={t("profile.viewPublic")}
+              onPress={() =>
+                router.push(
+                  current.member.role === "artist"
+                    ? `/artists/${current.profile.handle}`
+                    : `/profiles/${current.profile.handle}`
+                )
+              }
+            />
+          </View>
         </View>
       ) : current.state === "email-unverified" ? (
         <>
@@ -124,13 +144,22 @@ export default function AccountScreen() {
       ) : current.state === "suspended" ? (
         <Message title={t("error.accountSuspended")} />
       ) : (
-        <Message
-          title={t("onboarding.create")}
-          description={t("account.profileOnWeb")}
-        />
+        <>
+          <Message
+            title={t("onboarding.create")}
+            description={t("onboarding.description")}
+          />
+          <Button
+            label={t("onboarding.create")}
+            onPress={() => router.push("/onboarding")}
+          />
+        </>
       )}
       <PreferencesPanel />
       <SignOut />
+      {current.state === "ready" || current.state === "suspended" ? (
+        <DeleteAccount />
+      ) : null}
     </Screen>
   )
 }

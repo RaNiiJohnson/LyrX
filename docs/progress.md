@@ -136,6 +136,34 @@ Baseline before work (merge of `origin/main` into the WIP): `pnpm check` green
   (no fan account on the dev deployment), banner-less artist layout, native
   back gesture, real-device rendering.
 
+- **M4 — Account: onboarding, profile, deletion.** New `onboarding` screen (role
+  fan/artist, display name prefilled from the sign-up name, handle suggested from
+  the name until edited, bio, artist presentation, five social URLs, up to eight
+  custom links) calling `members.completeOnboarding`; new `profile-edit` screen
+  (`members.updateMyProfile`, avatar for everyone, banner for artists, "view public
+  profile"); account deletion on the Account tab (typed confirmation word, optional
+  password, `authClient.deleteUser`, success only when the endpoint answers
+  `User deleted`, re-authentication path). The Account tab now links to all three.
+  Image flow: system photo picker (no permission prompt), crop to 1:1 / 3:1,
+  `expo-image-manipulator` re-encodes a bounded JPEG (avatar 512 px / 5 MB, banner
+  1920 px / 10 MB, same limits as the web), then `generateProfileImageUploadUrl` →
+  POST → `saveProfileImage`. Pure rules live in `lib/profile-form.ts`,
+  `lib/image-policy.ts`, `lib/account-deletion.ts` and `appErrorKey` (Convex
+  `data.code` → message), all tested (40 mobile tests). `TextField` gains `hint`
+  and multiline; `Screen` adjusts for the iOS keyboard. i18n: `profile.pickImage`
+  (FR/EN). No Convex file changed.
+- Local review: `members.current` returns storage ids, not URLs, so the editor
+  reads avatar/banner URLs from `publicByHandle`; the public-profile button uses the
+  saved handle, not the one being typed; `storageId` is typed, not cast to `never`.
+- Visual evidence: Expo web at 375 px, signed out: onboarding guard
+  ("sign-in required"); a temporary preview route (removed) rendered the artist
+  fields, validation error, multiline, custom links and the deletion panel, where an
+  empty confirmation is refused locally with no network request. Not verified: any
+  signed-in flow (no account creation on the dev deployment) — onboarding with a real
+  account, profile save, real-device photo picker and crop, image upload to Convex
+  storage, account deletion and re-authentication, keyboard avoidance on iOS/Android,
+  SecureStore.
+
 ## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
 
 - Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this

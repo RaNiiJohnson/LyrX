@@ -676,6 +676,7 @@ const frenchMessages = {
   "profile.images": "Images du profil",
   "profile.imageUploading": "Préparation et envoi de l’image…",
   "profile.noCustomLinks": "Aucun lien personnalisé.",
+  "profile.pickImage": "Choisir une image",
   "profile.presentation": "Présentation",
   "profile.publicNotFoundDescription":
     "Ce profil n’existe pas ou n’est pas visible publiquement.",
@@ -1530,6 +1531,7 @@ const englishMessages = {
   "profile.images": "Profile images",
   "profile.imageUploading": "Preparing and uploading image…",
   "profile.noCustomLinks": "No custom links.",
+  "profile.pickImage": "Choose an image",
   "profile.presentation": "Introduction",
   "profile.publicNotFoundDescription":
     "This profile does not exist or is not publicly visible.",

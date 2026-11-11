@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { authErrorKey } from "./errors"
+import { appErrorKey, authErrorKey } from "./errors"
 
 describe("authErrorKey", () => {
   it("maps Better Auth codes to localized messages", () => {
@@ -24,5 +24,26 @@ describe("authErrorKey", () => {
       "error.unexpected"
     )
     expect(authErrorKey(undefined)).toBe("error.unexpected")
+  })
+})
+
+describe("appErrorKey", () => {
+  it("reads the code of a ConvexError payload", () => {
+    expect(appErrorKey({ data: { code: "HANDLE_TAKEN", message: "x" } })).toBe(
+      "error.handleTaken"
+    )
+    expect(appErrorKey({ data: { code: "TOO_MANY_CUSTOM_LINKS" } })).toBe(
+      "error.tooManyCustomLinks"
+    )
+  })
+
+  it("falls back on auth and transport rules", () => {
+    expect(appErrorKey({ code: "INVALID_PASSWORD" })).toBe(
+      "error.invalidCredentials"
+    )
+    expect(appErrorKey(new TypeError("Network request failed"))).toBe(
+      "error.network"
+    )
+    expect(appErrorKey(new Error("boom"))).toBe("error.unexpected")
   })
 })

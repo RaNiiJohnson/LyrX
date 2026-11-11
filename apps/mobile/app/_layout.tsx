@@ -70,6 +70,14 @@ export default function RootLayout() {
         <Stack.Screen name="albums/[id]" options={{ title: "" }} />
         <Stack.Screen name="artists/[handle]" options={{ title: "" }} />
         <Stack.Screen name="profiles/[handle]" options={{ title: "" }} />
+        <Stack.Screen
+          name="onboarding"
+          options={{ title: t("onboarding.create") }}
+        />
+        <Stack.Screen
+          name="profile-edit"
+          options={{ title: t("onboarding.alreadyEdit") }}
+        />
       </Stack>
     </ConvexBetterAuthProvider>
   )

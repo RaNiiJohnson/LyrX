@@ -41,6 +41,7 @@ export function Screen({
       }}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
+      automaticallyAdjustKeyboardInsets
       contentInsetAdjustmentBehavior="automatic"
       refreshControl={
         onRefresh ? (
