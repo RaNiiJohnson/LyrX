@@ -142,7 +142,7 @@ export function ProfileFields({
                   padding: space.md,
                   borderRadius: 16,
                   borderWidth: 1,
-                  borderColor: theme.border,
+                  borderColor: theme.outline,
                 }}
               >
                 <TextField

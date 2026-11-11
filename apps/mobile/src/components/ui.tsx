@@ -609,7 +609,7 @@ export function Message({
         padding: space.md,
         borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: theme.border,
+        borderColor: theme.outline,
         backgroundColor: theme.card,
       }}
     >

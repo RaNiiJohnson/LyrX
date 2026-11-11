@@ -221,7 +221,7 @@ export function ProfilePage({
                   gap: space.xs,
                   borderRadius: radius.pill,
                   borderWidth: 1,
-                  borderColor: theme.border,
+                  borderColor: theme.outline,
                 }}
               >
                 <Text

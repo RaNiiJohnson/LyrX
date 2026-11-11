@@ -200,7 +200,7 @@ function FilterSheet({
             justifyContent: "center",
             borderRadius: radius.pill,
             borderWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.outline,
           }}
         >
           <Text
@@ -281,7 +281,7 @@ export default function CatalogueScreen() {
               gap: space.xs,
               borderRadius: radius.pill,
               borderWidth: 1,
-              borderColor: count ? theme.primary : theme.border,
+              borderColor: count ? theme.primary : theme.outline,
               backgroundColor: theme.card,
             }}
           >

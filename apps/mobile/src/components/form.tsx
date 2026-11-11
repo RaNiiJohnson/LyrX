@@ -43,7 +43,7 @@ export function Button({
         gap: space.sm,
         borderRadius: radius.pill,
         borderWidth: filled ? 0 : 1,
-        borderColor: theme.border,
+        borderColor: theme.outline,
         backgroundColor: destructive
           ? theme.destructive
           : primary
@@ -136,7 +136,7 @@ export function TextField({
           alignItems: "center",
           borderRadius: radius.md,
           borderWidth: 1,
-          borderColor: error ? theme.destructive : theme.border,
+          borderColor: error ? theme.destructive : theme.outline,
           backgroundColor: theme.card,
         }}
       >

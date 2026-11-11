@@ -7,7 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native"
-import { Link } from "expo-router"
+import { useRouter } from "expo-router"
 import { Badge, Cover } from "@/components/ui"
 import { t } from "@/lib/i18n"
 import { nativeHref } from "@/lib/routes"
@@ -25,12 +25,13 @@ export type Release = {
 /** Dark "À découvrir" banner: blurred cover backdrop, serif title, pill action, swipeable. */
 export function Hero({ releases }: { releases: Array<Release> }) {
   const theme = useTheme()
+  const router = useRouter()
   const { width } = useWindowDimensions()
   const [active, setActive] = useState(0)
   if (!releases.length) return null
   const index = Math.min(active, releases.length - 1)
   const current = releases[index]!
-  const cover = Math.min(width * 0.62, 260)
+  const cover = Math.min(width * 0.5, 220)
   return (
     <View
       accessibilityRole="header"
@@ -75,7 +76,7 @@ export function Hero({ releases }: { releases: Array<Release> }) {
                 gap: space.md,
                 paddingHorizontal: space.lg,
                 paddingTop: space.lg,
-                paddingBottom: space.xl + space.md,
+                paddingBottom: space.xl + space.sm,
               }}
             >
               <View
@@ -95,7 +96,9 @@ export function Hero({ releases }: { releases: Array<Release> }) {
                   rounded={radius.xl}
                 />
               </View>
-              <Badge label={release.label} overlay />
+              <View style={{ alignSelf: "center" }}>
+                <Badge label={release.label} overlay />
+              </View>
               <Text
                 numberOfLines={3}
                 style={{
@@ -120,30 +123,30 @@ export function Hero({ releases }: { releases: Array<Release> }) {
                 {release.context}
               </Text>
               {target ? (
-                <Link href={target} asChild>
-                  <Pressable
-                    accessibilityRole="link"
-                    style={({ pressed }) => ({
-                      marginTop: space.sm,
-                      alignSelf: "stretch",
-                      alignItems: "center",
-                      paddingVertical: 14,
-                      borderRadius: radius.pill,
-                      backgroundColor: theme.heroForeground,
-                      opacity: pressed ? 0.8 : 1,
-                    })}
+                <Pressable
+                  accessibilityRole="link"
+                  onPress={() => router.push(target)}
+                  style={({ pressed }) => ({
+                    marginTop: space.sm,
+                    alignSelf: "stretch",
+                    alignItems: "center",
+                    minHeight: 52,
+                    justifyContent: "center",
+                    borderRadius: radius.pill,
+                    backgroundColor: theme.heroForeground,
+                    opacity: pressed ? 0.8 : 1,
+                  })}
+                >
+                  <Text
+                    style={{
+                      color: theme.brandForeground,
+                      fontFamily: fonts.sansSemibold,
+                      fontSize: 16,
+                    }}
                   >
-                    <Text
-                      style={{
-                        color: theme.brandForeground,
-                        fontFamily: fonts.sansSemibold,
-                        fontSize: 16,
-                      }}
-                    >
-                      {t("releases.open")}
-                    </Text>
-                  </Pressable>
-                </Link>
+                    {t("releases.open")}
+                  </Text>
+                </Pressable>
               ) : null}
             </View>
           )

@@ -73,7 +73,7 @@ export default function SearchScreen() {
                 minHeight: TOUCH + 4,
                 borderRadius: radius.pill,
                 borderWidth: 1,
-                borderColor: theme.border,
+                borderColor: theme.outline,
                 backgroundColor: theme.card,
                 paddingLeft: space.md,
               }}
@@ -128,7 +128,22 @@ export default function SearchScreen() {
         }
         ListEmptyComponent={
           status === "start" ? (
-            <Body muted>{t("search.start")}</Body>
+            <View
+              style={{
+                alignItems: "center",
+                gap: space.md,
+                paddingVertical: space.xl * 2,
+              }}
+            >
+              <Ionicons
+                name="musical-notes-outline"
+                size={44}
+                color={theme.mutedForeground}
+              />
+              <Body muted style={{ textAlign: "center" }}>
+                {t("search.start")}
+              </Body>
+            </View>
           ) : status === "invalid" ? (
             <Message title={t("search.invalid")} />
           ) : status === "loading" ? (

@@ -12,8 +12,17 @@ export function useScheme(): ThemeMode {
   return device === "dark" ? "dark" : "light"
 }
 
+/**
+ * Web tokens plus `outline`: a control/card border that stays visible on a phone screen.
+ * The shared `border` is a near-invisible hairline in dark mode, fine for list separators only.
+ */
+const THEMES = {
+  light: { ...THEME_TOKENS.light, outline: "#c4c4c4" },
+  dark: { ...THEME_TOKENS.dark, outline: "#3b3b3b" },
+} as const
+
 export function useTheme() {
-  return THEME_TOKENS[useScheme()]
+  return THEMES[useScheme()]
 }
 
 /** Hex colour with an alpha channel, for the translucent overlays the web builds with `/15`-style utilities. */

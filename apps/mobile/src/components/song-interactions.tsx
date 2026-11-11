@@ -100,7 +100,7 @@ function LikeButton({ sourceId }: { sourceId: SongSourceId }) {
           paddingHorizontal: space.md,
           borderRadius: radius.pill,
           borderWidth: 1,
-          borderColor: summary.liked ? theme.brand : theme.border,
+          borderColor: summary.liked ? theme.brand : theme.outline,
           backgroundColor: theme.card,
           opacity: pressed ? 0.7 : 1,
         })}
@@ -292,7 +292,7 @@ function CommentItem({
         padding: space.md,
         borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: theme.border,
+        borderColor: theme.outline,
         backgroundColor: theme.card,
       }}
     >

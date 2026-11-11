@@ -110,7 +110,7 @@ export function Segmented<T extends string>({
               borderRadius: radius.pill,
               backgroundColor: selected ? theme.card : "transparent",
               borderWidth: selected ? 1 : 0,
-              borderColor: theme.border,
+              borderColor: theme.outline,
             }}
           >
             <Text
@@ -161,7 +161,7 @@ export function Chip({
         gap: space.xs,
         borderRadius: radius.pill,
         borderWidth: 1,
-        borderColor: selected ? theme.primary : theme.border,
+        borderColor: selected ? theme.primary : theme.outline,
         backgroundColor: selected ? withAlpha(theme.primary, 0.12) : theme.card,
       }}
     >

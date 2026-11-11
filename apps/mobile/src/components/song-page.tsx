@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { Linking, Pressable, Text, View } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { Stack, useRouter } from "expo-router"
+import { useRouter } from "expo-router"
 import { Lyrics } from "@/components/lyrics"
 import { PassageLyrics } from "@/components/passage-lyrics"
 import {
@@ -84,7 +84,6 @@ export function SongPage({
   const router = useRouter()
   return (
     <Screen>
-      <Stack.Screen options={{ title }} />
       <View
         style={{ flexDirection: "row", gap: space.md, alignItems: "flex-end" }}
       >
