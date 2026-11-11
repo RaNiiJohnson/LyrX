@@ -48,11 +48,18 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.background,
           borderTopColor: theme.border,
-          height: 56 + bottomPadding,
-          paddingTop: 6,
+          height: 64 + bottomPadding,
+          paddingTop: 8,
           paddingBottom: bottomPadding,
         },
-        tabBarLabelStyle: { fontSize: 12, fontFamily: fonts.sansMedium },
+        tabBarItemStyle: { gap: 2 },
+        // Explicit lineHeight: "normal" collapses to ~11px on web and clips glyphs inside the overflow-hidden label.
+        tabBarLabelStyle: {
+          fontSize: 12,
+          lineHeight: 16,
+          fontFamily: fonts.sansMedium,
+        },
+        tabBarAllowFontScaling: false,
       }}
     >
       <Tabs.Screen
