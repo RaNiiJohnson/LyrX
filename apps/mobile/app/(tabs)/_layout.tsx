@@ -4,6 +4,7 @@ import { IconButton, type IconName } from "@/components/kit"
 import { t } from "@/lib/i18n"
 import { fonts, useTheme } from "@/lib/theme"
 import { Ionicons } from "@expo/vector-icons"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 function tabIcon(outline: IconName, filled: IconName) {
   return function TabIcon({ focused }: { focused: boolean }) {
@@ -21,6 +22,9 @@ function tabIcon(outline: IconName, filled: IconName) {
 export default function TabsLayout() {
   const theme = useTheme()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
+  // Explicit height: the default (49pt + inset) clips icon + label when the inset is 0, e.g. on web.
+  const bottomPadding = Math.max(insets.bottom, 8)
   return (
     <Tabs
       screenOptions={{
@@ -42,6 +46,9 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.background,
           borderTopColor: theme.border,
+          height: 56 + bottomPadding,
+          paddingTop: 6,
+          paddingBottom: bottomPadding,
         },
         tabBarLabelStyle: { fontSize: 12, fontFamily: fonts.sansMedium },
       }}
