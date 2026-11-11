@@ -2,6 +2,7 @@ import { useLocalSearchParams } from "expo-router"
 import { useQuery } from "convex/react"
 import { api } from "@lyrx/backend/convex/_generated/api"
 import type { Id } from "@lyrx/backend/convex/_generated/dataModel"
+import { ContributionReport } from "@/components/contribution-report"
 import { SongPage } from "@/components/song-page"
 import { Loading, Message, Screen } from "@/components/ui"
 import { t } from "@/lib/i18n"
@@ -33,6 +34,13 @@ export default function CommunityScreen() {
         contribution.contributor.displayName,
       ]}
       lyricsText={contribution.lyricsText}
+      sourceId={id as Id<"communityContributions">}
+      footer={
+        <ContributionReport
+          contributionId={id as Id<"communityContributions">}
+          authorHandle={contribution.contributor.handle}
+        />
+      }
     />
   )
 }

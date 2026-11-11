@@ -42,6 +42,7 @@ export default function SongScreen() {
       context={song.context}
       links={song.listeningLinks}
       lyricsText={detail.lyricsText}
+      sourceId={id as Id<"songs">}
     />
   )
 }

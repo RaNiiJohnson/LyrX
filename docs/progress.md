@@ -164,6 +164,41 @@ Baseline before work (merge of `origin/main` into the WIP): `pnpm check` green
   storage, account deletion and re-authentication, keyboard avoidance on iOS/Android,
   SecureStore.
 
+- **M5 — Fan space.** Song and community pages gain likes (optimistic toggle),
+  comments (composer, request id per submit, delete with a confirmation sheet,
+  report sheet with category and details), a "Choose a passage" mode and a native
+  text share. Passage selection works on lyric lines with raw UTF-16 offsets
+  (`lib/lyric-lines.ts`, tested), within the web's limits (360 chars / 10 lines
+  for sharing, 1000 chars for the notebook) and saves through
+  `notebook.passages` with `sourceText` equal to the current lyrics. New screens:
+  `liked` (liked songs), `notebook` (collections, rename/delete with passages
+  moved to the default one, move/remove passage, "lyrics changed" and
+  "unavailable" states), `contributions` (own list with moderation status,
+  edit/new), `contribution-edit` (create with the `findMatches` duplicate warning
+  shown once before "Publish my version", stable `requestId`; edit with
+  `expectedRevision` and `clearFlags`; pure rules in `lib/contribution-form.ts`,
+  tested) and a "Report this contribution" sheet on public contributions for
+  members other than the author. Members who are not ready see a sign-in notice
+  (`MemberGate`); the likes/comments/notebook backend functions need an active
+  member, contributions a fan. The Account tab links to all fan screens.
+  `appErrorKey` covers the new Convex codes (tested); `Button` gains a
+  `destructive` variant; i18n: `common.share`. No Convex file changed.
+- Local review: interactions are skipped (not just hidden) for members who are not
+  ready, since their queries would throw; the author check for the report entry
+  compares the contributor handle with the viewer's. Deviations from the web: the
+  share action is native text sharing instead of a PNG story card (needs
+  `react-native-view-shot`, a new native dependency); the contribution form
+  omits artwork, credits and listening links (planned with the studio forms in
+  M6). No dedicated fan tab: Account hosts the links (the Espace tab arrives
+  with the studio in M6).
+- Visual evidence: Expo web at 375 px, signed out, real community contribution:
+  lyrics, "Choose a passage" mode (raw sections, close button), interactions
+  sign-in prompt; `/contributions` shows the sign-in gate. Not verified: every
+  signed-in flow (no account creation on the dev deployment) — like, comment,
+  delete, report, saving a passage, notebook, liked list, contribution publish/
+  edit and duplicate warning, native share sheet, selection by touch on a real
+  device, keyboard avoidance.
+
 ## Lot 14 — Mobile email authentication (foundation, merged into the plan above)
 
 - Branch `codex/mobile-auth` starts at `main` (`def9498`). The user limited this

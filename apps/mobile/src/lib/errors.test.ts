@@ -37,6 +37,15 @@ describe("appErrorKey", () => {
     )
   })
 
+  it("maps the fan space codes", () => {
+    const code = (value: string) => appErrorKey({ data: { code: value } })
+    expect(code("SELF_REPORT_FORBIDDEN")).toBe("community.selfReportForbidden")
+    expect(code("REVISION_CONFLICT")).toBe("community.revisionConflict")
+    expect(code("NOTEBOOK_LIMIT")).toBe("notebook.limit")
+    expect(code("NOTEBOOK_SOURCE_CHANGED")).toBe("notebook.sourceChanged")
+    expect(code("FAN_REQUIRED")).toBe("community.fanOnly")
+  })
+
   it("falls back on auth and transport rules", () => {
     expect(appErrorKey({ code: "INVALID_PASSWORD" })).toBe(
       "error.invalidCredentials"

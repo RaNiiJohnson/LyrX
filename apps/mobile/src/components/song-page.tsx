@@ -1,7 +1,13 @@
+import type { ReactNode } from "react"
 import { Linking, Pressable, Text, View } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { Stack, useRouter } from "expo-router"
 import { Lyrics } from "@/components/lyrics"
+import { PassageLyrics } from "@/components/passage-lyrics"
+import {
+  SongInteractions,
+  type SongSourceId,
+} from "@/components/song-interactions"
 import { Badge, Cover, Eyebrow, Heading, Screen } from "@/components/ui"
 import { currentLocale, t } from "@/lib/i18n"
 import { safeExternalUrl } from "@/lib/routes"
@@ -56,6 +62,8 @@ export function SongPage({
   context,
   links = [],
   lyricsText,
+  sourceId,
+  footer,
 }: {
   title: string
   primaryArtist: string
@@ -67,6 +75,10 @@ export function SongPage({
   context?: string
   links?: Array<{ provider: string; url: string }>
   lyricsText: string
+  /** Public source id; enables likes, comments, saving and sharing passages. */
+  sourceId?: SongSourceId
+  /** Extra content under the interactions, e.g. the report entry point. */
+  footer?: ReactNode
 }) {
   const theme = useTheme()
   const router = useRouter()
@@ -164,10 +176,21 @@ export function SongPage({
           })}
         </View>
       ) : null}
-      <View style={{ gap: space.md }}>
-        <Heading>{t("studio.lyrics")}</Heading>
-        <Lyrics text={lyricsText} />
-      </View>
+      {sourceId ? (
+        <PassageLyrics
+          sourceId={sourceId}
+          title={title}
+          primaryArtist={primaryArtist}
+          lyricsText={lyricsText}
+        />
+      ) : (
+        <View style={{ gap: space.md }}>
+          <Heading>{t("studio.lyrics")}</Heading>
+          <Lyrics text={lyricsText} />
+        </View>
+      )}
+      {sourceId ? <SongInteractions sourceId={sourceId} /> : null}
+      {footer}
     </Screen>
   )
 }

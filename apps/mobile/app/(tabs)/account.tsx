@@ -132,6 +132,28 @@ export default function AccountScreen() {
               }
             />
           </View>
+          <View style={{ gap: space.sm }}>
+            {current.member.role === "fan" ? (
+              <Eyebrow>{t("navigation.fanTools")}</Eyebrow>
+            ) : null}
+            <Button
+              variant="outline"
+              label={t("interactions.likedSongs")}
+              onPress={() => router.push("/liked")}
+            />
+            <Button
+              variant="outline"
+              label={t("notebook.title")}
+              onPress={() => router.push("/notebook")}
+            />
+            {current.member.role === "fan" ? (
+              <Button
+                variant="outline"
+                label={t("community.mine")}
+                onPress={() => router.push("/contributions")}
+              />
+            ) : null}
+          </View>
         </View>
       ) : current.state === "email-unverified" ? (
         <>

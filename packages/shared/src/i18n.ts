@@ -185,6 +185,7 @@ const frenchMessages = {
   "releases.slide": "Aller au projet {{number}}",
 
   "common.close": "Fermer",
+  "common.share": "Partager",
   "discovery.artistsCount": "{{count}} artistes",
   "common.chooseImage": "Parcourir",
   "common.changeImage": "Changer l’image",
@@ -1055,6 +1056,7 @@ const englishMessages = {
   "releases.slide": "Go to release {{number}}",
 
   "common.close": "Close",
+  "common.share": "Share",
   "discovery.artistsCount": "{{count}} artists",
   "common.chooseImage": "Browse",
   "common.changeImage": "Change image",

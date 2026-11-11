@@ -21,10 +21,12 @@ export function Button({
   onPress: () => void
   loading?: boolean
   disabled?: boolean
-  variant?: "primary" | "outline"
+  variant?: "primary" | "outline" | "destructive"
 }) {
   const theme = useTheme()
   const primary = variant === "primary"
+  const destructive = variant === "destructive"
+  const filled = primary || destructive
   const inactive = disabled || loading
   return (
     <Pressable
@@ -40,20 +42,28 @@ export function Button({
         justifyContent: "center",
         gap: space.sm,
         borderRadius: radius.pill,
-        borderWidth: primary ? 0 : 1,
+        borderWidth: filled ? 0 : 1,
         borderColor: theme.border,
-        backgroundColor: primary ? theme.primary : "transparent",
+        backgroundColor: destructive
+          ? theme.destructive
+          : primary
+            ? theme.primary
+            : "transparent",
         opacity: inactive ? 0.55 : 1,
       }}
     >
       {loading ? (
         <ActivityIndicator
-          color={primary ? theme.primaryForeground : theme.foreground}
+          color={filled ? theme.primaryForeground : theme.foreground}
         />
       ) : null}
       <Text
         style={{
-          color: primary ? theme.primaryForeground : theme.foreground,
+          color: destructive
+            ? "#ffffff"
+            : primary
+              ? theme.primaryForeground
+              : theme.foreground,
           fontFamily: fonts.sansSemibold,
           fontSize: 16,
         }}
